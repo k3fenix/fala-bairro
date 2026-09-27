@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Image as ImageIcon, ChevronDown, Heart, ThumbsUp, ThumbsDown, MessageCircle, Megaphone, LogOut, User, Camera, X } from 'lucide-react';
+import { MapPin, Image as ImageIcon, ChevronDown, Heart, ThumbsUp, ThumbsDown, MessageCircle, Megaphone, LogOut, User, Camera, X, Share2, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Trash2, Send } from 'lucide-react';
@@ -73,6 +73,11 @@ export default function Feed() {
     if (data) {
       setPosts(data);
     }
+  };
+
+  const handleCopyInvite = () => {
+    navigator.clipboard.writeText('https://faladobairro.online/register');
+    alert('Link de convite copiado! Envie para seus vizinhos no WhatsApp.');
   };
 
   const handleLogout = async () => {
@@ -182,6 +187,9 @@ export default function Feed() {
             <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 pointer-events-none" />
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={handleCopyInvite} className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors border border-emerald-200">
+              <Share2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Convidar</span>
+            </button>
             <button onClick={() => setShowProfile(true)} className="flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors">
               <User className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Perfil</span>
             </button>

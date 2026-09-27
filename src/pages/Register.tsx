@@ -7,6 +7,7 @@ export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const validateEmail = (email: string) => {
@@ -63,6 +64,7 @@ export default function Register() {
           whatsapp: formData.whatsapp,
           neighborhood: formData.neighborhood,
           address: formData.address,
+          status: 'Pendente'
         }
       ]);
 
@@ -71,13 +73,9 @@ export default function Register() {
         console.error('Erro ao salvar perfil:', profileError);
       }
 
-      // 3. Complete login flow
-      localStorage.setItem('user_auth', 'true');
-      localStorage.setItem('user_name', formData.name);
-      localStorage.setItem('user_neighborhood', formData.neighborhood);
-      localStorage.setItem('user_avatar', avatar);
-      
-      navigate('/feed');
+      // Show success message instead of auto-login
+      setSuccess('Cadastro recebido! Seu acesso está pendente de aprovação pelo Administrador do bairro.');
+      setFormData({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
     }
     setLoading(false);
   };
@@ -91,6 +89,12 @@ export default function Register() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-xl mb-6 text-center font-medium">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm p-3 rounded-xl mb-6 text-center font-bold">
+            {success}
           </div>
         )}
 

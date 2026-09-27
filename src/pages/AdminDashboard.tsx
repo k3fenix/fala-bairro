@@ -169,8 +169,11 @@ function UsersTab() {
   };
 
   const handleToggleStatus = async (user: any) => {
-    const newStatus = user.status === 'Ativo' ? 'Bloqueado' : 'Ativo';
-    if (confirm(`Tem certeza que deseja mudar o status de ${user.name} para ${newStatus}?`)) {
+    const isPending = user.status === 'Pendente';
+    const newStatus = (user.status === 'Ativo' || isPending) ? (isPending ? 'Ativo' : 'Bloqueado') : 'Ativo';
+    const actionText = isPending ? 'aprovar' : (user.status === 'Ativo' ? 'bloquear' : 'liberar');
+    
+    if (confirm(`Tem certeza que deseja ${actionText} o usuário ${user.name}?`)) {
       await supabase.from('profiles').update({ status: newStatus }).eq('id', user.id);
       fetchUsers();
     }
@@ -212,11 +215,14 @@ function UsersTab() {
                 {user.status === 'Bloqueado' && (
                   <div className="absolute bottom-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full"></div>
                 )}
+                {user.status === 'Pendente' && (
+                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-amber-500 border-2 border-white rounded-full animate-pulse"></div>
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
                   <p className="font-bold text-slate-800 text-lg leading-none">{user.name}</p>
-                  <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${user.status === 'Ativo' ? 'bg-emerald-100/80 text-emerald-700' : 'bg-red-100/80 text-red-700'}`}>
+                  <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${user.status === 'Ativo' ? 'bg-emerald-100/80 text-emerald-700' : (user.status === 'Pendente' ? 'bg-amber-100/80 text-amber-700' : 'bg-red-100/80 text-red-700')}`}>
                     {user.status}
                   </span>
                 </div>
@@ -236,7 +242,7 @@ function UsersTab() {
                 <Edit className="w-4 h-4" /> Editar
               </button>
               <button onClick={() => handleToggleStatus(user)} className={`flex-1 md:flex-none flex justify-center items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 rounded-lg font-bold text-[13px] shadow-sm transition-all ${user.status === 'Ativo' ? 'text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'}`}>
-                <Ban className="w-4 h-4" /> {user.status === 'Ativo' ? 'Bloquear' : 'Liberar'}
+                {user.status === 'Pendente' ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />} {user.status === 'Pendente' ? 'Aprovar' : (user.status === 'Ativo' ? 'Bloquear' : 'Liberar')}
               </button>
               <button onClick={() => handleDeleteUser(user)} className="flex-1 md:flex-none flex justify-center items-center gap-1.5 px-4 py-2 bg-white text-red-600 hover:bg-red-50 hover:text-red-700 border border-slate-200 hover:border-red-200 rounded-lg font-bold text-[13px] shadow-sm transition-all">
                 <Trash2 className="w-4 h-4" /> Excluir

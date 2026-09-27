@@ -34,13 +34,26 @@ export default function Login() {
 
     if (data.user) {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
-      localStorage.setItem('user_auth', 'true');
       if (profile) {
+        if (profile.status === 'Pendente') {
+          setError('Sua conta está em análise. O administrador precisa aprovar seu cadastro.');
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+        if (profile.status === 'Bloqueado') {
+          setError('Sua conta foi bloqueada.');
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
+        localStorage.setItem('user_auth', 'true');
         localStorage.setItem('user_name', profile.name);
         if (profile.avatar) localStorage.setItem('user_avatar', profile.avatar);
         if (profile.neighborhood) localStorage.setItem('user_neighborhood', profile.neighborhood);
+        navigate('/feed');
       }
-      navigate('/feed');
     }
     setLoading(false);
   };
