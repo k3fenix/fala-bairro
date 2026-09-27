@@ -69,11 +69,11 @@ export default function Register() {
       ]);
 
       if (profileError) {
-        // If profile creation fails, we should ideally rollback or handle it better
-        console.error('Erro ao salvar perfil:', profileError);
+        setError(`Erro ao salvar perfil: ${profileError.message || JSON.stringify(profileError)}`);
+        setLoading(false);
+        return;
       }
 
-      // Show success message instead of auto-login
       setSuccess('Cadastro recebido! Seu acesso está pendente de aprovação pelo Administrador do bairro.');
       setFormData({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
     }
