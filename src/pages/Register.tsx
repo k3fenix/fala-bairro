@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, MapPin } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     return /\S+@\S+\.\S+/.test(email);
@@ -15,7 +17,7 @@ export default function Register() {
     return pwd.length >= 6; // Simple validation: at least 6 chars
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -32,28 +34,52 @@ export default function Register() {
       return;
     }
 
-    // Save user to a mock DB for admin to see
-    const newUser = {
-      id: Date.now(),
-      name: formData.name,
-      handle: `@${formData.name.toLowerCase().replace(/\s+/g, '')}`,
-      status: 'Ativo',
-      avatar: `https://i.pravatar.cc/150?u=${formData.name}`,
-      whatsapp: formData.whatsapp,
-      neighborhood: formData.neighborhood
-    };
+    setLoading(true);
     
-    const existingUsers = JSON.parse(localStorage.getItem('all_users') || '[]');
-    // Only add if not already in our mock DB to prevent duplicates on mock login
-    if (!existingUsers.find((u: any) => u.name === formData.name)) {
-      localStorage.setItem('all_users', JSON.stringify([...existingUsers, newUser]));
+    // 1. Sign up the user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (authError) {
+      setError('Erro ao criar conta. O e-mail já pode estar em uso.');
+      setLoading(false);
+      return;
     }
 
-    // Mock successful registration
-    localStorage.setItem('user_auth', 'true');
-    localStorage.setItem('user_name', formData.name);
-    localStorage.setItem('user_neighborhood', formData.neighborhood);
-    navigate('/feed');
+    if (authData.user) {
+      // 2. Create the user profile in our database
+      const handle = `@${formData.name.toLowerCase().replace(/\s+/g, '')}`;
+      const avatar = `https://i.pravatar.cc/150?u=${formData.name}`;
+
+      const { error: profileError } = await supabase.from('profiles').insert([
+        {
+          id: authData.user.id,
+          name: formData.name,
+          email: formData.email,
+          handle: handle,
+          avatar: avatar,
+          whatsapp: formData.whatsapp,
+          neighborhood: formData.neighborhood,
+          address: formData.address,
+        }
+      ]);
+
+      if (profileError) {
+        // If profile creation fails, we should ideally rollback or handle it better
+        console.error('Erro ao salvar perfil:', profileError);
+      }
+
+      // 3. Complete login flow
+      localStorage.setItem('user_auth', 'true');
+      localStorage.setItem('user_name', formData.name);
+      localStorage.setItem('user_neighborhood', formData.neighborhood);
+      localStorage.setItem('user_avatar', avatar);
+      
+      navigate('/feed');
+    }
+    setLoading(false);
   };
 
   return (
@@ -178,9 +204,10 @@ export default function Register() {
 
           <button 
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors mt-6 shadow-md shadow-blue-200"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 px-4 rounded-xl transition-colors mt-6 shadow-md shadow-blue-200"
           >
-            CADASTRAR
+            {loading ? 'CADASTRANDO...' : 'CADASTRAR'}
           </button>
         </form>
 

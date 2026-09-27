@@ -1,23 +1,48 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Mock successful login as long as there is an email and password
-    if (email && password) {
-      localStorage.setItem('user_auth', 'true');
-      navigate('/feed');
-    } else {
+    if (!email || !password) {
       setError('Por favor, preencha todos os campos.');
+      return;
     }
+
+    setLoading(true);
+    setError('');
+
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (signInError) {
+      setError('E-mail ou senha incorretos.');
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
+      localStorage.setItem('user_auth', 'true');
+      if (profile) {
+        localStorage.setItem('user_name', profile.name);
+        if (profile.avatar) localStorage.setItem('user_avatar', profile.avatar);
+        if (profile.neighborhood) localStorage.setItem('user_neighborhood', profile.neighborhood);
+      }
+      navigate('/feed');
+    }
+    setLoading(false);
   };
 
   return (
@@ -68,9 +93,10 @@ export default function Login() {
 
           <button 
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors mt-6 shadow-md shadow-blue-200"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 px-4 rounded-xl transition-colors mt-6 shadow-md shadow-blue-200"
           >
-            ENTRAR
+            {loading ? 'ENTRANDO...' : 'ENTRAR'}
           </button>
         </form>
 
