@@ -1,17 +1,44 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, MessageCircle, ArrowRight, Heart, Users, Zap, ShieldCheck } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Landing() {
+  const [config, setConfig] = useState({
+    bgImage: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80',
+    newsImg: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
+    newsMain: 'Reunião de Segurança Comunitária define novas regras',
+    newsSide1: 'Falta de Água na Rua 15 será resolvida amanhã',
+    newsSide2: 'Nova feira de rua aos domingos confirmada'
+  });
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('settings').select('*');
+    if (data) {
+      const getVal = (k: string) => data.find(s => s.key === k)?.value;
+      setConfig(prev => ({
+        bgImage: getVal('landing_bg_image') || prev.bgImage,
+        newsImg: getVal('landing_news_main_img') || prev.newsImg,
+        newsMain: getVal('landing_news_main_title') || prev.newsMain,
+        newsSide1: getVal('landing_news_side1_title') || prev.newsSide1,
+        newsSide2: getVal('landing_news_side2_title') || prev.newsSide2,
+      }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-200">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-blue-700 via-blue-600 to-indigo-800 text-white overflow-hidden pb-32">
-        {/* Animated Background Mesh */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
-          <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-blue-400/30 blur-[100px] animate-pulse"></div>
-          <div className="absolute top-[30%] -right-[20%] w-[60%] h-[60%] rounded-full bg-indigo-400/20 blur-[120px]"></div>
-          <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-cyan-400/20 blur-[100px]"></div>
-        </div>
+      <div className="relative text-white overflow-hidden pb-40">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('${config.bgImage}')` }}
+        ></div>
+        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px]"></div>
 
         <div className="max-w-5xl mx-auto px-6 pt-16 pb-12 relative z-10">
           {/* Header */}
@@ -19,7 +46,7 @@ export default function Landing() {
             <div className="bg-amber-400 p-2.5 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.4)]">
               <MessageCircle className="w-8 h-8 text-amber-950" />
             </div>
-            <h1 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
+            <h1 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
               FALA DO BAIRRO
             </h1>
           </div>
@@ -30,7 +57,7 @@ export default function Landing() {
               O que acontece no seu bairro, <br className="hidden md:block" />
               <span className="text-amber-400">a comunidade conta.</span>
             </h2>
-            <p className="text-blue-100 text-lg md:text-xl mb-12 leading-relaxed font-medium">
+            <p className="text-slate-200 text-lg md:text-xl mb-12 leading-relaxed font-medium">
               A primeira rede social exclusiva para vizinhos. Descubra notícias, compartilhe avisos e conecte-se com quem mora perto de você.
             </p>
 
@@ -48,45 +75,51 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Floating Mockup Section */}
-      <div className="max-w-4xl mx-auto px-6 -mt-24 relative z-20 mb-20">
-        <div className="bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-1.5 border border-slate-100/50 backdrop-blur-xl transform transition-transform hover:-translate-y-1 duration-500">
-          <div className="bg-slate-50 rounded-[1.75rem] p-6 md:p-8 border border-slate-100">
-            <div className="flex items-center gap-2 text-blue-600 font-bold mb-6">
-              <div className="bg-blue-600 shadow-md p-1.5 rounded-full text-white">
-                <MapPin className="w-4 h-4" />
-              </div>
-              <span className="text-sm uppercase tracking-widest font-black">Exemplo: Vila Rica</span>
-            </div>
+      {/* Central News Highlights */}
+      <div className="max-w-5xl mx-auto px-6 -mt-32 relative z-20 mb-20">
+        <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-2 border-2 border-amber-400 transform transition-transform hover:-translate-y-1 duration-500">
+          <div className="bg-slate-50 rounded-[1.5rem] p-4 md:p-6 overflow-hidden">
+            <h3 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2 tracking-tight">
+              <Zap className="w-6 h-6 text-amber-500" /> Últimas Notícias
+            </h3>
             
-            <div className="flex gap-4 mb-4">
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full p-0.5 shadow-md">
-                  <div className="w-full h-full bg-white rounded-full overflow-hidden border-2 border-white">
-                    <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="User" />
+            <div className="grid md:grid-cols-3 gap-4">
+              {/* Main News */}
+              <div className="md:col-span-2 relative rounded-2xl overflow-hidden group h-64 md:h-80 cursor-pointer shadow-md">
+                <img 
+                  src={config.newsImg} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  alt="Notícia Principal" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/40 to-transparent flex flex-col justify-end p-6">
+                  <span className="bg-blue-600 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-md w-fit mb-2 tracking-widest">Destaque</span>
+                  <h4 className="text-white text-2xl md:text-3xl font-bold leading-tight group-hover:text-amber-300 transition-colors">
+                    {config.newsMain}
+                  </h4>
+                </div>
+              </div>
+
+              {/* Side Floating News */}
+              <div className="flex flex-col gap-4">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col justify-center hover:border-amber-300 hover:shadow-md transition-all cursor-pointer group">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    <span className="text-xs font-bold text-red-600 uppercase tracking-wider">Aviso Urgente</span>
                   </div>
+                  <h5 className="text-slate-800 font-bold leading-tight group-hover:text-blue-600 transition-colors">
+                    {config.newsSide1}
+                  </h5>
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-white"></div>
-              </div>
-              <div className="pt-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-slate-800 text-lg leading-none">João Silva</p>
-                  <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full tracking-wide">Morador</span>
+                
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col justify-center hover:border-amber-300 hover:shadow-md transition-all cursor-pointer group">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Comunidade</span>
+                  </div>
+                  <h5 className="text-slate-800 font-bold leading-tight group-hover:text-blue-600 transition-colors">
+                    {config.newsSide2}
+                  </h5>
                 </div>
-                <p className="text-sm text-slate-500 mt-1 font-medium">@joaosilva • há 2 horas</p>
-              </div>
-            </div>
-
-            <p className="text-slate-700 text-[17px] leading-relaxed font-medium">
-              Pessoal, alguém sabe quando começa a reforma do muro do prédio na rua principal? Estão descarregando vários materiais na esquina desde cedo. Achei ótimo! 🏗️✨
-            </p>
-
-            <div className="mt-5 pt-4 border-t border-slate-200/60 flex items-center gap-6">
-              <div className="flex items-center gap-1.5 text-slate-500 font-semibold">
-                <Heart className="w-5 h-5 text-red-500 fill-red-500" /> 24
-              </div>
-              <div className="flex items-center gap-1.5 text-slate-500 font-semibold">
-                <MessageCircle className="w-5 h-5 text-blue-500" /> 5 respostas
               </div>
             </div>
           </div>

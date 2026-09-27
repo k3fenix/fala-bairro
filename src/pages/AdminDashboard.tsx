@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminDashboard() {
@@ -40,12 +40,14 @@ export default function AdminDashboard() {
           <TabButton icon={<AlertTriangle />} label="Visão Geral" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
           <TabButton icon={<Users />} label="Gerenciar Usuários" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
           <TabButton icon={<Megaphone />} label="Mural de Avisos" active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} />
+          <TabButton icon={<LayoutDashboard />} label="Capa do Site" active={activeTab === 'landing'} onClick={() => setActiveTab('landing')} />
         </div>
 
         <div className="flex-1 p-6 max-w-6xl">
           {activeTab === 'overview' && <OverviewTab />}
           {activeTab === 'users' && <UsersTab />}
           {activeTab === 'announcements' && <AnnouncementsTab />}
+          {activeTab === 'landing' && <LandingConfigTab />}
         </div>
       </div>
     </div>
@@ -334,5 +336,146 @@ function StatCard({ title, value, icon }: any) {
         <p className="text-2xl font-black text-slate-800">{value}</p>
       </div>
     </div>
+  );
+}
+
+function LandingConfigTab() {
+  const [config, setConfig] = useState({
+    bgImage: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80',
+    newsImg: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
+    newsMain: 'Reunião de Segurança Comunitária define novas regras',
+    newsSide1: 'Falta de Água na Rua 15 será resolvida amanhã',
+    newsSide2: 'Nova feira de rua aos domingos confirmada'
+  });
+
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('settings').select('*');
+    if (data) {
+      const getVal = (k: string) => data.find((s: any) => s.key === k)?.value;
+      setConfig(prev => ({
+        bgImage: getVal('landing_bg_image') || prev.bgImage,
+        newsImg: getVal('landing_news_main_img') || prev.newsImg,
+        newsMain: getVal('landing_news_main_title') || prev.newsMain,
+        newsSide1: getVal('landing_news_side1_title') || prev.newsSide1,
+        newsSide2: getVal('landing_news_side2_title') || prev.newsSide2,
+      }));
+    }
+  };
+
+  const handleChange = (e: any) => {
+    setConfig({ ...config, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const updates = [
+      { key: 'landing_bg_image', value: config.bgImage },
+      { key: 'landing_news_main_img', value: config.newsImg },
+      { key: 'landing_news_main_title', value: config.newsMain },
+      { key: 'landing_news_side1_title', value: config.newsSide1 },
+      { key: 'landing_news_side2_title', value: config.newsSide2 },
+    ];
+    
+    for (const update of updates) {
+      await supabase.from('settings').upsert(update, { onConflict: 'key' });
+    }
+    
+    setSaving(false);
+    alert('Configurações da Landing Page atualizadas com sucesso!');
+  };
+
+  return (
+    <>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Capa do Site</h2>
+        <button 
+          onClick={handleSave} 
+          disabled={saving}
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-sm"
+        >
+          <Save className="w-5 h-5" /> {saving ? 'Salvando...' : 'Salvar Alterações'}
+        </button>
+      </div>
+
+      <div className="grid gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Plano de Fundo</h3>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">URL da Imagem de Fundo (Colagem/Mosaico)</label>
+            <input 
+              type="text" 
+              name="bgImage"
+              value={config.bgImage}
+              onChange={handleChange}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              placeholder="https://exemplo.com/sua-imagem.jpg"
+            />
+            <p className="text-xs text-slate-500 mt-2">Dica: Use links diretos de imagens (.jpg, .png). O sistema aplicará um filtro escuro automaticamente sobre ela.</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Notícia em Destaque</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">URL da Imagem da Notícia</label>
+              <input 
+                type="text" 
+                name="newsImg"
+                value={config.newsImg}
+                onChange={handleChange}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Título da Notícia Principal</label>
+              <input 
+                type="text" 
+                name="newsMain"
+                value={config.newsMain}
+                onChange={handleChange}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Notícias Laterais (Textos)</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Título da Notícia Lateral 1 (Aviso Urgente)</label>
+              <input 
+                type="text" 
+                name="newsSide1"
+                value={config.newsSide1}
+                onChange={handleChange}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Título da Notícia Lateral 2 (Comunidade)</label>
+              <input 
+                type="text" 
+                name="newsSide2"
+                value={config.newsSide2}
+                onChange={handleChange}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
