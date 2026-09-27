@@ -83,9 +83,22 @@ function OverviewTab() {
     }
   };
 
-  const handleApprovePost = async (id: number) => {
-    await supabase.from('posts').update({ is_pending: false, is_approved: true }).eq('id', id);
-    alert('Postagem aprovada e enviada para o Feed.');
+  const handleApprovePost = async (id: number, currentCategory: string) => {
+    let finalCategory = currentCategory;
+    const isDenuncia = currentCategory.includes('Denúncia');
+    
+    // Pergunta se quer alterar a categoria para exibição
+    const newCat = prompt(`Defina a categoria final para ir para a página inicial (ex: Denúncia ou Postagem):\n(Deixe em branco para manter: ${currentCategory})`, currentCategory);
+    
+    if (newCat !== null && newCat.trim() !== '') {
+      finalCategory = newCat.trim();
+    } else if (newCat === null) {
+      // Cancelou a aprovação
+      return;
+    }
+
+    await supabase.from('posts').update({ is_pending: false, is_approved: true, category: finalCategory }).eq('id', id);
+    alert('Postagem aprovada e enviada para o Feed e Página Inicial.');
     fetchStats();
   };
 
@@ -95,8 +108,8 @@ function OverviewTab() {
     fetchStats();
   };
 
-  const denuncias = pendingPosts.filter(p => p.category === 'Denúncia');
-  const postagens = pendingPosts.filter(p => p.category === 'Postagem' || p.category === 'Geral');
+  const denuncias = pendingPosts.filter(p => p.category === 'Denúncia' || p.category.includes('Denúncia'));
+  const postagens = pendingPosts.filter(p => p.category !== 'Denúncia' && !p.category.includes('Denúncia'));
 
   return (
     <>
@@ -124,7 +137,7 @@ function OverviewTab() {
                 {post.image && <img src={post.image} alt="Denúncia" className="w-full h-32 object-cover rounded-lg mb-3" />}
                 <p className="text-[14px] text-slate-600 mb-3 bg-slate-50 p-3 rounded-lg border border-slate-100 font-medium">"{post.content}"</p>
                 <div className="flex gap-2">
-                  <button onClick={() => handleApprovePost(post.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg font-bold text-xs hover:bg-emerald-200 transition-colors">
+                  <button onClick={() => handleApprovePost(post.id, post.category)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg font-bold text-xs hover:bg-emerald-200 transition-colors">
                     <CheckCircle className="w-3.5 h-3.5" /> Aprovar
                   </button>
                   <button onClick={() => handleRejectPost(post.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg font-bold text-xs hover:bg-red-200 transition-colors">
@@ -148,11 +161,14 @@ function OverviewTab() {
               )}
               {postagens.map((post: any) => (
                 <div key={post.id} className="p-5">
-                  <p className="text-sm font-bold text-slate-800 mb-1">{post.author_name}</p>
+                  <div className="flex justify-between items-start mb-1">
+                    <p className="text-sm font-bold text-slate-800">{post.author_name}</p>
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{post.category}</span>
+                  </div>
                   {post.image && <img src={post.image} alt="Postagem" className="w-full h-32 object-cover rounded-lg mb-3" />}
                   <p className="text-[14px] text-slate-600 mb-3 bg-slate-50 p-3 rounded-lg border border-slate-100 font-medium">"{post.content}"</p>
                   <div className="flex gap-2">
-                    <button onClick={() => handleApprovePost(post.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg font-bold text-xs hover:bg-emerald-200 transition-colors">
+                    <button onClick={() => handleApprovePost(post.id, post.category)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg font-bold text-xs hover:bg-emerald-200 transition-colors">
                       <CheckCircle className="w-3.5 h-3.5" /> Aprovar
                     </button>
                     <button onClick={() => handleRejectPost(post.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg font-bold text-xs hover:bg-red-200 transition-colors">
