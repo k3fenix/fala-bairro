@@ -95,39 +95,62 @@ function OverviewTab() {
     fetchStats();
   };
 
+  const denuncias = pendingPosts.filter(p => p.category === 'Denúncia');
+  const postagens = pendingPosts.filter(p => p.category === 'Postagem' || p.category === 'Geral');
+
   return (
     <>
       <h2 className="text-2xl font-bold text-slate-800 mb-6">Visão Geral</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Usuários" value={totalUsers} icon={<Users className="w-6 h-6 text-blue-500" />} />
         <StatCard title="Publicações" value={totalPosts} icon={<FileText className="w-6 h-6 text-emerald-500" />} />
-        <StatCard title="Denúncias" value={0} icon={<AlertTriangle className="w-6 h-6 text-red-500" />} />
-        <StatCard title="Aprovações" value={pendingPosts.length} icon={<MessageSquare className="w-6 h-6 text-amber-500" />} />
+        <StatCard title="Denúncias" value={denuncias.length} icon={<AlertTriangle className="w-6 h-6 text-red-500" />} />
+        <StatCard title="Aprovações" value={postagens.length} icon={<MessageSquare className="w-6 h-6 text-amber-500" />} />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-fit">
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-            <h3 className="font-bold text-slate-700">Denúncias Recentes</h3>
+          <div className="px-6 py-4 border-b border-slate-100 bg-red-50 flex items-center justify-between">
+            <h3 className="font-bold text-red-800">Denúncias Pendentes</h3>
+            <span className="bg-red-200 text-red-800 text-xs font-bold px-2 py-1 rounded-full">{denuncias.length}</span>
           </div>
-          <div className="p-6 text-center text-slate-500 font-medium text-sm">
-            Nenhuma denúncia no momento. (Tudo real e sincronizado via nuvem agora).
+          <div className="divide-y divide-slate-100">
+            {denuncias.length === 0 && (
+              <div className="p-6 text-center text-slate-500 font-medium text-sm">Nenhuma denúncia pendente.</div>
+            )}
+            {denuncias.map((post: any) => (
+              <div key={post.id} className="p-5">
+                <p className="text-sm font-bold text-slate-800 mb-1">{post.author_name}</p>
+                {post.image && <img src={post.image} alt="Denúncia" className="w-full h-32 object-cover rounded-lg mb-3" />}
+                <p className="text-[14px] text-slate-600 mb-3 bg-slate-50 p-3 rounded-lg border border-slate-100 font-medium">"{post.content}"</p>
+                <div className="flex gap-2">
+                  <button onClick={() => handleApprovePost(post.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg font-bold text-xs hover:bg-emerald-200 transition-colors">
+                    <CheckCircle className="w-3.5 h-3.5" /> Aprovar
+                  </button>
+                  <button onClick={() => handleRejectPost(post.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg font-bold text-xs hover:bg-red-200 transition-colors">
+                    <XCircle className="w-3.5 h-3.5" /> Rejeitar
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 bg-amber-50">
+            <div className="px-6 py-4 border-b border-slate-100 bg-amber-50 flex items-center justify-between">
               <h3 className="font-bold text-amber-800">Postagens Pendentes</h3>
+              <span className="bg-amber-200 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">{postagens.length}</span>
             </div>
             <div className="divide-y divide-slate-100">
-              {pendingPosts.length === 0 && (
+              {postagens.length === 0 && (
                 <div className="p-6 text-center text-slate-500 font-medium text-sm">Nenhuma postagem pendente.</div>
               )}
-              {pendingPosts.map((post: any) => (
+              {postagens.map((post: any) => (
                 <div key={post.id} className="p-5">
                   <p className="text-sm font-bold text-slate-800 mb-1">{post.author_name}</p>
-                  <p className="text-[14px] text-slate-600 mb-3 bg-slate-50 p-2 rounded-lg italic">"{post.content}"</p>
+                  {post.image && <img src={post.image} alt="Postagem" className="w-full h-32 object-cover rounded-lg mb-3" />}
+                  <p className="text-[14px] text-slate-600 mb-3 bg-slate-50 p-3 rounded-lg border border-slate-100 font-medium">"{post.content}"</p>
                   <div className="flex gap-2">
                     <button onClick={() => handleApprovePost(post.id)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg font-bold text-xs hover:bg-emerald-200 transition-colors">
                       <CheckCircle className="w-3.5 h-3.5" /> Aprovar
@@ -148,6 +171,7 @@ function OverviewTab() {
 
 function UsersTab() {
   const [users, setUsers] = useState<any[]>([]);
+  const [editingUser, setEditingUser] = useState<any>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -162,10 +186,19 @@ function UsersTab() {
     alert(`Mensagem de aviso simulada enviada para o WhatsApp ${user.whatsapp || 'não cadastrado'} do usuário ${user.name}.`);
   };
 
-  const handleEditar = async (user: any) => {
-    const newName = prompt(`Digite o novo nome para ${user.name}:`, user.name);
-    if (newName && newName.trim()) {
-      await supabase.from('profiles').update({ name: newName }).eq('id', user.id);
+  const handleEditar = (user: any) => {
+    setEditingUser({ ...user });
+  };
+
+  const handleSaveEdit = async () => {
+    if (editingUser) {
+      await supabase.from('profiles').update({
+        name: editingUser.name,
+        neighborhood: editingUser.neighborhood,
+        address: editingUser.address,
+        whatsapp: editingUser.whatsapp,
+      }).eq('id', editingUser.id);
+      setEditingUser(null);
       fetchUsers();
     }
   };
@@ -254,6 +287,72 @@ function UsersTab() {
           </div>
         ))}
       </div>
+      
+
+      {editingUser && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h3 className="text-xl font-bold text-slate-800 mb-6">Editar Morador</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Nome Completo</label>
+                <input 
+                  type="text" 
+                  value={editingUser.name || ''}
+                  onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Bairro / Condomínio</label>
+                <input 
+                  type="text" 
+                  value={editingUser.neighborhood || ''}
+                  onChange={(e) => setEditingUser({...editingUser, neighborhood: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Endereço (Rua, Número)</label>
+                <input 
+                  type="text" 
+                  value={editingUser.address || ''}
+                  onChange={(e) => setEditingUser({...editingUser, address: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">WhatsApp</label>
+                <input 
+                  type="text" 
+                  value={editingUser.whatsapp || ''}
+                  onChange={(e) => setEditingUser({...editingUser, whatsapp: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button 
+                onClick={() => setEditingUser(null)}
+                className="flex-1 bg-slate-100 text-slate-600 px-4 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/30"
+              >
+                Salvar Alterações
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

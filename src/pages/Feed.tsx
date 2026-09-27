@@ -9,6 +9,7 @@ export default function Feed() {
   const [posts, setPosts] = useState<any[]>([]);
   const [activeFilter, setActiveFilter] = useState('Meu bairro');
   const [postContent, setPostContent] = useState('');
+  const [postCategory, setPostCategory] = useState('Postagem');
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
   const [globalAnnouncement, setGlobalAnnouncement] = useState('');
   
@@ -131,7 +132,7 @@ export default function Feed() {
           author_name: userName,
           author_avatar: userAvatar,
           handle: `@${userName.toLowerCase().replace(/\s+/g, '')}`,
-          category: "Geral",
+          category: postCategory,
           neighborhood: selectedNeighborhood,
           content: postContent,
           image: imgUrl,
@@ -299,21 +300,38 @@ export default function Feed() {
               </div>
             )}
 
-            <div className="flex justify-between items-center">
-              <div className="flex gap-4 text-slate-500">
-                <label className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+              <div className="flex items-center gap-3">
+                <label className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg border transition-colors ${postCategory === 'Postagem' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                  <input type="radio" name="category" value="Postagem" checked={postCategory === 'Postagem'} onChange={() => setPostCategory('Postagem')} className="hidden" />
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${postCategory === 'Postagem' ? 'border-blue-500' : 'border-slate-300'}`}>
+                    {postCategory === 'Postagem' && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+                  </div>
+                  <span className="text-sm font-bold">Postagem</span>
+                </label>
+                <label className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg border transition-colors ${postCategory === 'Denúncia' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                  <input type="radio" name="category" value="Denúncia" checked={postCategory === 'Denúncia'} onChange={() => setPostCategory('Denúncia')} className="hidden" />
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${postCategory === 'Denúncia' ? 'border-red-500' : 'border-slate-300'}`}>
+                    {postCategory === 'Denúncia' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
+                  </div>
+                  <span className="text-sm font-bold">Denúncia</span>
+                </label>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer text-slate-500">
                   <ImageIcon className="w-5 h-5" />
                   <span className="text-sm font-medium">Foto</span>
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && setSelectedMedia(e.target.files[0])} />
                 </label>
+                <button 
+                  onClick={handlePublish}
+                  disabled={!postContent.trim() && !selectedMedia}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  PUBLICAR
+                </button>
               </div>
-              <button 
-                onClick={handlePublish}
-                disabled={!postContent.trim() && !selectedMedia}
-                className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                PUBLICAR
-              </button>
             </div>
           </div>
         </div>
