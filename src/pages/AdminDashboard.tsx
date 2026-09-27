@@ -259,7 +259,7 @@ function UsersTab() {
 }
 
 function AnnouncementsTab() {
-  const [commentLimit, setCommentLimit] = useState('3');
+
   const [announcementText, setAnnouncementText] = useState('');
 
   const handleSaveAnnouncement = async () => {
@@ -297,29 +297,6 @@ function AnnouncementsTab() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 opacity-50">
-          <h3 className="font-bold text-slate-800 mb-2">Limite de Comentários</h3>
-          <p className="text-slate-600 mb-4 text-sm">Para evitar brigas, defina quantos comentários um usuário pode fazer por publicação.</p>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <input 
-              type="number" 
-              min="1"
-              value={commentLimit}
-              onChange={(e) => setCommentLimit(e.target.value)}
-              className="w-24 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg text-center"
-              disabled
-            />
-            <span className="text-slate-600 font-medium">comentários por pessoa</span>
-          </div>
-
-          <button 
-            disabled
-            className="w-full bg-slate-400 text-white px-4 py-2 rounded-lg font-bold transition-colors"
-          >
-            Em breve no Banco de Dados
-          </button>
-        </div>
       </div>
     </>
   );
