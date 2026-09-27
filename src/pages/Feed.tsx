@@ -26,7 +26,8 @@ export default function Feed() {
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(registeredNeighborhood);
 
   useEffect(() => {
-    if (localStorage.getItem('user_auth') !== 'true') {
+    const isImpersonating = !!localStorage.getItem('impersonatedUser');
+    if (!isImpersonating && localStorage.getItem('user_auth') !== 'true') {
       navigate('/');
       return;
     }
@@ -47,6 +48,21 @@ export default function Feed() {
   };
 
   const fetchUserData = async () => {
+    const impersonatedUserStr = localStorage.getItem('impersonatedUser');
+    if (impersonatedUserStr) {
+      const profile = JSON.parse(impersonatedUserStr);
+      setUserName(profile.name);
+      setUserAvatar(profile.avatar || `https://i.pravatar.cc/150?u=${profile.handle}`);
+      setEditName(profile.name);
+      if (profile.neighborhood) {
+        setSelectedNeighborhood(profile.neighborhood);
+        if (!allNeighborhoods.includes(profile.neighborhood)) {
+          setAllNeighborhoods(prev => [...prev, profile.neighborhood]);
+        }
+      }
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
@@ -82,6 +98,11 @@ export default function Feed() {
   };
 
   const handleLogout = async () => {
+    if (localStorage.getItem('impersonatedUser')) {
+      localStorage.removeItem('impersonatedUser');
+      navigate('/admin');
+      return;
+    }
     await supabase.auth.signOut();
     localStorage.removeItem('user_auth');
     localStorage.removeItem('user_name');
@@ -89,18 +110,26 @@ export default function Feed() {
   };
 
   const handleSaveProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from('profiles').update({
-        name: editName,
-        avatar: editAvatar,
-        handle: `@${editName.toLowerCase().replace(/\s+/g, '')}`
-      }).eq('id', user.id);
-      
-      setUserName(editName);
-      setUserAvatar(editAvatar);
-      localStorage.setItem('user_name', editName);
-      localStorage.setItem('user_avatar', editAvatar);
+    let currentUserId = '';
+    const impersonatedUserStr = localStorage.getItem('impersonatedUser');
+    if (impersonatedUserStr) {
+      currentUserId = JSON.parse(impersonatedUserStr).id;
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      currentUserId = user.id;
+    }
+
+    await supabase.from('profiles').update({
+      name: editName,
+      avatar: editAvatar,
+      handle: `@${editName.toLowerCase().replace(/\s+/g, '')}`
+    }).eq('id', currentUserId);
+    
+    setUserName(editName);
+    setUserAvatar(editAvatar);
+    localStorage.setItem('user_name', editName);
+    localStorage.setItem('user_avatar', editAvatar);
       
       setShowProfile(false);
       alert('Perfil atualizado com sucesso!');
@@ -123,12 +152,19 @@ export default function Feed() {
     if (!postContent.trim() && !selectedMedia) return;
     
     const createNewPost = async (imgUrl: string | null = null) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      let currentUserId = '';
+      const impersonatedUserStr = localStorage.getItem('impersonatedUser');
+      if (impersonatedUserStr) {
+        currentUserId = JSON.parse(impersonatedUserStr).id;
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        currentUserId = user.id;
+      }
       
       const { error } = await supabase.from('posts').insert([
         {
-          author_id: user.id,
+          author_id: currentUserId,
           author_name: userName,
           author_avatar: userAvatar,
           handle: `@${userName.toLowerCase().replace(/\s+/g, '')}`,
@@ -174,7 +210,14 @@ export default function Feed() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <div className="bg-white sticky top-0 z-40 shadow-sm px-4 pt-4 pb-3">
+      {!!localStorage.getItem('impersonatedUser') && (
+        <div className="bg-red-600 text-white text-xs font-bold text-center py-2 px-4 shadow-md sticky top-0 z-50 flex items-center justify-center gap-2">
+          <AlertTriangle className="w-4 h-4" /> 
+          Você está navegando como se fosse {userName}. (Acesso Admin)
+          <button onClick={handleLogout} className="ml-2 bg-black/20 hover:bg-black/40 px-3 py-1 rounded-full transition-colors">Sair / Voltar</button>
+        </div>
+      )}
+      <div className={`bg-white sticky ${!!localStorage.getItem('impersonatedUser') ? 'top-[32px]' : 'top-0'} z-40 shadow-sm px-4 pt-4 pb-3`}>
         <div className="flex justify-between items-center mb-3">
           <div className="relative flex items-center bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
             <MapPin className="w-4 h-4 text-blue-600 absolute left-3 pointer-events-none" />

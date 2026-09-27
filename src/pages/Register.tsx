@@ -39,7 +39,7 @@ export default function Register() {
     
     // 1. Sign up the user in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: formData.email,
+      email: formData.email.trim(),
       password: formData.password,
     });
 
@@ -54,11 +54,11 @@ export default function Register() {
       const handle = `@${formData.name.toLowerCase().replace(/\s+/g, '')}`;
       const avatar = `https://i.pravatar.cc/150?u=${formData.name}`;
 
-      const { error: profileError } = await supabase.from('profiles').insert([
+      const { error: profileError } = await supabase.from('profiles').upsert([
         {
           id: authData.user.id,
-          name: formData.name,
-          email: formData.email,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
           handle: handle,
           avatar: avatar,
           whatsapp: formData.whatsapp,
@@ -73,6 +73,9 @@ export default function Register() {
         setLoading(false);
         return;
       }
+
+      // Desloga o usuário recém-criado para não deixar a sessão ativa no navegador
+      await supabase.auth.signOut();
 
       setSuccess('Cadastro recebido! Seu acesso está pendente de aprovação pelo Administrador do bairro.');
       setFormData({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });

@@ -22,12 +22,18 @@ export default function Login() {
     setError('');
 
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password
     });
 
     if (signInError) {
-      setError('E-mail ou senha incorretos.');
+      if (signInError.message.includes('Invalid login credentials')) {
+        setError('E-mail ou senha incorretos.');
+      } else if (signInError.message.includes('Email not confirmed')) {
+        setError('E-mail não confirmado! (Aviso: O Supabase exige confirmação por padrão. Desative "Confirm Email" no painel do Supabase se desejar acesso direto).');
+      } else {
+        setError(`Erro: ${signInError.message}`);
+      }
       setLoading(false);
       return;
     }

@@ -170,8 +170,10 @@ function OverviewTab() {
 }
 
 function UsersTab() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
 
   useEffect(() => {
     fetchUsers();
@@ -204,9 +206,8 @@ function UsersTab() {
   };
 
   const handleToggleStatus = async (user: any) => {
-    const isPending = user.status === 'Pendente';
-    const newStatus = (user.status === 'Ativo' || isPending) ? (isPending ? 'Ativo' : 'Bloqueado') : 'Ativo';
-    const actionText = isPending ? 'aprovar' : (user.status === 'Ativo' ? 'bloquear' : 'liberar');
+    const newStatus = user.status === 'Ativo' ? 'Bloqueado' : 'Ativo';
+    const actionText = user.status === 'Ativo' ? 'bloquear' : 'liberar';
     
     if (confirm(`Tem certeza que deseja ${actionText} o usuário ${user.name}?`)) {
       await supabase.from('profiles').update({ status: newStatus }).eq('id', user.id);
@@ -217,8 +218,14 @@ function UsersTab() {
   const handleDeleteUser = async (user: any) => {
     if (confirm(`Atenção: Tem certeza que deseja excluir a conta de ${user.name} permanentemente?`)) {
       await supabase.from('profiles').delete().eq('id', user.id);
+      setSelectedUserId('');
       fetchUsers();
     }
+  };
+
+  const handleAcessarUsuario = (user: any) => {
+    localStorage.setItem('impersonatedUser', JSON.stringify(user));
+    navigate('/feed');
   };
 
   return (
@@ -230,18 +237,27 @@ function UsersTab() {
         </div>
       </div>
 
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+        <label className="block text-sm font-bold text-slate-700 mb-2">Selecione um usuário para administrar ou acessar:</label>
+        <select 
+          className="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 font-medium"
+          value={selectedUserId}
+          onChange={(e) => setSelectedUserId(e.target.value)}
+        >
+          <option value="">-- Selecione um usuário --</option>
+          {users.map(u => (
+            <option key={u.id} value={u.id}>{u.name} ({u.email || u.handle})</option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid gap-4">
-        {users.length === 0 && (
-          <div className="p-6 text-center text-slate-500 font-medium bg-white rounded-2xl border border-slate-200">
-            Nenhum usuário cadastrado.
-          </div>
-        )}
-        {users.map((user) => (
-          <div key={user.id} className="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 p-5 hover:shadow-[0_4px_20px_rgb(0,0,0,0.08)] transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        {selectedUserId && users.filter(u => u.id === selectedUserId).map((user) => (
+          <div key={user.id} className="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-blue-100 p-6 flex flex-col gap-6">
             
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="w-14 h-14 bg-slate-200 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-md">
+                <div className="w-16 h-16 bg-slate-200 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-md">
                   <img src={user.avatar || `https://i.pravatar.cc/150?u=${user.handle}`} alt={user.name} />
                 </div>
                 {user.status === 'Ativo' && (
@@ -255,31 +271,39 @@ function UsersTab() {
                 )}
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="font-bold text-slate-800 text-lg leading-none">{user.name}</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-bold text-slate-800 text-xl leading-none">{user.name}</p>
                   <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${user.status === 'Ativo' ? 'bg-emerald-100/80 text-emerald-700' : (user.status === 'Pendente' ? 'bg-amber-100/80 text-amber-700' : 'bg-red-100/80 text-red-700')}`}>
                     {user.status}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500 font-medium mb-1">{user.handle}</p>
-                <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>{user.whatsapp || 'N/A'}</span>
+                <p className="text-sm text-slate-500 font-medium mb-1">{user.handle} • {user.email}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-2 text-slate-600 text-sm">
+                  <div className="flex items-center gap-1 font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                    <MessageSquare className="w-4 h-4" /> {user.whatsapp || 'N/A'}
+                  </div>
+                  <div className="flex items-center gap-1 font-medium bg-slate-50 px-2 py-1 rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-slate-400" /> {user.neighborhood || 'Bairro não informado'}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto bg-slate-50/50 p-1.5 rounded-xl border border-slate-100">
-              <button onClick={() => handleAvisar(user)} className="flex-1 md:flex-none flex justify-center items-center gap-1.5 px-4 py-2 bg-white text-blue-600 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 hover:border-blue-200 rounded-lg font-bold text-[13px] shadow-sm transition-all">
-                <Send className="w-4 h-4" /> Avisar
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-slate-100">
+              <button onClick={() => handleAcessarUsuario(user)} className="col-span-2 sm:col-span-4 flex justify-center items-center gap-2 px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-bold shadow-lg shadow-blue-600/30 transition-all mb-2">
+                <LogOut className="w-5 h-5 rotate-180" /> Acessar Conta (Testar/Postar)
               </button>
-              <button onClick={() => handleEditar(user)} className="flex-1 md:flex-none flex justify-center items-center gap-1.5 px-4 py-2 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg font-bold text-[13px] shadow-sm transition-all">
+              
+              <button onClick={() => handleEditar(user)} className="flex justify-center items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl font-bold text-sm transition-all">
                 <Edit className="w-4 h-4" /> Editar
               </button>
-              <button onClick={() => handleToggleStatus(user)} className={`flex-1 md:flex-none flex justify-center items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 rounded-lg font-bold text-[13px] shadow-sm transition-all ${user.status === 'Ativo' ? 'text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'}`}>
-                {user.status === 'Pendente' ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />} {user.status === 'Pendente' ? 'Aprovar' : (user.status === 'Ativo' ? 'Bloquear' : 'Liberar')}
+              <button onClick={() => handleAvisar(user)} className="flex justify-center items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold text-sm transition-all">
+                <Send className="w-4 h-4" /> Avisar
               </button>
-              <button onClick={() => handleDeleteUser(user)} className="flex-1 md:flex-none flex justify-center items-center gap-1.5 px-4 py-2 bg-white text-red-600 hover:bg-red-50 hover:text-red-700 border border-slate-200 hover:border-red-200 rounded-lg font-bold text-[13px] shadow-sm transition-all">
+              <button onClick={() => handleToggleStatus(user)} className={`flex justify-center items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm transition-all ${user.status === 'Ativo' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}>
+                {user.status === 'Ativo' ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />} {user.status === 'Ativo' ? 'Bloquear' : 'Liberar'}
+              </button>
+              <button onClick={() => handleDeleteUser(user)} className="flex justify-center items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl font-bold text-sm transition-all">
                 <Trash2 className="w-4 h-4" /> Excluir
               </button>
             </div>
@@ -360,6 +384,22 @@ function UsersTab() {
 function AnnouncementsTab() {
 
   const [announcementText, setAnnouncementText] = useState('');
+  const [bannedWords, setBannedWords] = useState('');
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('settings').select('*');
+    if (data) {
+      const globalAviso = data.find((s: any) => s.key === 'global_announcement');
+      if (globalAviso) setAnnouncementText(globalAviso.value);
+      
+      const banned = data.find((s: any) => s.key === 'banned_words');
+      if (banned) setBannedWords(banned.value);
+    }
+  };
 
   const handleSaveAnnouncement = async () => {
     const { error } = await supabase.from('settings').upsert({
@@ -369,9 +409,21 @@ function AnnouncementsTab() {
     
     if (!error) {
       alert('Aviso Global publicado para todos os usuários com sucesso!');
-      setAnnouncementText('');
     } else {
       alert('Erro ao publicar aviso: ' + error.message);
+    }
+  };
+
+  const handleSaveBannedWords = async () => {
+    const { error } = await supabase.from('settings').upsert({
+      key: 'banned_words',
+      value: bannedWords
+    }, { onConflict: 'key' });
+    
+    if (!error) {
+      alert('Filtro de palavras atualizado com sucesso!');
+    } else {
+      alert('Erro ao atualizar filtro: ' + error.message);
     }
   };
 
@@ -380,7 +432,7 @@ function AnnouncementsTab() {
       <h2 className="text-2xl font-bold text-slate-800 mb-6">Mural e Configurações</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit">
           <h3 className="font-bold text-slate-800 mb-2">Aviso Global</h3>
           <p className="text-slate-600 mb-4 text-sm">Escreva um aviso que ficará fixado no topo do Feed.</p>
           <textarea 
@@ -396,6 +448,21 @@ function AnnouncementsTab() {
           </div>
         </div>
 
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit">
+          <h3 className="font-bold text-slate-800 mb-2">Filtro de Palavras Proibidas</h3>
+          <p className="text-slate-600 mb-4 text-sm">Para manter o respeito, defina palavras ofensivas separadas por vírgula. Postagens com elas serão barradas.</p>
+          <textarea 
+            value={bannedWords}
+            onChange={(e) => setBannedWords(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            placeholder="Ex: palavrão1, palavrão2, ofensa..."
+          ></textarea>
+          <div className="flex justify-end items-center">
+            <button onClick={handleSaveBannedWords} className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors text-sm">
+              <Save className="w-4 h-4" /> Salvar Filtro
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );
