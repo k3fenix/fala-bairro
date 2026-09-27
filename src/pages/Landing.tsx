@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 
 export default function Landing() {
   const [config, setConfig] = useState({
-    bgImage: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80',
+    bgImage: '/imagens-da-noticias/design-sem-nome-5-.avif',
     newsImg: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
     newsMain: 'Reunião de Segurança Comunitária define novas regras',
     newsSide1: 'Falta de Água na Rua 15 será resolvida amanhã',
