@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, Lock, User, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Register() {
-  const navigate = useNavigate();
+  // navigate is no longer used for auto-login
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -44,7 +44,7 @@ export default function Register() {
     });
 
     if (authError) {
-      setError('Erro ao criar conta. O e-mail já pode estar em uso.');
+      setError(`Erro ao criar conta: ${authError.message}`);
       setLoading(false);
       return;
     }
