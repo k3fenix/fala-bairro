@@ -20,15 +20,16 @@ export default function Landing() {
   }, []);
 
   const fetchPublicPosts = async () => {
-    const { data } = await supabase
+    // Busca os posts sem filtro SQL para evitar problemas de cache/tipagem de booleanos
+    const { data, error } = await supabase
       .from('posts')
       .select('*')
-      .eq('is_approved', true)
-      .order('created_at', { ascending: false })
-      .limit(6);
+      .order('created_at', { ascending: false });
       
     if (data) {
-      setPublicPosts(data);
+      // Filtra no JavaScript
+      const approved = data.filter(p => p.is_approved === true || String(p.is_approved) === 'true').slice(0, 6);
+      setPublicPosts(approved);
     }
   };
 
