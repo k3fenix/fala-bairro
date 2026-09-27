@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -12,9 +12,25 @@ export default function Landing() {
     newsSide2: 'Nova feira de rua aos domingos confirmada'
   });
 
+  const [publicPosts, setPublicPosts] = useState<any[]>([]);
+
   useEffect(() => {
     fetchSettings();
+    fetchPublicPosts();
   }, []);
+
+  const fetchPublicPosts = async () => {
+    const { data } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('is_approved', true)
+      .order('created_at', { ascending: false })
+      .limit(6);
+      
+    if (data) {
+      setPublicPosts(data);
+    }
+  };
 
   const fetchSettings = async () => {
     const { data } = await supabase.from('settings').select('*');
@@ -149,6 +165,73 @@ export default function Landing() {
           ))}
         </div>
       </div>
+
+      {/* Public Mural Section */}
+      {publicPosts.length > 0 && (
+        <div className="bg-slate-900 py-24 border-t border-slate-800">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="flex flex-col items-center text-center mb-16">
+              <span className="bg-blue-600/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-blue-500/30">
+                Portfólio da Comunidade
+              </span>
+              <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+                Mural Público do Bairro
+              </h3>
+              <p className="text-slate-400 font-medium max-w-xl mx-auto">
+                Acompanhe as principais contribuições, denúncias resolvidas e momentos compartilhados pelos moradores.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {publicPosts.map((post) => (
+                <div key={post.id} className="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 hover:border-blue-500/50 transition-colors group flex flex-col h-full shadow-xl">
+                  {post.image ? (
+                    <div className="h-48 overflow-hidden relative">
+                      <img src={post.image} alt="Post" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
+                        <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                        <span className="text-xs font-bold text-white">{post.neighborhood}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-32 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center relative overflow-hidden">
+                      <ImageIcon className="w-12 h-12 text-slate-600/50" />
+                      <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
+                        <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                        <span className="text-xs font-bold text-white">{post.neighborhood}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 mb-4">
+                      <img src={post.author_avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-slate-600" />
+                      <div>
+                        <p className="text-white font-bold text-sm leading-tight">{post.author_name}</p>
+                        <p className="text-slate-400 text-xs">{post.handle}</p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
+                      {post.content.length > 120 ? post.content.substring(0, 120) + '...' : post.content}
+                    </p>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 mt-auto">
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <Heart className="w-4 h-4 text-red-400" />
+                        <span className="text-xs font-bold">{post.likes || 0}</span>
+                      </div>
+                      <span className="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded-md">
+                        {post.category}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
