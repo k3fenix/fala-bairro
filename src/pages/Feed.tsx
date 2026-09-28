@@ -363,8 +363,8 @@ export default function Feed() {
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer text-slate-500">
                   <ImageIcon className="w-5 h-5" />
-                  <span className="text-sm font-medium">Foto</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && setSelectedMedia(e.target.files[0])} />
+                  <span className="text-sm font-medium">Foto/Vídeo</span>
+                  <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => e.target.files && setSelectedMedia(e.target.files[0])} />
                 </label>
                 <button 
                   onClick={handlePublish}
@@ -517,12 +517,20 @@ function PostCard({ post }: { post: any }) {
       </p>
 
       {post.image && (
-        <div className="w-full bg-slate-100 rounded-xl mb-4 overflow-hidden max-h-80 relative">
-          <img 
-            src={post.image} 
-            alt="Post content"
-            className="w-full h-full object-cover"
-          />
+        <div className="w-full bg-slate-100 rounded-xl mb-4 overflow-hidden max-h-96 relative">
+          {post.image.startsWith('data:video/') || post.image.match(/\.(mp4|webm|mov)$/i) ? (
+            <video 
+              src={post.image} 
+              controls 
+              className="w-full h-full object-contain bg-black"
+            />
+          ) : (
+            <img 
+              src={post.image} 
+              alt="Post content"
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
       )}
 
