@@ -67,7 +67,7 @@ export default function Landing() {
       {/* Hero Section */}
       <div className="relative text-white overflow-hidden pb-32">
         {/* Top Navigation Menu */}
-        <nav className="absolute top-0 left-0 right-0 z-50 border-b border-white/10 bg-slate-900/40 backdrop-blur-md">
+        <nav className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10 bg-slate-900/90 backdrop-blur-md shadow-lg transition-all duration-300">
           <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-6 h-6 text-amber-400" />
@@ -206,8 +206,8 @@ export default function Landing() {
               <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
                 Mural Público do Bairro
               </h3>
-              <p className="text-slate-400 font-medium max-w-xl mx-auto">
-                Acompanhe as principais contribuições, denúncias resolvidas e momentos compartilhados pelos moradores.
+              <p className="text-slate-400 font-medium max-w-xl mx-auto text-lg leading-relaxed">
+                Aqui você pode se cadastrar, fazer suas próprias postagens, enviar denúncias e interagir com toda a comunidade em tempo real.
               </p>
             </div>
 
