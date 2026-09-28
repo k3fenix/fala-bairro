@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -84,7 +84,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-200">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-200 pb-20 md:pb-0">
       {/* Hero Section */}
       <div className="relative text-white overflow-hidden pb-32">
         {/* Top Navigation Menu */}
@@ -343,6 +343,18 @@ export default function Landing() {
               <ArrowLeft className="w-5 h-5" />
               Voltar
             </button>
+
+            <button 
+              onClick={() => {
+                const url = encodeURIComponent(window.location.href);
+                const text = encodeURIComponent(`Veja essa notícia no Fala do Bairro: ${selectedNews.title}`);
+                window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+              }}
+              className="fixed bottom-6 right-6 md:top-6 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
+            >
+              <Share2 className="w-5 h-5" />
+              <span className="hidden sm:inline">Compartilhar</span>
+            </button>
             
             <div className="w-full h-[50vh] md:h-[65vh] relative">
               {selectedNews.image ? (
@@ -372,6 +384,27 @@ export default function Landing() {
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center h-16 z-[90] pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+        <a href="#" className="flex flex-col items-center justify-center w-full h-full text-blue-600">
+          <Home className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold tracking-wide">Início</span>
+        </a>
+        <a href="#noticias" className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-blue-600 transition-colors">
+          <Newspaper className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold tracking-wide">Notícias</span>
+        </a>
+        <a href="#mural" className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-blue-600 transition-colors">
+          <Megaphone className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold tracking-wide">Mural</span>
+        </a>
+        <Link to="/login" className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-blue-600 transition-colors">
+          <Store className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold tracking-wide">Guia Local</span>
+        </Link>
+      </div>
+
     </div>
   );
 }
