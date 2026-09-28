@@ -16,11 +16,13 @@ export default function Landing() {
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [selectedPet, setSelectedPet] = useState<any>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
   const [adoptionPets, setAdoptionPets] = useState<any[]>([]);
+  const [allPets, setAllPets] = useState<any[]>([]);
 
   useEffect(() => {
     fetchSettings();
@@ -32,6 +34,7 @@ export default function Landing() {
   const fetchLostPets = async () => {
     const { data } = await supabase.from('lost_pets').select('*');
     if (data) {
+      setAllPets(data);
       setLostPets(data.filter(p => p.status === 'Perdido'));
       setAdoptionPets(data.filter(p => p.status === 'Adoção'));
     }
@@ -104,14 +107,34 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-200 pb-20 md:pb-0 pt-10">
-      {/* Status Bar */}
-      <div className="fixed top-0 left-0 right-0 bg-emerald-600 text-white text-xs md:text-sm font-bold py-2.5 px-6 text-center shadow-md z-[120] flex items-center justify-center gap-2">
-        <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-        </span>
-        Útil: Farmácia de plantão hoje no Centro | Coleta de lixo reciclável amanhã cedo.
-      </div>
+      {/* Pets Marquee Banner */}
+      {allPets.length > 0 ? (
+        <div className="fixed top-0 left-0 right-0 bg-slate-900 text-white text-xs md:text-sm shadow-md z-[120] flex items-center overflow-hidden h-10 border-b border-white/10">
+          <div className="flex animate-marquee whitespace-nowrap min-w-full hover:[animation-play-state:paused]">
+            {[...allPets, ...allPets, ...allPets, ...allPets, ...allPets].map((pet, idx) => (
+              <div 
+                key={`${pet.id}-${idx}`} 
+                onClick={() => setSelectedPet(pet)}
+                className="flex items-center gap-2 mx-6 cursor-pointer hover:bg-white/5 px-3 py-1 rounded-full transition-colors"
+              >
+                {pet.image && <img src={pet.image} alt={pet.pet_name} className="w-6 h-6 rounded-full object-cover border border-white/20" />}
+                <span className="text-white font-bold">{pet.pet_name}</span>
+                {pet.status === 'Encontrado' || pet.status === 'Achado' ? (
+                  <span className="text-emerald-400 bg-emerald-400/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Achado</span>
+                ) : pet.status === 'Perdido' ? (
+                  <span className="text-rose-400 bg-rose-400/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Perdido</span>
+                ) : (
+                  <span className="text-blue-400 bg-blue-400/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">{pet.status}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="fixed top-0 left-0 right-0 bg-slate-900 text-white text-xs md:text-sm font-bold py-2.5 px-6 text-center shadow-md z-[120] h-10 border-b border-white/10">
+          Carregando informações...
+        </div>
+      )}
 
       {/* Hero Section */}
       <div className="relative text-white overflow-hidden pb-32">
@@ -391,11 +414,24 @@ export default function Landing() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {commercialGuide.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all flex flex-col h-full">
+                <div 
+                  key={item.id} 
+                  onClick={() => setSelectedBusiness(item)}
+                  className="bg-white rounded-2xl p-6 border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all flex flex-col h-full cursor-pointer"
+                >
                   <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h4 className="text-lg font-black text-slate-800 leading-tight">{item.name}</h4>
-                      <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded mt-1 inline-block">{item.category}</span>
+                    <div className="flex gap-4 items-center">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover border border-slate-200" />
+                      ) : (
+                        <div className="w-16 h-16 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100 text-emerald-500">
+                          <Store className="w-8 h-8" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="text-lg font-black text-slate-800 leading-tight">{item.name}</h4>
+                        <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded mt-1 inline-block">{item.category}</span>
+                      </div>
                     </div>
                     {item.is_verified && (
                       <div className="bg-blue-50 text-blue-600 p-1.5 rounded-full" title="Verificado pela Comunidade">
@@ -403,7 +439,7 @@ export default function Landing() {
                       </div>
                     )}
                   </div>
-                  <p className="text-slate-600 text-sm mb-6 flex-1">{item.description}</p>
+                  <p className="text-slate-600 text-sm mb-6 flex-1 line-clamp-3">{item.description}</p>
                   
                   <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
                     <div className="flex items-center gap-1 text-amber-400">
@@ -681,6 +717,69 @@ export default function Landing() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Selected Business Modal */}
+      {selectedBusiness && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedBusiness(null)}>
+          <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSelectedBusiness(null)} className="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-md transition-colors z-10">
+              <X className="w-5 h-5" />
+            </button>
+            <div className="w-full bg-slate-100 flex items-center justify-center relative p-8">
+              {selectedBusiness.image ? (
+                <img src={selectedBusiness.image} alt={selectedBusiness.name} className="w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-white" />
+              ) : (
+                <div className="w-32 h-32 bg-emerald-100 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white text-emerald-500">
+                  <Store className="w-16 h-16" />
+                </div>
+              )}
+            </div>
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-2xl font-black text-slate-800 leading-tight">{selectedBusiness.name}</h3>
+                  <span className="text-sm font-bold text-slate-500">{selectedBusiness.category}</span>
+                </div>
+                {selectedBusiness.is_verified && (
+                  <div className="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3" /> Verificado
+                  </div>
+                )}
+              </div>
+              <p className="text-slate-600 mb-6">{selectedBusiness.description}</p>
+              
+              {(localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('user_whatsapp') === selectedBusiness.whatsapp) && (
+                <div className="flex gap-2 mb-6 border-b border-slate-100 pb-4">
+                  <button 
+                    onClick={async () => {
+                       if (confirm('Tem certeza que deseja excluir esta empresa?')) {
+                         await supabase.from('commercial_guide').delete().eq('id', selectedBusiness.id);
+                         alert('Empresa excluída com sucesso!');
+                         setSelectedBusiness(null);
+                         fetchCommercialGuide();
+                       }
+                    }}
+                    className="flex-1 bg-red-50 text-red-600 font-bold py-2 rounded-xl border border-red-100 hover:bg-red-100 text-sm"
+                  >
+                    Excluir Empresa
+                  </button>
+                </div>
+              )}
+
+              <button 
+                onClick={() => {
+                  const text = encodeURIComponent(`Olá, ${selectedBusiness.name}! Vi seu anúncio no Fala do Bairro e gostaria de um orçamento.`);
+                  window.open(`https://wa.me/${selectedBusiness.whatsapp}?text=${text}`, '_blank');
+                }}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Chamar no WhatsApp
+              </button>
             </div>
           </div>
         </div>

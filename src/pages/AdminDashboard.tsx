@@ -98,6 +98,7 @@ function CommercialTab() {
       description: formData.get('description'),
       whatsapp: formData.get('whatsapp'),
       neighborhood: formData.get('neighborhood'),
+      image: formData.get('image'),
       rating: Number(formData.get('rating') || 5),
       is_verified: formData.get('is_verified') === 'on',
     };
@@ -137,6 +138,10 @@ function CommercialTab() {
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">WhatsApp (apenas números)</label>
             <input name="whatsapp" defaultValue={editing.whatsapp} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">URL da Imagem/Logo (Opcional)</label>
+            <input name="image" defaultValue={editing.image} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">Bairro</label>

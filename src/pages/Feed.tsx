@@ -23,6 +23,9 @@ export default function Feed() {
   const [businessCategory, setBusinessCategory] = useState('');
   const [businessDescription, setBusinessDescription] = useState('');
   const [businessWhatsapp, setBusinessWhatsapp] = useState('');
+  const [businessImage, setBusinessImage] = useState<string | null>(null);
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const [petName, setPetName] = useState('');
   const [petSpecies, setPetSpecies] = useState('');
@@ -170,8 +173,24 @@ export default function Feed() {
     if (!error) {
       alert('Negócio cadastrado no Guia Comercial com sucesso!');
       setShowBusinessModal(false);
+      setBusinessName('');
+      setBusinessCategory('');
+      setBusinessDescription('');
+      setBusinessWhatsapp('');
+      setBusinessImage(null);
     } else {
       alert('Erro ao cadastrar negócio: ' + error.message);
+    }
+  };
+
+  const handleBusinessImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBusinessImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -532,6 +551,23 @@ export default function Feed() {
               Divulgue seu negócio grátis no Guia Comercial do bairro! Outros moradores poderão te achar mais facilmente.
             </p>
 
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-full h-32 bg-slate-100 rounded-xl overflow-hidden mb-2 relative group flex items-center justify-center border-2 border-dashed border-slate-300">
+                {businessImage ? (
+                  <img src={businessImage} alt="Business" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-slate-400 flex flex-col items-center">
+                    <ImageIcon className="w-8 h-8 mb-1" />
+                    <span className="text-xs font-medium">Logotipo da Empresa</span>
+                  </div>
+                )}
+                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Camera className="w-6 h-6 text-white" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleBusinessImageUpload} />
+                </label>
+              </div>
+            </div>
+
             <div className="mb-4">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Nome do Negócio</label>
               <input 
@@ -657,11 +693,23 @@ export default function Feed() {
           </div>
         )}
       </div>
+
+      {selectedImage && (
+        <div className="fixed inset-0 z-[120] bg-black/90 flex flex-col items-center justify-center">
+          <button 
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-6 right-6 text-white/80 hover:text-white p-2"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <img src={selectedImage} className="max-w-full max-h-screen object-contain" alt="Imagem ampliada" />
+        </div>
+      )}
     </div>
   );
 }
 
-function PostCard({ post, onDelete }: { post: any, onDelete: (id: number) => void }) {
+function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: number) => void, onImageClick: (img: string) => void }) {
   const [liked, setLiked] = useState(false);
   const [upvoted, setUpvoted] = useState(false);
   const [downvoted, setDownvoted] = useState(false);
@@ -848,7 +896,8 @@ function PostCard({ post, onDelete }: { post: any, onDelete: (id: number) => voi
             <img 
               src={post.image} 
               alt="Post content"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain cursor-pointer"
+              onClick={() => onImageClick(post.image)}
             />
           )}
         </div>
