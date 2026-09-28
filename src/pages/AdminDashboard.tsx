@@ -692,6 +692,16 @@ function LandingConfigTab() {
                       placeholder="https://..."
                     />
                   </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Texto / Resumo da Notícia</label>
+                    <textarea 
+                      value={news.description || ''}
+                      onChange={(e) => handleUpdateNews(news.id, 'description', e.target.value)}
+                      rows={3}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm resize-none"
+                      placeholder="Digite o texto detalhado para leitura..."
+                    />
+                  </div>
                 </div>
               </div>
             ))}

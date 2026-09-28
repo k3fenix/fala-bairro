@@ -117,26 +117,32 @@ export default function Landing() {
 
             <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
               {config.newsList.map((news: any, index: number) => {
-                const isFirst = index === 0 && news.image;
+                const isFirst = index === 0;
                 return (
                   <div key={news.id || index} className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-amber-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}>
-                    {news.image ? (
-                      <div className={`overflow-hidden relative ${isFirst ? 'h-64 md:h-80' : 'h-48'}`}>
+                    
+                    <div className={`overflow-hidden relative flex-shrink-0 ${isFirst ? 'h-64 md:h-[400px]' : 'h-48 md:h-52'}`}>
+                      {news.image ? (
                         <img src={news.image} alt={news.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                        <div className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
-                          <span className="text-xs font-bold text-white uppercase tracking-widest">{news.label || 'Notícia'}</span>
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center transition-transform duration-700 group-hover:scale-105">
+                           <Zap className="w-16 h-16 text-white/10" />
                         </div>
+                      )}
+                      <div className="absolute top-5 left-5 bg-blue-600/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-md">
+                        <span className="text-xs font-bold text-white uppercase tracking-widest">{news.label || 'Notícia'}</span>
                       </div>
-                    ) : (
-                      <div className="p-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/50">
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-                        <span className="text-xs font-bold text-red-600 uppercase tracking-wider">{news.label || 'Aviso'}</span>
-                      </div>
-                    )}
-                    <div className={`p-6 flex flex-col flex-1 justify-center ${!news.image ? 'bg-amber-50/30 min-h-[140px]' : ''}`}>
-                      <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors ${isFirst ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
+                    </div>
+                    
+                    <div className="p-6 md:p-8 flex flex-col flex-1 bg-white">
+                      <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors mb-3 ${isFirst ? 'text-2xl md:text-4xl' : 'text-lg md:text-xl'}`}>
                         {news.title}
                       </h4>
+                      {news.description && (
+                        <p className={`text-slate-500 leading-relaxed font-medium ${isFirst ? 'text-base md:text-lg' : 'text-sm line-clamp-4'}`}>
+                          {news.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
