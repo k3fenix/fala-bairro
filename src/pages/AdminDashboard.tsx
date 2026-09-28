@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save } from 'lucide-react';
+import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminDashboard() {
@@ -36,16 +36,20 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
-        <div className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col p-4 gap-2">
+        <div className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col p-4 gap-2 overflow-y-auto">
           <TabButton icon={<AlertTriangle />} label="Visão Geral" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
           <TabButton icon={<Users />} label="Gerenciar Usuários" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
+          <TabButton icon={<Store />} label="Guia Comercial" active={activeTab === 'commercial'} onClick={() => setActiveTab('commercial')} />
+          <TabButton icon={<AlertTriangle />} label="Pets Perdidos" active={activeTab === 'pets'} onClick={() => setActiveTab('pets')} />
           <TabButton icon={<Megaphone />} label="Mural de Avisos" active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} />
           <TabButton icon={<LayoutDashboard />} label="Capa do Site" active={activeTab === 'landing'} onClick={() => setActiveTab('landing')} />
         </div>
 
-        <div className="flex-1 p-6 max-w-6xl">
+        <div className="flex-1 p-6 max-w-6xl overflow-y-auto">
           {activeTab === 'overview' && <OverviewTab />}
           {activeTab === 'users' && <UsersTab />}
+          {activeTab === 'commercial' && <CommercialTab />}
+          {activeTab === 'pets' && <PetsTab />}
           {activeTab === 'announcements' && <AnnouncementsTab />}
           {activeTab === 'landing' && <LandingConfigTab />}
         </div>
@@ -60,6 +64,226 @@ function TabButton({ icon, label, active, onClick }: any) {
       {icon}
       <span>{label}</span>
     </button>
+  );
+}
+
+function CommercialTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any>(null);
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    const { data } = await supabase.from('commercial_guide').select('*').order('created_at', { ascending: false });
+    if (data) setItems(data);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Tem certeza que deseja excluir?')) {
+      await supabase.from('commercial_guide').delete().eq('id', id);
+      fetchItems();
+    }
+  };
+
+  const handleSave = async (e: any) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const item = {
+      name: formData.get('name'),
+      category: formData.get('category'),
+      description: formData.get('description'),
+      whatsapp: formData.get('whatsapp'),
+      neighborhood: formData.get('neighborhood'),
+      rating: Number(formData.get('rating') || 5),
+      is_verified: formData.get('is_verified') === 'on',
+    };
+
+    if (editing?.id) {
+      await supabase.from('commercial_guide').update(item).eq('id', editing.id);
+    } else {
+      await supabase.from('commercial_guide').insert([item]);
+    }
+    setEditing(null);
+    fetchItems();
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-slate-800">Guia Comercial</h2>
+        <button onClick={() => setEditing({})} className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+          <Plus className="w-5 h-5" /> Adicionar Comércio
+        </button>
+      </div>
+
+      {editing && (
+        <form onSubmit={handleSave} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Nome do Negócio</label>
+            <input name="name" defaultValue={editing.name} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Categoria</label>
+            <input name="category" defaultValue={editing.category} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-slate-700 mb-1">Descrição</label>
+            <textarea name="description" defaultValue={editing.description} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 h-20"></textarea>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">WhatsApp (apenas números)</label>
+            <input name="whatsapp" defaultValue={editing.whatsapp} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Bairro</label>
+            <input name="neighborhood" defaultValue={editing.neighborhood} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div className="flex items-center gap-6">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Nota (1 a 5)</label>
+              <input name="rating" type="number" step="0.1" defaultValue={editing.rating || 5} className="w-24 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+            </div>
+            <label className="flex items-center gap-2 mt-5 cursor-pointer">
+              <input type="checkbox" name="is_verified" defaultChecked={editing.is_verified ?? true} className="w-5 h-5 accent-emerald-500" />
+              <span className="font-bold text-slate-700">Comércio Verificado</span>
+            </label>
+          </div>
+          <div className="md:col-span-2 flex justify-end gap-3 mt-4">
+            <button type="button" onClick={() => setEditing(null)} className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">Cancelar</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">Salvar Cadastro</button>
+          </div>
+        </form>
+      )}
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {items.map(item => (
+          <div key={item.id} className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm relative">
+            <h3 className="font-bold text-slate-800 text-lg">{item.name}</h3>
+            <p className="text-sm font-bold text-emerald-600 mb-2">{item.category}</p>
+            <p className="text-sm text-slate-600 mb-4">{item.whatsapp}</p>
+            <div className="flex gap-2 justify-end mt-4">
+              <button onClick={() => setEditing(item)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => handleDelete(item.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PetsTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any>(null);
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    const { data } = await supabase.from('lost_pets').select('*').order('created_at', { ascending: false });
+    if (data) setItems(data);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Tem certeza que deseja excluir?')) {
+      await supabase.from('lost_pets').delete().eq('id', id);
+      fetchItems();
+    }
+  };
+
+  const handleSave = async (e: any) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const item = {
+      pet_name: formData.get('pet_name'),
+      species: formData.get('species'),
+      description: formData.get('description'),
+      last_seen_location: formData.get('last_seen_location'),
+      owner_whatsapp: formData.get('owner_whatsapp'),
+      image: formData.get('image'),
+      status: formData.get('status'),
+    };
+
+    if (editing?.id) {
+      await supabase.from('lost_pets').update(item).eq('id', editing.id);
+    } else {
+      await supabase.from('lost_pets').insert([item]);
+    }
+    setEditing(null);
+    fetchItems();
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-slate-800">Pets Perdidos</h2>
+        <button onClick={() => setEditing({})} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+          <Plus className="w-5 h-5" /> Adicionar Pet
+        </button>
+      </div>
+
+      {editing && (
+        <form onSubmit={handleSave} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Nome do Pet</label>
+            <input name="pet_name" defaultValue={editing.pet_name} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Espécie (Ex: Cachorro)</label>
+            <input name="species" defaultValue={editing.species} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-slate-700 mb-1">Descrição</label>
+            <textarea name="description" defaultValue={editing.description} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 h-20"></textarea>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Visto por último em</label>
+            <input name="last_seen_location" defaultValue={editing.last_seen_location} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">WhatsApp do Tutor</label>
+            <input name="owner_whatsapp" defaultValue={editing.owner_whatsapp} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
+            <select name="status" defaultValue={editing.status || 'Perdido'} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2">
+              <option value="Perdido">Perdido (Alerta)</option>
+              <option value="Encontrado">Encontrado</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Link da Imagem (Opcional)</label>
+            <input name="image" defaultValue={editing.image} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+          </div>
+          
+          <div className="md:col-span-2 flex justify-end gap-3 mt-4">
+            <button type="button" onClick={() => setEditing(null)} className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">Cancelar</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">Salvar Alerta</button>
+          </div>
+        </form>
+      )}
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {items.map(item => (
+          <div key={item.id} className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm relative">
+            <div className="flex gap-4">
+               {item.image && <img src={item.image} className="w-16 h-16 rounded-lg object-cover" />}
+               <div>
+                 <h3 className="font-bold text-slate-800 text-lg">{item.pet_name}</h3>
+                 <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.status === 'Perdido' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>{item.status}</span>
+               </div>
+            </div>
+            <div className="flex gap-2 justify-end mt-4">
+              <button onClick={() => setEditing(item)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => handleDelete(item.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
