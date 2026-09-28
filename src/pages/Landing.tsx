@@ -246,13 +246,13 @@ export default function Landing() {
                     </p>
                     
                     <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 mt-auto">
-                      <div className="flex items-center gap-1.5 text-slate-400">
+                      <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-lg tracking-wide">
+                        {post.category}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
                         <Heart className="w-4 h-4 text-red-400" />
                         <span className="text-xs font-bold">{post.likes || 0}</span>
                       </div>
-                      <span className="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded-md">
-                        {post.category}
-                      </span>
                     </div>
                   </div>
                 </div>
