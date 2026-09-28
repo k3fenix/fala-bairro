@@ -549,6 +549,20 @@ function LandingConfigTab() {
     setNewsList(newsList.map(n => n.id === id ? { ...n, [field]: value } : n));
   };
 
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const newList = [...newsList];
+    [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+    setNewsList(newList);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === newsList.length - 1) return;
+    const newList = [...newsList];
+    [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
+    setNewsList(newList);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     
@@ -617,13 +631,32 @@ function LandingConfigTab() {
           <div className="space-y-4">
             {newsList.map((news, index) => (
               <div key={news.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-3 relative group">
-                <button 
-                  onClick={() => handleRemoveNews(news.id)}
-                  className="absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1"
-                  title="Remover Notícia"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="absolute top-2 right-2 flex gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+                  <button 
+                    onClick={() => handleMoveUp(index)} 
+                    disabled={index === 0} 
+                    className="text-slate-400 hover:text-blue-500 p-1 disabled:opacity-30 disabled:hover:text-slate-400" 
+                    title="Mover para cima"
+                  >
+                    <ArrowLeft className="w-4 h-4 rotate-90" />
+                  </button>
+                  <button 
+                    onClick={() => handleMoveDown(index)} 
+                    disabled={index === newsList.length - 1} 
+                    className="text-slate-400 hover:text-blue-500 p-1 disabled:opacity-30 disabled:hover:text-slate-400" 
+                    title="Mover para baixo"
+                  >
+                    <ArrowLeft className="w-4 h-4 -rotate-90" />
+                  </button>
+                  <div className="w-px bg-slate-200 mx-1"></div>
+                  <button 
+                    onClick={() => handleRemoveNews(news.id)}
+                    className="text-slate-400 hover:text-red-500 p-1"
+                    title="Remover Notícia"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="bg-blue-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{index + 1}</span>
                   <span className="text-sm font-bold text-slate-700">{index === 0 ? 'Notícia Principal (Destaque)' : 'Notícia Secundária'}</span>
