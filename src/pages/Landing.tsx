@@ -17,11 +17,18 @@ export default function Landing() {
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
+  const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
 
   useEffect(() => {
     fetchSettings();
     fetchPublicPosts();
+    fetchCommercialGuide();
   }, []);
+
+  const fetchCommercialGuide = async () => {
+    const { data } = await supabase.from('commercial_guide').select('*');
+    if (data) setCommercialGuide(data);
+  };
 
   const fetchPublicPosts = async () => {
     // Busca os posts sem filtro SQL para evitar problemas de cache/tipagem de booleanos
@@ -226,7 +233,7 @@ export default function Landing() {
                   <div 
                     key={news.id || index} 
                     onClick={() => setSelectedNews(news)}
-                    className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-amber-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}
+                    className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-emerald-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}
                   >
                     
                     <div className={`overflow-hidden relative flex-shrink-0 ${isFirst ? 'h-64 md:h-[400px]' : 'h-48 md:h-52'}`}>
@@ -246,7 +253,7 @@ export default function Landing() {
                       <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors mb-3 ${isFirst ? 'text-2xl md:text-4xl' : 'text-lg md:text-xl'}`}>
                         {news.title}
                       </h4>
-                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-blue-600 group-hover:text-amber-500 font-bold text-sm">
+                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-blue-600 group-hover:text-emerald-500 font-bold text-sm">
                         <span>Ler matéria completa</span>
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -254,6 +261,66 @@ export default function Landing() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guia Comercial Section */}
+      {commercialGuide.length > 0 && (
+        <div id="guia" className="bg-slate-50 py-20 border-t border-slate-200 scroll-mt-20">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="flex flex-col items-center text-center mb-12">
+              <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-emerald-200">
+                Quem Indica?
+              </span>
+              <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4 tracking-tight flex items-center justify-center gap-3">
+                <Store className="w-8 h-8 text-emerald-500" /> Guia Comercial
+              </h3>
+              <p className="text-slate-500 font-medium max-w-xl mx-auto text-lg leading-relaxed">
+                Profissionais autônomos e comércios recomendados por seus vizinhos. Valorize o que é nosso!
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {commercialGuide.map((item) => (
+                <div key={item.id} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all flex flex-col h-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-black text-slate-800 leading-tight">{item.name}</h4>
+                      <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded mt-1 inline-block">{item.category}</span>
+                    </div>
+                    {item.is_verified && (
+                      <div className="bg-blue-50 text-blue-600 p-1.5 rounded-full" title="Verificado pela Comunidade">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-slate-600 text-sm mb-6 flex-1">{item.description}</p>
+                  
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                    <div className="flex items-center gap-1 text-amber-400">
+                      <span className="text-sm font-bold text-slate-700 ml-1">★ {item.rating}</span>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const text = encodeURIComponent(`Olá, ${item.name}! Vi seu anúncio no Fala do Bairro e gostaria de um orçamento.`);
+                        window.open(`https://wa.me/${item.whatsapp}?text=${text}`, '_blank');
+                      }}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      WhatsApp
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-center mt-12">
+               <Link to="/register" className="inline-block border-2 border-emerald-500 text-emerald-600 font-bold px-8 py-4 rounded-xl hover:bg-emerald-50 transition-colors">
+                  Divulgar Grátis Meu Negócio
+               </Link>
             </div>
           </div>
         </div>
