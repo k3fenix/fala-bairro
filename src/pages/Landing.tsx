@@ -9,7 +9,8 @@ export default function Landing() {
     newsImg: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
     newsMain: 'Reunião de Segurança Comunitária define novas regras',
     newsSide1: 'Falta de Água na Rua 15 será resolvida amanhã',
-    newsSide2: 'Nova feira de rua aos domingos confirmada'
+    newsSide2: 'Nova feira de rua aos domingos confirmada',
+    newsList: [] as any[]
   });
 
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
@@ -37,8 +38,20 @@ export default function Landing() {
     const { data } = await supabase.from('settings').select('*');
     if (data) {
       const getVal = (k: string) => data.find(s => s.key === k)?.value;
+      
+      let parsedNews = [];
+      try {
+        const rawNews = getVal('landing_news_list');
+        if (rawNews) parsedNews = JSON.parse(rawNews);
+      } catch (e) {}
+
       setConfig(prev => ({
         bgImage: getVal('landing_bg_image') || prev.bgImage,
+        newsList: Array.isArray(parsedNews) && parsedNews.length > 0 ? parsedNews : [
+          { id: '1', title: getVal('landing_news_main_title') || prev.newsMain, image: getVal('landing_news_main_img') || prev.newsImg, label: 'Destaque' },
+          { id: '2', title: getVal('landing_news_side1_title') || prev.newsSide1, image: '', label: 'Aviso Urgente' },
+          { id: '3', title: getVal('landing_news_side2_title') || prev.newsSide2, image: '', label: 'Comunidade' }
+        ],
         newsImg: getVal('landing_news_main_img') || prev.newsImg,
         newsMain: getVal('landing_news_main_title') || prev.newsMain,
         newsSide1: getVal('landing_news_side1_title') || prev.newsSide1,
@@ -50,7 +63,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-200">
       {/* Hero Section */}
-      <div className="relative text-white overflow-hidden pb-40">
+      <div className="relative text-white overflow-hidden pb-32">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('${config.bgImage}')` }}
@@ -70,13 +83,10 @@ export default function Landing() {
           
           {/* Main Copy */}
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-[1.15] tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-12 leading-[1.15] tracking-tight">
               O que acontece no seu bairro, <br className="hidden md:block" />
               <span className="text-amber-400">a comunidade conta.</span>
             </h2>
-            <p className="text-slate-200 text-lg md:text-xl mb-12 leading-relaxed font-medium">
-              A primeira rede social exclusiva para vizinhos. Descubra notícias, compartilhe avisos e conecte-se com quem mora perto de você.
-            </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row justify-center gap-4 px-4 sm:px-0">
@@ -92,59 +102,8 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Central News Highlights */}
-      <div className="max-w-5xl mx-auto px-6 -mt-32 relative z-20 mb-20">
-        <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-2 border-2 border-amber-400 transform transition-transform hover:-translate-y-1 duration-500">
-          <div className="bg-slate-50 rounded-[1.5rem] p-4 md:p-6 overflow-hidden">
-            <h3 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2 tracking-tight">
-              <Zap className="w-6 h-6 text-amber-500" /> Últimas Notícias
-            </h3>
-            
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Main News */}
-              <div className="md:col-span-2 relative rounded-2xl overflow-hidden group h-64 md:h-80 cursor-pointer shadow-md">
-                <img 
-                  src={config.newsImg} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                  alt="Notícia Principal" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/40 to-transparent flex flex-col justify-end p-6">
-                  <span className="bg-blue-600 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-md w-fit mb-2 tracking-widest">Destaque</span>
-                  <h4 className="text-white text-2xl md:text-3xl font-bold leading-tight group-hover:text-amber-300 transition-colors">
-                    {config.newsMain}
-                  </h4>
-                </div>
-              </div>
-
-              {/* Side Floating News */}
-              <div className="flex flex-col gap-4">
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col justify-center hover:border-amber-300 hover:shadow-md transition-all cursor-pointer group">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                    <span className="text-xs font-bold text-red-600 uppercase tracking-wider">Aviso Urgente</span>
-                  </div>
-                  <h5 className="text-slate-800 font-bold leading-tight group-hover:text-blue-600 transition-colors">
-                    {config.newsSide1}
-                  </h5>
-                </div>
-                
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col justify-center hover:border-amber-300 hover:shadow-md transition-all cursor-pointer group">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Comunidade</span>
-                  </div>
-                  <h5 className="text-slate-800 font-bold leading-tight group-hover:text-blue-600 transition-colors">
-                    {config.newsSide2}
-                  </h5>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Features Grid */}
-      <div className="max-w-5xl mx-auto px-6 pb-24">
+      <div className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-12">
           <h3 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">Por que usar o Fala do Bairro?</h3>
           <p className="text-slate-500 font-medium max-w-lg mx-auto">Tudo que você precisa para estar conectado com a sua comunidade local em um só lugar.</p>
@@ -229,6 +188,50 @@ export default function Landing() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* News Footer Section */}
+      {config.newsList && config.newsList.length > 0 && (
+        <div className="bg-slate-50 py-24 border-t border-slate-200">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="flex flex-col items-center text-center mb-16">
+              <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-amber-200">
+                Fique Informado
+              </span>
+              <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4 tracking-tight flex items-center justify-center gap-3">
+                <Zap className="w-8 h-8 text-amber-500" /> Últimas Notícias
+              </h3>
+            </div>
+
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {config.newsList.map((news: any, index: number) => {
+                const isFirst = index === 0 && news.image;
+                return (
+                  <div key={news.id || index} className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-amber-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}>
+                    {news.image ? (
+                      <div className={`overflow-hidden relative ${isFirst ? 'h-64 md:h-80' : 'h-48'}`}>
+                        <img src={news.image} alt={news.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
+                          <span className="text-xs font-bold text-white uppercase tracking-widest">{news.label || 'Notícia'}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/50">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                        <span className="text-xs font-bold text-red-600 uppercase tracking-wider">{news.label || 'Aviso'}</span>
+                      </div>
+                    )}
+                    <div className={`p-6 flex flex-col flex-1 justify-center ${!news.image ? 'bg-amber-50/30 min-h-[140px]' : ''}`}>
+                      <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors ${isFirst ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
+                        {news.title}
+                      </h4>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
