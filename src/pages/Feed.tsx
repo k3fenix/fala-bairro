@@ -394,9 +394,35 @@ export default function Feed() {
               />
             </div>
 
-            <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
+            <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md mb-4">
               Salvar Perfil
             </button>
+            
+            <div className="pt-4 border-t border-slate-100 mt-4">
+              <button 
+                onClick={async () => {
+                  if (confirm('Tem certeza que deseja solicitar a exclusão da sua conta? O administrador revisará o pedido e, ao aprovar, todos os seus dados e publicações serão apagados permanentemente.')) {
+                    try {
+                      // Usar dados reais do perfil se possível, ou o estado atual
+                      const { data: { user } } = await supabase.auth.getUser();
+                      const whatsapp = user ? user.email || 'desconhecido' : 'desconhecido';
+                      
+                      const { error } = await supabase.from('deletion_requests').insert([
+                        { user_name: userName, user_whatsapp: whatsapp, status: 'Pendente' }
+                      ]);
+                      if (error) throw error;
+                      alert('Solicitação de exclusão enviada ao administrador.');
+                      setShowProfile(false);
+                    } catch (e: any) {
+                      alert('Erro ao solicitar exclusão: ' + e.message);
+                    }
+                  }
+                }}
+                className="w-full text-red-500 font-bold py-2 rounded-xl hover:bg-red-50 transition-colors text-sm border border-red-100"
+              >
+                Solicitar Exclusão da Conta
+              </button>
+            </div>
           </div>
         </div>
       )}

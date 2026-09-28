@@ -43,6 +43,7 @@ export default function AdminDashboard() {
           <TabButton icon={<AlertTriangle />} label="Pets Perdidos" active={activeTab === 'pets'} onClick={() => setActiveTab('pets')} />
           <TabButton icon={<Megaphone />} label="Mural de Avisos" active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} />
           <TabButton icon={<LayoutDashboard />} label="Capa do Site" active={activeTab === 'landing'} onClick={() => setActiveTab('landing')} />
+          <TabButton icon={<Trash2 />} label="Exclusões de Conta" active={activeTab === 'deletions'} onClick={() => setActiveTab('deletions')} />
         </div>
 
         <div className="flex-1 p-6 max-w-6xl overflow-y-auto">
@@ -52,6 +53,7 @@ export default function AdminDashboard() {
           {activeTab === 'pets' && <PetsTab />}
           {activeTab === 'announcements' && <AnnouncementsTab />}
           {activeTab === 'landing' && <LandingConfigTab />}
+          {activeTab === 'deletions' && <DeletionsTab />}
         </div>
       </div>
     </div>
@@ -939,5 +941,77 @@ function LandingConfigTab() {
         </div>
       </div>
     </>
+  );
+}
+
+function DeletionsTab() {
+  const [requests, setRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    const { data } = await supabase.from('deletion_requests').select('*').eq('status', 'Pendente');
+    if (data) setRequests(data);
+  };
+
+  const handleDeleteUser = async (request: any) => {
+    if (confirm(`Tem certeza que deseja processar a exclusão da conta de ${request.user_name}? Esta ação apagará todas as postagens, comentários, guias e pets relacionados e não pode ser desfeita.`)) {
+      try {
+        // Apagar todos os registros do usuário:
+        await supabase.from('posts').delete().eq('author_name', request.user_name);
+        await supabase.from('comments').delete().eq('author_name', request.user_name);
+        
+        if (request.user_whatsapp && request.user_whatsapp !== 'desconhecido') {
+          await supabase.from('commercial_guide').delete().eq('whatsapp', request.user_whatsapp);
+          await supabase.from('lost_pets').delete().eq('owner_whatsapp', request.user_whatsapp);
+        }
+
+        // Apagar da tabela profiles
+        if (request.user_whatsapp && request.user_whatsapp !== 'desconhecido') {
+           await supabase.from('profiles').delete().eq('email', request.user_whatsapp); 
+        }
+
+        // Marcar request como Excluída
+        await supabase.from('deletion_requests').update({ status: 'Excluída' }).eq('id', request.id);
+
+        alert('Conta e todos os dados vinculados excluídos com sucesso.');
+        fetchRequests();
+      } catch (e: any) {
+        alert('Erro ao excluir dados: ' + e.message);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">Solicitações de Exclusão de Conta</h2>
+      
+      {requests.length === 0 ? (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center text-slate-500 font-medium">
+          Nenhuma solicitação pendente no momento.
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-6">
+          {requests.map(req => (
+            <div key={req.id} className="bg-white rounded-xl p-5 border border-red-200 shadow-sm relative">
+              <h3 className="font-bold text-slate-800 text-lg mb-1">{req.user_name}</h3>
+              <p className="text-sm font-bold text-slate-600 mb-4">{req.user_whatsapp}</p>
+              
+              <div className="flex justify-end gap-2 mt-4 border-t border-slate-100 pt-4">
+                <button 
+                  onClick={() => handleDeleteUser(req)} 
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold text-sm w-full transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Confirmar Exclusão Total
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
