@@ -18,6 +18,12 @@ export default function Feed() {
   const registeredNeighborhood = localStorage.getItem('user_neighborhood') || 'Vila Rica';
   
   const [showProfile, setShowProfile] = useState(false);
+  const [profileTab, setProfileTab] = useState('pessoal');
+  const [businessName, setBusinessName] = useState('');
+  const [businessCategory, setBusinessCategory] = useState('');
+  const [businessDescription, setBusinessDescription] = useState('');
+  const [businessWhatsapp, setBusinessWhatsapp] = useState('');
+
   const [editName, setEditName] = useState(userName);
   const [editAvatar, setEditAvatar] = useState(userAvatar);
 
@@ -135,6 +141,32 @@ export default function Feed() {
     alert('Perfil atualizado com sucesso!');
     fetchPosts();
   };
+
+  const handleSaveBusiness = async () => {
+    if (!businessName || !businessCategory || !businessWhatsapp) {
+      alert('Preencha os campos obrigatórios.');
+      return;
+    }
+
+    const item = {
+      name: businessName,
+      category: businessCategory,
+      description: businessDescription,
+      whatsapp: businessWhatsapp,
+      neighborhood: selectedNeighborhood,
+      rating: 5,
+      is_verified: false
+    };
+
+    const { error } = await supabase.from('commercial_guide').insert([item]);
+    if (!error) {
+      alert('Negócio cadastrado no Guia Comercial com sucesso!');
+      setShowProfile(false);
+    } else {
+      alert('Erro ao cadastrar negócio: ' + error.message);
+    }
+  };
+
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -284,36 +316,100 @@ export default function Feed() {
 
       {showProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-xl relative">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
             <button onClick={() => setShowProfile(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
               <X className="w-6 h-6" />
             </button>
-            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Meu Perfil</h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-4 text-center">Configurações</h3>
             
-            <div className="flex flex-col items-center mb-6">
-              <div className="w-24 h-24 bg-slate-200 rounded-full overflow-hidden mb-2 relative group shadow-md">
-                <img src={editAvatar} alt="Profile" className="w-full h-full object-cover" />
-                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                  <Camera className="w-6 h-6 text-white" />
-                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                </label>
-              </div>
-              <p className="text-[12px] font-medium text-slate-500">Clique na foto para alterar</p>
+            <div className="flex border-b border-slate-200 mb-6">
+              <button 
+                className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'pessoal' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setProfileTab('pessoal')}
+              >
+                Perfil Pessoal
+              </button>
+              <button 
+                className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'negocio' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setProfileTab('negocio')}
+              >
+                Meu Negócio
+              </button>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Seu Nome</label>
-              <input 
-                type="text" 
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 font-medium"
-              />
-            </div>
+            {profileTab === 'pessoal' ? (
+              <>
+                <div className="flex flex-col items-center mb-6">
+                  <div className="w-24 h-24 bg-slate-200 rounded-full overflow-hidden mb-2 relative group shadow-md">
+                    <img src={editAvatar} alt="Profile" className="w-full h-full object-cover" />
+                    <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      <Camera className="w-6 h-6 text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                    </label>
+                  </div>
+                  <p className="text-[12px] font-medium text-slate-500">Clique na foto para alterar</p>
+                </div>
 
-            <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
-              Salvar Alterações
-            </button>
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Seu Nome</label>
+                  <input 
+                    type="text" 
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 font-medium"
+                  />
+                </div>
+
+                <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
+                  Salvar Perfil
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Nome do Negócio</label>
+                  <input 
+                    type="text" 
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium"
+                    placeholder="Ex: João Eletricista"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Categoria</label>
+                  <input 
+                    type="text" 
+                    value={businessCategory}
+                    onChange={(e) => setBusinessCategory(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium"
+                    placeholder="Ex: Serviços, Alimentação, Beleza"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
+                  <textarea 
+                    value={businessDescription}
+                    onChange={(e) => setBusinessDescription(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium min-h-[80px]"
+                    placeholder="Descreva o que você faz..."
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">WhatsApp (apenas números)</label>
+                  <input 
+                    type="text" 
+                    value={businessWhatsapp}
+                    onChange={(e) => setBusinessWhatsapp(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium"
+                    placeholder="5511999999999"
+                  />
+                </div>
+                <button onClick={handleSaveBusiness} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-colors shadow-md">
+                  Divulgar no Guia Comercial
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
