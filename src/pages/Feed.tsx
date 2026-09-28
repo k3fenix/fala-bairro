@@ -652,10 +652,20 @@ function PostCard({ post, onDelete }: { post: any, onDelete: (id: number) => voi
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [commentCount, setCommentCount] = useState(0);
 
   const userName = localStorage.getItem('user_name') || 'Anônimo';
   const isAdmin = localStorage.getItem('admin_auth') === 'true';
   const isMine = post.author_name === userName;
+
+  useEffect(() => {
+    fetchCommentCount();
+  }, []);
+
+  const fetchCommentCount = async () => {
+    const { count } = await supabase.from('comments').select('*', { count: 'exact', head: true }).eq('post_id', post.id);
+    if (count !== null) setCommentCount(count);
+  };
 
   useEffect(() => {
     if (showComments) {
@@ -723,12 +733,14 @@ function PostCard({ post, onDelete }: { post: any, onDelete: (id: number) => voi
     if (data && data[0]) {
       setComments([...comments, data[0]]);
       setNewComment('');
+      setCommentCount(prev => prev + 1);
     }
   };
 
   const handleDeleteComment = async (cid: number) => {
     await supabase.from('comments').delete().eq('id', cid);
     setComments(comments.filter(c => c.id !== cid));
+    setCommentCount(prev => Math.max(0, prev - 1));
   };
 
   const handleDeletePost = async () => {
@@ -838,7 +850,7 @@ function PostCard({ post, onDelete }: { post: any, onDelete: (id: number) => voi
         </div>
       )}
 
-      <div className="flex justify-between items-center text-slate-500 p-4 border-t border-slate-50">
+      <div className="flex justify-between items-center text-slate-500 p-4 border-t border-slate-50 flex-wrap gap-y-3">
         <div className="flex gap-6">
           <button onClick={handleLike} className={`flex items-center gap-1.5 transition-colors group ${liked ? 'text-red-500' : 'hover:text-red-500'}`}>
             <Heart className={`w-5 h-5 transition-transform ${liked ? 'fill-red-500 scale-110' : 'group-hover:fill-red-500'}`} />
@@ -853,13 +865,30 @@ function PostCard({ post, onDelete }: { post: any, onDelete: (id: number) => voi
             <span className="text-sm font-medium">{downvotes}</span>
           </button>
         </div>
-        <button 
-          onClick={() => setShowComments(!showComments)}
-          className={`flex items-center gap-1.5 transition-colors ${showComments ? 'text-blue-600' : 'hover:text-blue-500'}`}
-        >
-          <MessageCircle className="w-5 h-5" />
-          <span className="text-sm font-medium">Comentar</span>
-        </button>
+        
+        <div className="flex items-center gap-4 ml-auto">
+          {(isMine || isAdmin) && (
+            <div className="flex items-center gap-3 mr-2 border-r border-slate-200 pr-3">
+              <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors">
+                <Edit2 className="w-4 h-4" />
+                <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">Editar</span>
+              </button>
+              <button onClick={handleDeletePost} className="flex items-center gap-1 text-red-400 hover:text-red-600 transition-colors">
+                <Trash2 className="w-4 h-4" />
+                <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">Excluir</span>
+              </button>
+            </div>
+          )}
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className={`flex items-center gap-1.5 transition-colors ${showComments ? 'text-blue-600' : 'hover:text-blue-500'}`}
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">
+              {commentCount > 0 ? `${commentCount} Comentário${commentCount > 1 ? 's' : ''}` : 'Comentar'}
+            </span>
+          </button>
+        </div>
       </div>
 
       {showComments && (
