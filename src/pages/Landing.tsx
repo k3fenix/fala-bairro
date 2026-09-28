@@ -21,7 +21,7 @@ export default function Landing() {
 
   const fetchPublicPosts = async () => {
     // Busca os posts sem filtro SQL para evitar problemas de cache/tipagem de booleanos
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('posts')
       .select('*')
       .order('created_at', { ascending: false });
