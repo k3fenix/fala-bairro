@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -14,6 +14,8 @@ export default function Landing() {
   });
 
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
+  const [selectedNews, setSelectedNews] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -64,13 +66,51 @@ export default function Landing() {
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-200">
       {/* Hero Section */}
       <div className="relative text-white overflow-hidden pb-32">
+        {/* Top Navigation Menu */}
+        <nav className="absolute top-0 left-0 right-0 z-50 border-b border-white/10 bg-slate-900/40 backdrop-blur-md">
+          <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-6 h-6 text-amber-400" />
+              <span className="font-black tracking-tight text-xl">Fala do Bairro</span>
+            </div>
+            
+            {/* Desktop Menu */}
+            <div className="hidden md:flex items-center gap-8 font-bold text-sm">
+              <a href="#" className="text-white hover:text-amber-400 transition-colors">Início</a>
+              <a href="#noticias" className="text-slate-300 hover:text-amber-400 transition-colors">Notícias</a>
+              <a href="#mural" className="text-slate-300 hover:text-amber-400 transition-colors">Mural Público</a>
+              <Link to="/login" className="text-slate-300 hover:text-amber-400 transition-colors">Entrar</Link>
+              <Link to="/register" className="bg-amber-400 hover:bg-amber-300 text-amber-950 px-5 py-2.5 rounded-xl transition-transform active:scale-95 shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+                Criar Conta
+              </Link>
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <button className="md:hidden p-2 text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+
+          {/* Mobile Menu Dropdown */}
+          {isMenuOpen && (
+            <div className="md:hidden bg-slate-900 border-b border-white/10 px-6 py-6 flex flex-col gap-4 font-bold animate-fade-in-down absolute w-full">
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="text-white hover:text-amber-400">Início</a>
+              <a href="#noticias" onClick={() => setIsMenuOpen(false)} className="text-slate-300 hover:text-amber-400">Notícias</a>
+              <a href="#mural" onClick={() => setIsMenuOpen(false)} className="text-slate-300 hover:text-amber-400">Mural Público</a>
+              <div className="h-px bg-white/10 my-2"></div>
+              <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-slate-300 hover:text-amber-400">Entrar na Conta</Link>
+              <Link to="/register" onClick={() => setIsMenuOpen(false)} className="bg-amber-400 text-amber-950 px-5 py-3 rounded-xl text-center mt-2">Criar Conta Grátis</Link>
+            </div>
+          )}
+        </nav>
+
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('${config.bgImage}')` }}
         ></div>
         <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px]"></div>
 
-        <div className="max-w-5xl mx-auto px-6 pt-16 pb-12 relative z-10">
+        <div className="max-w-5xl mx-auto px-6 pt-32 pb-12 relative z-10">
           {/* Header */}
           <div className="flex justify-center items-center gap-3 mb-16 animate-fade-in-down">
             <div className="bg-amber-400 p-2.5 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.4)]">
@@ -105,7 +145,7 @@ export default function Landing() {
       {/* Dynamic News Highlights */}
       {config.newsList && config.newsList.length > 0 && (
         <div className="max-w-6xl mx-auto px-6 -mt-32 relative z-20 mb-20">
-          <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-6 md:p-10 border-2 border-amber-400">
+          <div id="noticias" className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-6 md:p-10 border-2 border-amber-400 scroll-mt-24">
             <div className="flex flex-col items-center text-center mb-10">
               <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-amber-200">
                 Fique Informado
@@ -119,7 +159,11 @@ export default function Landing() {
               {config.newsList.map((news: any, index: number) => {
                 const isFirst = index === 0;
                 return (
-                  <div key={news.id || index} className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-amber-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}>
+                  <div 
+                    key={news.id || index} 
+                    onClick={() => setSelectedNews(news)}
+                    className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-amber-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}
+                  >
                     
                     <div className={`overflow-hidden relative flex-shrink-0 ${isFirst ? 'h-64 md:h-[400px]' : 'h-48 md:h-52'}`}>
                       {news.image ? (
@@ -138,11 +182,10 @@ export default function Landing() {
                       <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors mb-3 ${isFirst ? 'text-2xl md:text-4xl' : 'text-lg md:text-xl'}`}>
                         {news.title}
                       </h4>
-                      {news.description && (
-                        <p className={`text-slate-500 leading-relaxed font-medium ${isFirst ? 'text-base md:text-lg' : 'text-sm line-clamp-4'}`}>
-                          {news.description}
-                        </p>
-                      )}
+                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-blue-600 group-hover:text-amber-500 font-bold text-sm">
+                        <span>Ler matéria completa</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </div>
                   </div>
                 );
@@ -154,7 +197,7 @@ export default function Landing() {
 
       {/* Public Mural Section */}
       {publicPosts.length > 0 && (
-        <div className="bg-slate-900 py-24 border-t border-slate-800">
+        <div id="mural" className="bg-slate-900 py-24 border-t border-slate-800 scroll-mt-20">
           <div className="max-w-6xl mx-auto px-6">
             <div className="flex flex-col items-center text-center mb-16">
               <span className="bg-blue-600/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-blue-500/30">
@@ -244,6 +287,52 @@ export default function Landing() {
           </div>
         </div>
       </div>
+
+      {/* News Reading Modal */}
+      {selectedNews && (
+        <div 
+          className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" 
+          onClick={() => setSelectedNews(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl relative animate-fade-in-up flex flex-col" 
+            onClick={e => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setSelectedNews(null)}
+              className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white rounded-full p-2 z-10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="w-full h-64 md:h-80 relative flex-shrink-0">
+              {selectedNews.image ? (
+                <img src={selectedNews.image} alt={selectedNews.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                   <Zap className="w-16 h-16 text-white/10" />
+                </div>
+              )}
+              <div className="absolute top-5 left-5 bg-blue-600/90 backdrop-blur-md px-4 py-1.5 rounded-lg border border-white/10 shadow-md">
+                <span className="text-xs font-bold text-white uppercase tracking-widest">{selectedNews.label || 'Notícia'}</span>
+              </div>
+            </div>
+            
+            <div className="p-8 md:p-12">
+              <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-8 leading-tight">
+                {selectedNews.title}
+              </h2>
+              {selectedNews.description ? (
+                <div className="text-slate-600 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-medium">
+                  {selectedNews.description}
+                </div>
+              ) : (
+                <p className="text-slate-400 italic text-lg">Nenhum detalhe adicional fornecido para esta notícia.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
