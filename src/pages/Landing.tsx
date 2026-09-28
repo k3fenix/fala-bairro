@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -16,6 +16,7 @@ export default function Landing() {
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchSettings();
@@ -33,6 +34,26 @@ export default function Landing() {
       // Filtra no JavaScript
       const approved = data.filter(p => p.is_approved === true || String(p.is_approved) === 'true').slice(0, 6);
       setPublicPosts(approved);
+    }
+  };
+
+  const handleVote = async (postId: number, field: 'likes' | 'upvotes' | 'downvotes') => {
+    const voteKey = `${postId}-${field}`;
+    if (sessionVotes[voteKey]) return; // Prevent multiple votes in same session
+    
+    setSessionVotes(prev => ({ ...prev, [voteKey]: true }));
+    
+    // Otimista
+    setPublicPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        return { ...p, [field]: (p[field] || 0) + 1 };
+      }
+      return p;
+    }));
+
+    const post = publicPosts.find(p => p.id === postId);
+    if (post) {
+      await supabase.from('posts').update({ [field]: (post[field] || 0) + 1 }).eq('id', postId);
     }
   };
 
@@ -249,9 +270,30 @@ export default function Landing() {
                       <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-lg tracking-wide">
                         {post.category}
                       </span>
-                      <div className="flex items-center gap-1.5 text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-                        <Heart className="w-4 h-4 text-red-400" />
-                        <span className="text-xs font-bold">{post.likes || 0}</span>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleVote(post.id, 'likes')}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-likes`] ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-red-400'}`}
+                        >
+                          <Heart className="w-4 h-4" />
+                          <span className="text-xs font-bold">{post.likes || 0}</span>
+                        </button>
+
+                        <button 
+                          onClick={() => handleVote(post.id, 'upvotes')}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-upvotes`] ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-emerald-400'}`}
+                        >
+                          <ThumbsUp className="w-4 h-4" />
+                          <span className="text-xs font-bold">{post.upvotes || 0}</span>
+                        </button>
+
+                        <button 
+                          onClick={() => handleVote(post.id, 'downvotes')}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-downvotes`] ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-amber-400'}`}
+                        >
+                          <ThumbsDown className="w-4 h-4" />
+                          <span className="text-xs font-bold">{post.downvotes || 0}</span>
+                        </button>
                       </div>
                     </div>
                   </div>
