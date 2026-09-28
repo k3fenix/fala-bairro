@@ -102,29 +102,49 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="max-w-5xl mx-auto px-6 py-24">
-        <div className="text-center mb-12">
-          <h3 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">Por que usar o Fala do Bairro?</h3>
-          <p className="text-slate-500 font-medium max-w-lg mx-auto">Tudo que você precisa para estar conectado com a sua comunidade local em um só lugar.</p>
+      {/* Dynamic News Highlights */}
+      {config.newsList && config.newsList.length > 0 && (
+        <div className="max-w-6xl mx-auto px-6 -mt-32 relative z-20 mb-20">
+          <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-6 md:p-10 border-2 border-amber-400">
+            <div className="flex flex-col items-center text-center mb-10">
+              <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-amber-200">
+                Fique Informado
+              </span>
+              <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2 tracking-tight flex items-center justify-center gap-3">
+                <Zap className="w-8 h-8 text-amber-500" /> Últimas Notícias
+              </h3>
+            </div>
+
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {config.newsList.map((news: any, index: number) => {
+                const isFirst = index === 0 && news.image;
+                return (
+                  <div key={news.id || index} className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-amber-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}>
+                    {news.image ? (
+                      <div className={`overflow-hidden relative ${isFirst ? 'h-64 md:h-80' : 'h-48'}`}>
+                        <img src={news.image} alt={news.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
+                          <span className="text-xs font-bold text-white uppercase tracking-widest">{news.label || 'Notícia'}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/50">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                        <span className="text-xs font-bold text-red-600 uppercase tracking-wider">{news.label || 'Aviso'}</span>
+                      </div>
+                    )}
+                    <div className={`p-6 flex flex-col flex-1 justify-center ${!news.image ? 'bg-amber-50/30 min-h-[140px]' : ''}`}>
+                      <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors ${isFirst ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
+                        {news.title}
+                      </h4>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { icon: <Zap className="w-6 h-6 text-amber-500" />, title: 'Informação Rápida', desc: 'Saiba de tudo que acontece no bairro em tempo real.', color: 'bg-amber-50' },
-            { icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />, title: 'Segurança Local', desc: 'Avisos da administração e alertas de vizinhos.', color: 'bg-emerald-50' },
-            { icon: <Users className="w-6 h-6 text-blue-500" />, title: 'Comunidade Unida', desc: 'Apoie o comércio local e conheça seus vizinhos.', color: 'bg-blue-50' },
-          ].map((item, i) => (
-             <div key={i} className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 p-8 rounded-3xl hover:-translate-y-1 transition-transform duration-300">
-               <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center mb-6 shadow-inner`}>
-                 {item.icon}
-               </div>
-               <h4 className="font-bold text-slate-800 text-xl mb-3 tracking-tight">{item.title}</h4>
-               <p className="text-slate-500 leading-relaxed font-medium">{item.desc}</p>
-             </div>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Public Mural Section */}
       {publicPosts.length > 0 && (
@@ -193,49 +213,31 @@ export default function Landing() {
         </div>
       )}
 
-      {/* News Footer Section */}
-      {config.newsList && config.newsList.length > 0 && (
-        <div className="bg-slate-50 py-24 border-t border-slate-200">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex flex-col items-center text-center mb-16">
-              <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-amber-200">
-                Fique Informado
-              </span>
-              <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4 tracking-tight flex items-center justify-center gap-3">
-                <Zap className="w-8 h-8 text-amber-500" /> Últimas Notícias
-              </h3>
-            </div>
-
-            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {config.newsList.map((news: any, index: number) => {
-                const isFirst = index === 0 && news.image;
-                return (
-                  <div key={news.id || index} className={`bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-amber-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2 row-span-2' : 'col-span-1'}`}>
-                    {news.image ? (
-                      <div className={`overflow-hidden relative ${isFirst ? 'h-64 md:h-80' : 'h-48'}`}>
-                        <img src={news.image} alt={news.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                        <div className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
-                          <span className="text-xs font-bold text-white uppercase tracking-widest">{news.label || 'Notícia'}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/50">
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-                        <span className="text-xs font-bold text-red-600 uppercase tracking-wider">{news.label || 'Aviso'}</span>
-                      </div>
-                    )}
-                    <div className={`p-6 flex flex-col flex-1 justify-center ${!news.image ? 'bg-amber-50/30 min-h-[140px]' : ''}`}>
-                      <h4 className={`font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors ${isFirst ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
-                        {news.title}
-                      </h4>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      {/* Features Grid */}
+      <div className="bg-slate-50 py-24 border-t border-slate-200">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">Por que usar o Fala do Bairro?</h3>
+            <p className="text-slate-500 font-medium max-w-lg mx-auto">Tudo que você precisa para estar conectado com a sua comunidade local em um só lugar.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: <Zap className="w-6 h-6 text-amber-500" />, title: 'Informação Rápida', desc: 'Saiba de tudo que acontece no bairro em tempo real.', color: 'bg-amber-50' },
+              { icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />, title: 'Segurança Local', desc: 'Avisos da administração e alertas de vizinhos.', color: 'bg-emerald-50' },
+              { icon: <Users className="w-6 h-6 text-blue-500" />, title: 'Comunidade Unida', desc: 'Apoie o comércio local e conheça seus vizinhos.', color: 'bg-blue-50' },
+            ].map((item, i) => (
+               <div key={i} className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 p-8 rounded-3xl hover:-translate-y-1 transition-transform duration-300">
+                 <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center mb-6 shadow-inner`}>
+                   {item.icon}
+                 </div>
+                 <h4 className="font-bold text-slate-800 text-xl mb-3 tracking-tight">{item.title}</h4>
+                 <p className="text-slate-500 leading-relaxed font-medium">{item.desc}</p>
+               </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
