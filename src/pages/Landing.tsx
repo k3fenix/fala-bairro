@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2, PhoneCall } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2, PhoneCall, AlertTriangle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -18,12 +18,19 @@ export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
+  const [lostPets, setLostPets] = useState<any[]>([]);
 
   useEffect(() => {
     fetchSettings();
     fetchPublicPosts();
     fetchCommercialGuide();
+    fetchLostPets();
   }, []);
+
+  const fetchLostPets = async () => {
+    const { data } = await supabase.from('lost_pets').select('*').eq('status', 'Perdido');
+    if (data) setLostPets(data);
+  };
 
   const fetchCommercialGuide = async () => {
     const { data } = await supabase.from('commercial_guide').select('*');
@@ -212,6 +219,61 @@ export default function Landing() {
           </a>
         </div>
       </div>
+
+      {/* Lost Pets Alert Section */}
+      {lostPets.length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-20 mb-12">
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-[2rem] p-6 md:p-8 shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl"></div>
+            
+            <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
+              <div className="md:w-1/3 flex flex-col justify-center">
+                <div className="flex items-center gap-2 text-red-600 mb-2">
+                  <AlertTriangle className="w-6 h-6 animate-pulse" />
+                  <span className="font-black uppercase tracking-widest text-sm">Alerta Pet Perdido</span>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4 leading-tight">
+                  Você viu este animal?
+                </h3>
+                <p className="text-slate-600 font-medium mb-6">
+                  Nossos vizinhos estão precisando de ajuda para encontrar seus pets. Compartilhe nos grupos!
+                </p>
+              </div>
+
+              <div className="md:w-2/3 grid sm:grid-cols-2 gap-4 w-full">
+                {lostPets.map(pet => (
+                  <div key={pet.id} className="bg-white rounded-2xl p-4 shadow-md border border-red-100 flex gap-4 items-center">
+                    <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border-2 border-red-100">
+                      {pet.image ? (
+                        <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                          <ImageIcon className="w-8 h-8 text-slate-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-black text-lg text-slate-800 leading-none mb-1">{pet.pet_name}</h4>
+                      <p className="text-xs font-bold text-red-500 mb-2">{pet.species}</p>
+                      <p className="text-xs text-slate-600 mb-3 line-clamp-2">{pet.description}</p>
+                      <button 
+                        onClick={() => {
+                          const text = encodeURIComponent(`Olá! Vi no Fala do Bairro sobre o ${pet.pet_name}. Queria dar uma informação.`);
+                          window.open(`https://wa.me/${pet.owner_whatsapp}?text=${text}`, '_blank');
+                        }}
+                        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 w-max"
+                      >
+                        <PhoneCall className="w-3.5 h-3.5" />
+                        Avisar Tutor
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Dynamic News Highlights */}
       {config.newsList && config.newsList.length > 0 && (
