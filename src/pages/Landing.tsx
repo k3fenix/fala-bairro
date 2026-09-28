@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -338,10 +338,10 @@ export default function Landing() {
           <div className="w-full relative">
             <button 
               onClick={() => setSelectedNews(null)}
-              className="fixed top-6 right-6 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.1)] text-blue-600 hover:text-blue-800 rounded-full px-5 py-2.5 z-[110] transition-colors flex items-center gap-2 font-bold border border-slate-100"
+              className="fixed top-6 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-blue-700 hover:text-blue-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
             >
-              <X className="w-5 h-5" />
-              <span className="hidden sm:inline">Voltar ao Início</span>
+              <ArrowLeft className="w-5 h-5" />
+              Voltar
             </button>
             
             <div className="w-full h-[50vh] md:h-[65vh] relative">
