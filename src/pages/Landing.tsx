@@ -143,19 +143,19 @@ export default function Landing() {
           </div>
           
           {/* Main Copy */}
-          <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-12 leading-[1.15] tracking-tight">
+          <div className="text-right max-w-3xl ml-auto">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-10 leading-[1.15] tracking-tight">
               O que acontece no seu bairro, <br className="hidden md:block" />
               <span className="text-amber-400">a comunidade conta.</span>
             </h2>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row justify-center gap-4 px-4 sm:px-0">
-              <Link to="/register" className="group bg-amber-400 hover:bg-amber-300 text-amber-950 font-extrabold py-4 px-8 rounded-2xl shadow-[0_8px_25px_rgba(251,191,36,0.3)] transition-all active:scale-95 text-lg flex justify-center items-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-4 px-4 sm:px-0">
+              <Link to="/register" className="group bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold py-3 px-6 rounded-xl shadow-lg transition-all active:scale-95 text-sm md:text-base flex justify-center items-center gap-2">
                 CRIAR CONTA GRÁTIS
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/login" className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold py-4 px-8 rounded-2xl transition-all border border-white/20 flex justify-center items-center shadow-lg active:scale-95">
+              <Link to="/login" className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold py-3 px-6 rounded-xl transition-all border border-white/20 flex justify-center items-center shadow-lg active:scale-95 text-sm md:text-base">
                 JÁ TENHO CONTA
               </Link>
             </div>
@@ -165,8 +165,8 @@ export default function Landing() {
 
       {/* Dynamic News Highlights */}
       {config.newsList && config.newsList.length > 0 && (
-        <div className="max-w-6xl mx-auto px-6 -mt-32 relative z-20 mb-20">
-          <div id="noticias" className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-6 md:p-10 border-2 border-amber-400 scroll-mt-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-44 relative z-20 mb-20">
+          <div id="noticias" className="bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] p-6 md:p-10 lg:p-12 border border-slate-100 ring-1 ring-slate-900/5 scroll-mt-24">
             <div className="flex flex-col items-center text-center mb-10">
               <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-amber-200">
                 Fique Informado
