@@ -171,17 +171,6 @@ export default function Landing() {
               O que acontece no seu bairro, <br className="hidden md:block" />
               <span className="text-emerald-400">a comunidade conta.</span>
             </h2>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row justify-end gap-4 px-4 sm:px-0">
-              <Link to="/register" className="group bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-bold py-3 px-6 rounded-xl shadow-lg transition-all active:scale-95 text-sm md:text-base flex justify-center items-center gap-2">
-                CRIAR CONTA GRÁTIS
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link to="/login" className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold py-3 px-6 rounded-xl transition-all border border-white/20 flex justify-center items-center shadow-lg active:scale-95 text-sm md:text-base">
-                JÁ TENHO CONTA
-              </Link>
-            </div>
           </div>
         </div>
       </div>
