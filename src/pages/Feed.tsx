@@ -18,6 +18,7 @@ export default function Feed() {
   const registeredNeighborhood = localStorage.getItem('user_neighborhood') || 'Vila Rica';
   
   const [showProfile, setShowProfile] = useState(false);
+  const [showBusinessModal, setShowBusinessModal] = useState(false);
   const [profileTab, setProfileTab] = useState('pessoal');
   const [businessName, setBusinessName] = useState('');
   const [businessCategory, setBusinessCategory] = useState('');
@@ -169,7 +170,7 @@ export default function Feed() {
     const { error } = await supabase.from('commercial_guide').insert([item]);
     if (!error) {
       alert('Negócio cadastrado no Guia Comercial com sucesso!');
-      setShowProfile(false);
+      setShowBusinessModal(false);
     } else {
       alert('Erro ao cadastrar negócio: ' + error.message);
     }
@@ -310,6 +311,9 @@ export default function Feed() {
             <button onClick={handleCopyInvite} className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors border border-emerald-200">
               <Share2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Convidar</span>
             </button>
+            <button onClick={() => setShowBusinessModal(true)} className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full transition-colors">
+              <Store className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Minha Empresa</span>
+            </button>
             <button onClick={() => setShowProfile(true)} className="flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors">
               <User className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Perfil</span>
             </button>
@@ -375,12 +379,6 @@ export default function Feed() {
                 Perfil
               </button>
               <button 
-                className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'negocio' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                onClick={() => setProfileTab('negocio')}
-              >
-                Negócio
-              </button>
-              <button 
                 className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'pets' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 onClick={() => setProfileTab('pets')}
               >
@@ -413,51 +411,6 @@ export default function Feed() {
 
                 <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
                   Salvar Perfil
-                </button>
-              </>
-            ) : profileTab === 'negocio' ? (
-              <>
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Nome do Negócio</label>
-                  <input 
-                    type="text" 
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium"
-                    placeholder="Ex: João Eletricista"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Categoria</label>
-                  <input 
-                    type="text" 
-                    value={businessCategory}
-                    onChange={(e) => setBusinessCategory(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium"
-                    placeholder="Ex: Serviços, Alimentação, Beleza"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
-                  <textarea 
-                    value={businessDescription}
-                    onChange={(e) => setBusinessDescription(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium min-h-[80px]"
-                    placeholder="Descreva o que você faz..."
-                  />
-                </div>
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">WhatsApp (apenas números)</label>
-                  <input 
-                    type="text" 
-                    value={businessWhatsapp}
-                    onChange={(e) => setBusinessWhatsapp(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 font-medium"
-                    placeholder="5511999999999"
-                  />
-                </div>
-                <button onClick={handleSaveBusiness} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-colors shadow-md">
-                  Divulgar no Guia Comercial
                 </button>
               </>
             ) : (
@@ -538,6 +491,75 @@ export default function Feed() {
           </div>
         </div>
       )}
+
+      {showBusinessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setShowBusinessModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-2 mb-4 justify-center text-amber-500">
+              <Store className="w-6 h-6" />
+              <h3 className="text-xl font-bold text-slate-800 text-center">Minha Empresa</h3>
+            </div>
+            
+            <p className="text-sm text-slate-600 mb-6 text-center">
+              Divulgue seu negócio grátis no Guia Comercial do bairro! Outros moradores poderão te achar mais facilmente.
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Nome do Negócio</label>
+              <input 
+                type="text" 
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-amber-500 font-medium"
+                placeholder="Ex: João Eletricista"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Categoria</label>
+              <input 
+                type="text" 
+                value={businessCategory}
+                onChange={(e) => setBusinessCategory(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-amber-500 font-medium"
+                placeholder="Ex: Serviços, Alimentação, Beleza"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Descrição</label>
+              <textarea 
+                value={businessDescription}
+                onChange={(e) => setBusinessDescription(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-amber-500 font-medium min-h-[80px]"
+                placeholder="Descreva o que você faz..."
+              />
+            </div>
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">WhatsApp (apenas números)</label>
+              <input 
+                type="text" 
+                value={businessWhatsapp}
+                onChange={(e) => setBusinessWhatsapp(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2 focus:outline-none focus:border-amber-500 font-medium"
+                placeholder="5511999999999"
+              />
+            </div>
+            <button onClick={handleSaveBusiness} className="w-full bg-amber-500 text-white font-bold py-3 rounded-xl hover:bg-amber-600 transition-colors shadow-md flex items-center justify-center gap-2">
+              <Megaphone className="w-5 h-5" />
+              Publicar no Guia Comercial
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-amber-50/80 border-b border-amber-200 p-3 text-center mb-2">
+        <p className="text-amber-800 text-sm font-medium">
+          <Store className="inline-block w-4 h-4 mr-1 mb-1" />
+          Tem um negócio no bairro? Divulgue de graça! Acesse <strong>Minha Empresa</strong> no menu acima.
+        </p>
+      </div>
 
       <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-100">
         <div className="flex gap-3">
