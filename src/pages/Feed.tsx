@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Image as ImageIcon, ChevronDown, Heart, ThumbsUp, ThumbsDown, MessageCircle, Megaphone, LogOut, User, Camera, X, Share2, AlertTriangle } from 'lucide-react';
+import { MapPin, Image as ImageIcon, ChevronDown, Heart, ThumbsUp, ThumbsDown, MessageCircle, Megaphone, LogOut, User, Camera, X, Share2, AlertTriangle, Store, Dog } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Trash2, Send } from 'lucide-react';
@@ -15,10 +15,9 @@ export default function Feed() {
   
   const [userName, setUserName] = useState(localStorage.getItem('user_name') || 'Anônimo');
   const [userAvatar, setUserAvatar] = useState(localStorage.getItem('user_avatar') || `https://i.pravatar.cc/150?u=${userName}`);
-  const registeredNeighborhood = localStorage.getItem('user_neighborhood') || 'Vila Rica';
-  
   const [showProfile, setShowProfile] = useState(false);
   const [showBusinessModal, setShowBusinessModal] = useState(false);
+  const [showPetsModal, setShowPetsModal] = useState(false);
   const [profileTab, setProfileTab] = useState('pessoal');
   const [businessName, setBusinessName] = useState('');
   const [businessCategory, setBusinessCategory] = useState('');
@@ -207,7 +206,7 @@ export default function Feed() {
     
     if (!error) {
       alert(`Pet cadastrado com sucesso!`);
-      setShowProfile(false);
+      setShowPetsModal(false);
     } else {
       alert('Erro ao cadastrar pet: ' + error.message);
     }
@@ -311,6 +310,9 @@ export default function Feed() {
             <button onClick={handleCopyInvite} className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors border border-emerald-200">
               <Share2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Convidar</span>
             </button>
+            <button onClick={() => setShowPetsModal(true)} className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-full transition-colors">
+              <Dog className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Pets</span>
+            </button>
             <button onClick={() => setShowBusinessModal(true)} className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full transition-colors">
               <Store className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Minha Empresa</span>
             </button>
@@ -369,125 +371,122 @@ export default function Feed() {
             <button onClick={() => setShowProfile(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
               <X className="w-6 h-6" />
             </button>
-            <h3 className="text-xl font-bold text-slate-800 mb-4 text-center">Configurações</h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Meu Perfil</h3>
             
-            <div className="flex border-b border-slate-200 mb-6">
-              <button 
-                className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'pessoal' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                onClick={() => setProfileTab('pessoal')}
-              >
-                Perfil
-              </button>
-              <button 
-                className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'pets' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                onClick={() => setProfileTab('pets')}
-              >
-                Pets
-              </button>
+            <div className="flex flex-col items-center mb-6">
+              <div className="w-24 h-24 bg-slate-200 rounded-full overflow-hidden mb-2 relative group shadow-md">
+                <img src={editAvatar} alt="Profile" className="w-full h-full object-cover" />
+                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Camera className="w-6 h-6 text-white" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                </label>
+              </div>
+              <p className="text-[12px] font-medium text-slate-500">Clique na foto para alterar</p>
             </div>
 
-            {profileTab === 'pessoal' ? (
-              <>
-                <div className="flex flex-col items-center mb-6">
-                  <div className="w-24 h-24 bg-slate-200 rounded-full overflow-hidden mb-2 relative group shadow-md">
-                    <img src={editAvatar} alt="Profile" className="w-full h-full object-cover" />
-                    <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      <Camera className="w-6 h-6 text-white" />
-                      <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                    </label>
-                  </div>
-                  <p className="text-[12px] font-medium text-slate-500">Clique na foto para alterar</p>
-                </div>
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Seu Nome</label>
+              <input 
+                type="text" 
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 font-medium"
+              />
+            </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Seu Nome</label>
-                  <input 
-                    type="text" 
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 font-medium"
-                  />
-                </div>
+            <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
+              Salvar Perfil
+            </button>
+          </div>
+        </div>
+      )}
 
-                <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
-                  Salvar Perfil
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="flex gap-4 mb-4">
-                  <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Perdido' ? 'bg-red-50 border-red-200 text-red-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
-                    <input type="radio" name="petStatus" value="Perdido" checked={petStatus === 'Perdido'} onChange={() => setPetStatus('Perdido')} className="hidden" />
-                    Perdido
-                  </label>
-                  <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Adoção' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
-                    <input type="radio" name="petStatus" value="Adoção" checked={petStatus === 'Adoção'} onChange={() => setPetStatus('Adoção')} className="hidden" />
-                    Adoção
-                  </label>
-                </div>
-                <div className="flex flex-col items-center mb-4">
-                  <div className="w-full h-32 bg-slate-100 rounded-xl overflow-hidden mb-2 relative group flex items-center justify-center border-2 border-dashed border-slate-300">
-                    {petImage ? (
-                      <img src={petImage} alt="Pet" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="text-slate-400 flex flex-col items-center">
-                        <ImageIcon className="w-8 h-8 mb-1" />
-                        <span className="text-xs font-medium">Adicionar Foto</span>
-                      </div>
-                    )}
-                    <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      <Camera className="w-6 h-6 text-white" />
-                      <input type="file" accept="image/*" className="hidden" onChange={handlePetImageUpload} />
-                    </label>
+      {showPetsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setShowPetsModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-2 mb-4 justify-center text-rose-500">
+              <Dog className="w-6 h-6" />
+              <h3 className="text-xl font-bold text-slate-800 text-center">Pets</h3>
+            </div>
+            
+            <p className="text-sm text-slate-600 mb-6 text-center">
+              Cadastre um pet perdido para a comunidade ajudar a encontrar, ou disponibilize um para adoção.
+            </p>
+
+            <div className="flex gap-4 mb-4">
+              <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Perdido' ? 'bg-red-50 border-red-200 text-red-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                <input type="radio" name="petStatus" value="Perdido" checked={petStatus === 'Perdido'} onChange={() => setPetStatus('Perdido')} className="hidden" />
+                Perdido
+              </label>
+              <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Adoção' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                <input type="radio" name="petStatus" value="Adoção" checked={petStatus === 'Adoção'} onChange={() => setPetStatus('Adoção')} className="hidden" />
+                Adoção
+              </label>
+            </div>
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-full h-32 bg-slate-100 rounded-xl overflow-hidden mb-2 relative group flex items-center justify-center border-2 border-dashed border-slate-300">
+                {petImage ? (
+                  <img src={petImage} alt="Pet" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-slate-400 flex flex-col items-center">
+                    <ImageIcon className="w-8 h-8 mb-1" />
+                    <span className="text-xs font-medium">Adicionar Foto</span>
                   </div>
-                </div>
-                <div className="mb-3 grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Nome do Pet</label>
-                    <input 
-                      type="text" value={petName} onChange={(e) => setPetName(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
-                      placeholder="Ex: Rex"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Espécie/Raça</label>
-                    <input 
-                      type="text" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
-                      placeholder="Ex: Cão/Vira-lata"
-                    />
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Localização (Onde perdeu/Onde está)</label>
-                  <input 
-                    type="text" value={petLocation} onChange={(e) => setPetLocation(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
-                    placeholder="Ex: Rua das Flores, Centro"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp (apenas números)</label>
-                  <input 
-                    type="text" value={petWhatsapp} onChange={(e) => setPetWhatsapp(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
-                    placeholder="5511999999999"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Descrição Adicional</label>
-                  <textarea 
-                    value={petDescription} onChange={(e) => setPetDescription(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm min-h-[60px]"
-                    placeholder="Detalhes adicionais..."
-                  />
-                </div>
-                <button onClick={handleSavePet} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
-                  Cadastrar Pet
-                </button>
-              </>
-            )}
+                )}
+                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Camera className="w-6 h-6 text-white" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePetImageUpload} />
+                </label>
+              </div>
+            </div>
+            <div className="mb-3 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Nome do Pet</label>
+                <input 
+                  type="text" value={petName} onChange={(e) => setPetName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-rose-500 font-medium text-sm"
+                  placeholder="Ex: Rex"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Espécie/Raça</label>
+                <input 
+                  type="text" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-rose-500 font-medium text-sm"
+                  placeholder="Ex: Cão/Vira-lata"
+                />
+              </div>
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Localização</label>
+              <input 
+                type="text" value={petLocation} onChange={(e) => setPetLocation(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-rose-500 font-medium text-sm"
+                placeholder="Ex: Rua das Flores, Centro"
+              />
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp (apenas números)</label>
+              <input 
+                type="text" value={petWhatsapp} onChange={(e) => setPetWhatsapp(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-rose-500 font-medium text-sm"
+                placeholder="5511999999999"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Descrição Adicional</label>
+              <textarea 
+                value={petDescription} onChange={(e) => setPetDescription(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-rose-500 font-medium text-sm min-h-[60px]"
+                placeholder="Detalhes adicionais..."
+              />
+            </div>
+            <button onClick={handleSavePet} className="w-full bg-rose-600 text-white font-bold py-3 rounded-xl hover:bg-rose-700 transition-colors shadow-md">
+              Cadastrar Pet
+            </button>
           </div>
         </div>
       )}
@@ -760,7 +759,7 @@ function PostCard({ post }: { post: any }) {
       </p>
 
       {post.image && (
-        <div className="w-full bg-slate-100 rounded-xl mb-4 overflow-hidden max-h-96 relative">
+        <div className="w-full bg-slate-900 rounded-xl mb-4 overflow-hidden max-h-96 relative">
           {post.image.startsWith('data:video/') || post.image.match(/\.(mp4|webm|mov)$/i) ? (
             <video 
               src={post.image} 
@@ -771,7 +770,7 @@ function PostCard({ post }: { post: any }) {
             <img 
               src={post.image} 
               alt="Post content"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           )}
         </div>

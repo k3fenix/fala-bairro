@@ -228,7 +228,7 @@ export default function Landing() {
                   <div key={pet.id} className="bg-white rounded-2xl p-4 shadow-md border border-red-100 flex gap-4 items-center">
                     <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border-2 border-red-100">
                       {pet.image ? (
-                        <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-cover" />
+                        <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-contain bg-slate-100" />
                       ) : (
                         <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                           <ImageIcon className="w-8 h-8 text-slate-400" />
@@ -279,7 +279,7 @@ export default function Landing() {
                 </div>
                 <div className="h-48 overflow-hidden relative">
                   {pet.image ? (
-                    <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-cover" />
+                    <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-contain bg-slate-100" />
                   ) : (
                     <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                       <ImageIcon className="w-8 h-8 text-slate-400" />
@@ -446,10 +446,10 @@ export default function Landing() {
                 <div key={post.id} className="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 hover:border-blue-500/50 transition-colors group flex flex-col h-full shadow-xl">
                   {post.image ? (
                     <div 
-                      className="h-48 overflow-hidden relative cursor-pointer"
+                      className="h-48 overflow-hidden relative cursor-pointer bg-slate-900"
                       onClick={() => setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category })}
                     >
-                      <img src={post.image} alt="Post" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img src={post.image} alt="Post" className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
                       <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
                         <MapPin className="w-3.5 h-3.5 text-blue-400" />
                         <span className="text-xs font-bold text-white">{post.neighborhood}</span>
@@ -578,9 +578,9 @@ export default function Landing() {
               <span className="hidden sm:inline">Compartilhar</span>
             </button>
             
-            <div className="w-full h-[50vh] md:h-[65vh] relative">
+            <div className="w-full h-[50vh] md:h-[65vh] relative bg-slate-900">
               {selectedNews.image ? (
-                <img src={selectedNews.image} alt={selectedNews.title} className="w-full h-full object-cover" />
+                <img src={selectedNews.image} alt={selectedNews.title} className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
                    <Zap className="w-24 h-24 text-white/10" />
