@@ -85,7 +85,6 @@ function OverviewTab() {
 
   const handleApprovePost = async (id: number, currentCategory: string) => {
     let finalCategory = currentCategory;
-    const isDenuncia = currentCategory.includes('Denúncia');
     
     // Pergunta se quer alterar a categoria para exibição
     const newCat = prompt(`Defina a categoria final para ir para a página inicial (ex: Denúncia ou Postagem):\n(Deixe em branco para manter: ${currentCategory})`, currentCategory);
@@ -222,8 +221,9 @@ function UsersTab() {
   };
 
   const handleToggleStatus = async (user: any) => {
-    const newStatus = user.status === 'Ativo' ? 'Bloqueado' : 'Ativo';
-    const actionText = user.status === 'Ativo' ? 'bloquear' : 'liberar';
+    const isPending = user.status === 'Pendente';
+    const newStatus = (user.status === 'Ativo' || isPending) ? (isPending ? 'Ativo' : 'Bloqueado') : 'Ativo';
+    const actionText = isPending ? 'aprovar' : (user.status === 'Ativo' ? 'bloquear' : 'liberar');
     
     if (confirm(`Tem certeza que deseja ${actionText} o usuário ${user.name}?`)) {
       await supabase.from('profiles').update({ status: newStatus }).eq('id', user.id);
@@ -316,8 +316,8 @@ function UsersTab() {
               <button onClick={() => handleAvisar(user)} className="flex justify-center items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold text-sm transition-all">
                 <Send className="w-4 h-4" /> Avisar
               </button>
-              <button onClick={() => handleToggleStatus(user)} className={`flex justify-center items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm transition-all ${user.status === 'Ativo' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}>
-                {user.status === 'Ativo' ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />} {user.status === 'Ativo' ? 'Bloquear' : 'Liberar'}
+              <button onClick={() => handleToggleStatus(user)} className={`flex justify-center items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm transition-all ${user.status === 'Pendente' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : (user.status === 'Ativo' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100')}`}>
+                {user.status === 'Pendente' ? <CheckCircle className="w-4 h-4" /> : (user.status === 'Ativo' ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />)} {user.status === 'Pendente' ? 'Aprovar' : (user.status === 'Ativo' ? 'Bloquear' : 'Liberar')}
               </button>
               <button onClick={() => handleDeleteUser(user)} className="flex justify-center items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl font-bold text-sm transition-all">
                 <Trash2 className="w-4 h-4" /> Excluir
@@ -499,14 +499,8 @@ function StatCard({ title, value, icon }: any) {
 }
 
 function LandingConfigTab() {
-  const [config, setConfig] = useState({
-    bgImage: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80',
-    newsImg: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
-    newsMain: 'Reunião de Segurança Comunitária define novas regras',
-    newsSide1: 'Falta de Água na Rua 15 será resolvida amanhã',
-    newsSide2: 'Nova feira de rua aos domingos confirmada'
-  });
-
+  const [bgImage, setBgImage] = useState('');
+  const [newsList, setNewsList] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -517,28 +511,58 @@ function LandingConfigTab() {
     const { data } = await supabase.from('settings').select('*');
     if (data) {
       const getVal = (k: string) => data.find((s: any) => s.key === k)?.value;
-      setConfig(prev => ({
-        bgImage: getVal('landing_bg_image') || prev.bgImage,
-        newsImg: getVal('landing_news_main_img') || prev.newsImg,
-        newsMain: getVal('landing_news_main_title') || prev.newsMain,
-        newsSide1: getVal('landing_news_side1_title') || prev.newsSide1,
-        newsSide2: getVal('landing_news_side2_title') || prev.newsSide2,
-      }));
+      setBgImage(getVal('landing_bg_image') || 'https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80');
+      
+      const newsData = getVal('landing_news_list');
+      let loadedValidArray = false;
+      if (newsData) {
+        try {
+          const parsed = JSON.parse(newsData);
+          if (Array.isArray(parsed)) {
+            setNewsList(parsed.filter((n: any) => n && typeof n === 'object'));
+            loadedValidArray = true;
+          }
+        } catch (e) {}
+      } 
+      
+      if (!loadedValidArray) {
+        // Fallback for migration
+        setNewsList([
+          { id: '1', title: getVal('landing_news_main_title') || 'Reunião de Segurança Comunitária define novas regras', image: getVal('landing_news_main_img') || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80', label: 'Destaque' },
+          { id: '2', title: getVal('landing_news_side1_title') || 'Falta de Água na Rua 15 será resolvida amanhã', image: '', label: 'Aviso Urgente' },
+          { id: '3', title: getVal('landing_news_side2_title') || 'Nova feira de rua aos domingos confirmada', image: '', label: 'Comunidade' }
+        ].filter(n => n.title));
+      }
     }
   };
 
-  const handleChange = (e: any) => {
-    setConfig({ ...config, [e.target.name]: e.target.value });
+  const handleAddNews = () => {
+    if (newsList.length >= 10) return alert('Máximo de 10 notícias atingido.');
+    setNewsList([...newsList, { id: Date.now().toString(), title: '', image: '', label: 'Notícia' }]);
+  };
+
+  const handleRemoveNews = (id: string) => {
+    setNewsList(newsList.filter(n => n.id !== id));
+  };
+
+  const handleUpdateNews = (id: string, field: string, value: string) => {
+    setNewsList(newsList.map(n => n.id === id ? { ...n, [field]: value } : n));
   };
 
   const handleSave = async () => {
     setSaving(true);
+    
+    // Filtra notícias vazias para evitar salvar itens corrompidos no banco
+    const cleanNewsList = newsList.filter(n => n && n.title && n.title.trim() !== '');
+
     const updates = [
-      { key: 'landing_bg_image', value: config.bgImage },
-      { key: 'landing_news_main_img', value: config.newsImg },
-      { key: 'landing_news_main_title', value: config.newsMain },
-      { key: 'landing_news_side1_title', value: config.newsSide1 },
-      { key: 'landing_news_side2_title', value: config.newsSide2 },
+      { key: 'landing_bg_image', value: bgImage },
+      { key: 'landing_news_list', value: JSON.stringify(cleanNewsList) },
+      // Salvando também as chaves antigas para manter compatibilidade até a parte 2
+      { key: 'landing_news_main_img', value: cleanNewsList[0]?.image || '' },
+      { key: 'landing_news_main_title', value: cleanNewsList[0]?.title || '' },
+      { key: 'landing_news_side1_title', value: cleanNewsList[1]?.title || '' },
+      { key: 'landing_news_side2_title', value: cleanNewsList[2]?.title || '' },
     ];
     
     for (const update of updates) {
@@ -546,7 +570,7 @@ function LandingConfigTab() {
     }
     
     setSaving(false);
-    alert('Configurações da Landing Page atualizadas com sucesso!');
+    alert('Configurações atualizadas! As 10 notícias foram salvas no banco. (O site continuará com o layout antigo até completarmos o Passo 2).');
   };
 
   return (
@@ -569,9 +593,8 @@ function LandingConfigTab() {
             <label className="block text-sm font-semibold text-slate-700 mb-1">URL da Imagem de Fundo (Colagem/Mosaico)</label>
             <input 
               type="text" 
-              name="bgImage"
-              value={config.bgImage}
-              onChange={handleChange}
+              value={bgImage}
+              onChange={(e) => setBgImage(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               placeholder="https://exemplo.com/sua-imagem.jpg"
             />
@@ -580,58 +603,71 @@ function LandingConfigTab() {
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Notícia em Destaque</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">URL da Imagem da Notícia</label>
-              <input 
-                type="text" 
-                name="newsImg"
-                value={config.newsImg}
-                onChange={handleChange}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Título da Notícia Principal</label>
-              <input 
-                type="text" 
-                name="newsMain"
-                value={config.newsMain}
-                onChange={handleChange}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-              />
-            </div>
+          <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+            <h3 className="font-bold text-slate-800 text-lg">Notícias da Capa ({newsList.length}/10)</h3>
+            <button 
+              onClick={handleAddNews}
+              disabled={newsList.length >= 10}
+              className="text-blue-600 hover:text-blue-800 font-bold text-sm bg-blue-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              + Adicionar Notícia
+            </button>
           </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Notícias Laterais (Textos)</h3>
           
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Título da Notícia Lateral 1 (Aviso Urgente)</label>
-              <input 
-                type="text" 
-                name="newsSide1"
-                value={config.newsSide1}
-                onChange={handleChange}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-              />
-            </div>
+            {newsList.map((news, index) => (
+              <div key={news.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-3 relative group">
+                <button 
+                  onClick={() => handleRemoveNews(news.id)}
+                  className="absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1"
+                  title="Remover Notícia"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-blue-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{index + 1}</span>
+                  <span className="text-sm font-bold text-slate-700">{index === 0 ? 'Notícia Principal (Destaque)' : 'Notícia Secundária'}</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Título</label>
+                    <input 
+                      type="text" 
+                      value={news.title}
+                      onChange={(e) => handleUpdateNews(news.id, 'title', e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
+                      placeholder="Ex: Falta de Água na Rua 15"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Rótulo (ex: Destaque, Aviso)</label>
+                    <input 
+                      type="text" 
+                      value={news.label}
+                      onChange={(e) => handleUpdateNews(news.id, 'label', e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">URL da Imagem {index > 0 && <span className="text-slate-400 font-normal">(Opcional)</span>}</label>
+                    <input 
+                      type="text" 
+                      value={news.image}
+                      onChange={(e) => handleUpdateNews(news.id, 'image', e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Título da Notícia Lateral 2 (Comunidade)</label>
-              <input 
-                type="text" 
-                name="newsSide2"
-                value={config.newsSide2}
-                onChange={handleChange}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-              />
-            </div>
+            {newsList.length === 0 && (
+              <div className="text-center p-6 text-slate-500 text-sm font-medium">
+                Nenhuma notícia adicionada. Clique em "+ Adicionar Notícia" para começar.
+              </div>
+            )}
           </div>
         </div>
       </div>

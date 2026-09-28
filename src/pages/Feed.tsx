@@ -131,10 +131,9 @@ export default function Feed() {
     localStorage.setItem('user_name', editName);
     localStorage.setItem('user_avatar', editAvatar);
       
-      setShowProfile(false);
-      alert('Perfil atualizado com sucesso!');
-      fetchPosts();
-    }
+    setShowProfile(false);
+    alert('Perfil atualizado com sucesso!');
+    fetchPosts();
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
