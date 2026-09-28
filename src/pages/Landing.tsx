@@ -19,6 +19,7 @@ export default function Landing() {
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
+  const [adoptionPets, setAdoptionPets] = useState<any[]>([]);
 
   useEffect(() => {
     fetchSettings();
@@ -28,8 +29,11 @@ export default function Landing() {
   }, []);
 
   const fetchLostPets = async () => {
-    const { data } = await supabase.from('lost_pets').select('*').eq('status', 'Perdido');
-    if (data) setLostPets(data);
+    const { data } = await supabase.from('lost_pets').select('*');
+    if (data) {
+      setLostPets(data.filter(p => p.status === 'Perdido'));
+      setAdoptionPets(data.filter(p => p.status === 'Adoção'));
+    }
   };
 
   const fetchCommercialGuide = async () => {
@@ -250,6 +254,61 @@ export default function Landing() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Adoption Pets Section */}
+      {adoptionPets.length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-20 mb-12">
+          <div className="mb-6 flex justify-between items-end">
+            <div>
+              <h3 className="text-2xl font-black text-slate-800">Pets para adoção</h3>
+              <p className="text-slate-500 font-medium text-sm">Pets anunciados em sua região.</p>
+            </div>
+            <button className="text-sm font-bold text-slate-500 hover:text-emerald-600 underline">
+              Ver na minha região
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {adoptionPets.map(pet => (
+              <div key={pet.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col">
+                <div className="bg-emerald-500 text-white text-center py-2 font-bold text-sm">
+                  Para Adoção
+                </div>
+                <div className="h-48 overflow-hidden relative">
+                  {pet.image ? (
+                    <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                      <ImageIcon className="w-8 h-8 text-slate-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-bold text-slate-800 text-lg leading-tight">{pet.pet_name}</h4>
+                    <button className="text-amber-400 hover:text-amber-500">
+                      <Heart className="w-5 h-5 fill-current" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500 line-clamp-2 mb-4 flex-1">{pet.description}</p>
+                  <div className="flex justify-between items-center mt-auto">
+                    <p className="text-[10px] text-slate-400 max-w-[60%] truncate">{pet.last_seen_location}</p>
+                    <button 
+                      onClick={() => {
+                        const text = encodeURIComponent(`Olá! Tenho interesse em adotar o ${pet.pet_name} que vi no Fala do Bairro.`);
+                        window.open(`https://wa.me/${pet.owner_whatsapp}?text=${text}`, '_blank');
+                      }}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm transition-colors"
+                    >
+                      Adotar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

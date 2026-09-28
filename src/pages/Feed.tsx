@@ -24,6 +24,14 @@ export default function Feed() {
   const [businessDescription, setBusinessDescription] = useState('');
   const [businessWhatsapp, setBusinessWhatsapp] = useState('');
 
+  const [petName, setPetName] = useState('');
+  const [petSpecies, setPetSpecies] = useState('');
+  const [petDescription, setPetDescription] = useState('');
+  const [petLocation, setPetLocation] = useState('');
+  const [petWhatsapp, setPetWhatsapp] = useState('');
+  const [petStatus, setPetStatus] = useState('Perdido');
+  const [petImage, setPetImage] = useState<string | null>(null);
+
   const [editName, setEditName] = useState(userName);
   const [editAvatar, setEditAvatar] = useState(userAvatar);
 
@@ -164,6 +172,43 @@ export default function Feed() {
       setShowProfile(false);
     } else {
       alert('Erro ao cadastrar negócio: ' + error.message);
+    }
+  };
+
+  const handlePetImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPetImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSavePet = async () => {
+    if (!petName || !petSpecies || !petLocation || !petWhatsapp) {
+      alert('Preencha todos os campos obrigatórios.');
+      return;
+    }
+    
+    const { error } = await supabase.from('lost_pets').insert([
+      {
+        pet_name: petName,
+        species: petSpecies,
+        description: petDescription,
+        last_seen_location: petLocation,
+        owner_whatsapp: petWhatsapp,
+        status: petStatus,
+        image: petImage
+      }
+    ]);
+    
+    if (!error) {
+      alert(`Pet cadastrado com sucesso!`);
+      setShowProfile(false);
+    } else {
+      alert('Erro ao cadastrar pet: ' + error.message);
     }
   };
 
@@ -327,13 +372,19 @@ export default function Feed() {
                 className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'pessoal' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 onClick={() => setProfileTab('pessoal')}
               >
-                Perfil Pessoal
+                Perfil
               </button>
               <button 
                 className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'negocio' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 onClick={() => setProfileTab('negocio')}
               >
-                Meu Negócio
+                Negócio
+              </button>
+              <button 
+                className={`flex-1 py-2 font-bold text-sm text-center border-b-2 transition-colors ${profileTab === 'pets' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setProfileTab('pets')}
+              >
+                Pets
               </button>
             </div>
 
@@ -364,7 +415,7 @@ export default function Feed() {
                   Salvar Perfil
                 </button>
               </>
-            ) : (
+            ) : profileTab === 'negocio' ? (
               <>
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Nome do Negócio</label>
@@ -407,6 +458,80 @@ export default function Feed() {
                 </div>
                 <button onClick={handleSaveBusiness} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-colors shadow-md">
                   Divulgar no Guia Comercial
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="flex gap-4 mb-4">
+                  <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Perdido' ? 'bg-red-50 border-red-200 text-red-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                    <input type="radio" name="petStatus" value="Perdido" checked={petStatus === 'Perdido'} onChange={() => setPetStatus('Perdido')} className="hidden" />
+                    Perdido
+                  </label>
+                  <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Adoção' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                    <input type="radio" name="petStatus" value="Adoção" checked={petStatus === 'Adoção'} onChange={() => setPetStatus('Adoção')} className="hidden" />
+                    Adoção
+                  </label>
+                </div>
+                <div className="flex flex-col items-center mb-4">
+                  <div className="w-full h-32 bg-slate-100 rounded-xl overflow-hidden mb-2 relative group flex items-center justify-center border-2 border-dashed border-slate-300">
+                    {petImage ? (
+                      <img src={petImage} alt="Pet" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-slate-400 flex flex-col items-center">
+                        <ImageIcon className="w-8 h-8 mb-1" />
+                        <span className="text-xs font-medium">Adicionar Foto</span>
+                      </div>
+                    )}
+                    <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      <Camera className="w-6 h-6 text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={handlePetImageUpload} />
+                    </label>
+                  </div>
+                </div>
+                <div className="mb-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Nome do Pet</label>
+                    <input 
+                      type="text" value={petName} onChange={(e) => setPetName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
+                      placeholder="Ex: Rex"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Espécie/Raça</label>
+                    <input 
+                      type="text" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
+                      placeholder="Ex: Cão/Vira-lata"
+                    />
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Localização (Onde perdeu/Onde está)</label>
+                  <input 
+                    type="text" value={petLocation} onChange={(e) => setPetLocation(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
+                    placeholder="Ex: Rua das Flores, Centro"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp (apenas números)</label>
+                  <input 
+                    type="text" value={petWhatsapp} onChange={(e) => setPetWhatsapp(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
+                    placeholder="5511999999999"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Descrição Adicional</label>
+                  <textarea 
+                    value={petDescription} onChange={(e) => setPetDescription(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm min-h-[60px]"
+                    placeholder="Detalhes adicionais..."
+                  />
+                </div>
+                <button onClick={handleSavePet} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
+                  Cadastrar Pet
                 </button>
               </>
             )}
