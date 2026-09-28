@@ -6,12 +6,15 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
       colors: {
         brand: {
-          light: '#3b82f6', // blue-500
-          DEFAULT: '#1d4ed8', // blue-700
-          dark: '#1e3a8a', // blue-900
-          accent: '#f59e0b', // amber-500
+          light: '#34d399', // emerald-400
+          DEFAULT: '#059669', // emerald-600
+          dark: '#064e3b', // emerald-900
+          accent: '#10b981', // emerald-500
         }
       }
     },
