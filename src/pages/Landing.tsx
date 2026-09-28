@@ -210,8 +210,8 @@ export default function Landing() {
           <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-[2rem] p-6 md:p-8 shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl"></div>
             
-            <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
-              <div className="md:w-1/3 flex flex-col justify-center">
+            <div className="flex flex-col gap-8 relative z-10">
+              <div className="flex flex-col items-center text-center">
                 <div className="flex items-center gap-2 text-red-600 mb-2">
                   <AlertTriangle className="w-6 h-6 animate-pulse" />
                   <span className="font-black uppercase tracking-widest text-sm">Alerta Pet Perdido</span>
@@ -219,15 +219,15 @@ export default function Landing() {
                 <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4 leading-tight">
                   Você viu este animal?
                 </h3>
-                <p className="text-slate-600 font-medium mb-6">
+                <p className="text-slate-600 font-medium mb-6 max-w-2xl mx-auto">
                   Nossos vizinhos estão precisando de ajuda para encontrar seus pets. Compartilhe nos grupos!
                 </p>
-                <Link to="/login" className="bg-white text-red-600 hover:bg-red-50 border-2 border-red-200 font-bold px-6 py-3 rounded-xl shadow-sm transition-colors text-center w-max uppercase text-sm tracking-wide">
+                <Link to="/login" className="bg-white text-red-600 hover:bg-red-50 border-2 border-red-200 font-bold px-8 py-3 rounded-xl shadow-sm transition-colors uppercase text-sm tracking-wide">
                   Cadastrar Animal Perdido
                 </Link>
               </div>
 
-              <div className="md:w-2/3 grid sm:grid-cols-2 gap-4 w-full">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
                 {lostPets.map(pet => (
                   <div 
                     key={pet.id} 
