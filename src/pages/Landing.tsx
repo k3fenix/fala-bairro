@@ -109,29 +109,34 @@ export default function Landing() {
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-200 pb-20 md:pb-0 pt-10">
       {/* Pets Marquee Banner */}
       {allPets.length > 0 ? (
-        <div className="fixed top-0 left-0 right-0 bg-slate-900 text-white text-xs md:text-sm shadow-md z-[120] flex items-center overflow-hidden h-10 border-b border-white/10">
-          <div className="flex animate-marquee whitespace-nowrap min-w-full hover:[animation-play-state:paused]">
-            {[...allPets, ...allPets, ...allPets, ...allPets, ...allPets].map((pet, idx) => (
-              <div 
-                key={`${pet.id}-${idx}`} 
-                onClick={() => setSelectedPet(pet)}
-                className="flex items-center gap-2 mx-6 cursor-pointer hover:bg-white/5 px-3 py-1 rounded-full transition-colors"
-              >
-                {pet.image && <img src={pet.image} alt={pet.pet_name} className="w-6 h-6 rounded-full object-cover border border-white/20" />}
-                <span className="text-white font-bold">{pet.pet_name}</span>
-                {pet.status === 'Encontrado' || pet.status === 'Achado' ? (
-                  <span className="text-emerald-400 bg-emerald-400/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Achado</span>
-                ) : pet.status === 'Perdido' ? (
-                  <span className="text-rose-400 bg-rose-400/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Perdido</span>
-                ) : (
-                  <span className="text-blue-400 bg-blue-400/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">{pet.status}</span>
-                )}
-              </div>
-            ))}
+        <div className="fixed top-0 left-0 right-0 bg-emerald-600 text-white text-xs md:text-sm font-bold shadow-md z-[120] flex items-center justify-center h-10">
+          <div className="w-[300px] md:w-[400px] overflow-hidden flex items-center relative h-full">
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-emerald-600 to-transparent z-10"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-emerald-600 to-transparent z-10"></div>
+            
+            <div className="flex animate-marquee whitespace-nowrap min-w-full hover:[animation-play-state:paused]">
+              {[...allPets, ...allPets, ...allPets, ...allPets].map((pet, idx) => (
+                <div 
+                  key={`${pet.id}-${idx}`} 
+                  onClick={() => setSelectedPet(pet)}
+                  className="flex items-center gap-2 mx-4 cursor-pointer hover:bg-emerald-700/50 px-3 py-1 rounded-full transition-colors"
+                >
+                  {pet.image && <img src={pet.image} alt={pet.pet_name} className="w-5 h-5 rounded-full object-cover border border-white/20" />}
+                  <span className="text-white font-bold">{pet.pet_name}</span>
+                  {pet.status === 'Encontrado' || pet.status === 'Achado' ? (
+                    <span className="text-emerald-900 bg-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Achado</span>
+                  ) : pet.status === 'Perdido' ? (
+                    <span className="text-white bg-rose-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Perdido</span>
+                  ) : (
+                    <span className="text-white bg-blue-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">{pet.status}</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="fixed top-0 left-0 right-0 bg-slate-900 text-white text-xs md:text-sm font-bold py-2.5 px-6 text-center shadow-md z-[120] h-10 border-b border-white/10">
+        <div className="fixed top-0 left-0 right-0 bg-emerald-600 text-white text-xs md:text-sm font-bold py-2.5 px-6 text-center shadow-md z-[120] h-10">
           Carregando informações...
         </div>
       )}
