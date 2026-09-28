@@ -154,21 +154,11 @@ export default function Landing() {
         ></div>
         <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px]"></div>
 
-        <div className="max-w-5xl mx-auto px-6 pt-32 pb-12 relative z-10">
-          {/* Header */}
-          <div className="flex justify-center items-center gap-3 mb-16 animate-fade-in-down">
-            <div className="bg-emerald-500 p-2.5 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.4)]">
-              <MessageCircle className="w-8 h-8 text-emerald-950" />
-            </div>
-            <h1 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
-              FALA DO BAIRRO
-            </h1>
-          </div>
-          
+        <div className="max-w-5xl mx-auto px-6 pt-24 pb-20 relative z-10 flex flex-col items-center justify-center min-h-[50vh]">
           {/* Main Copy */}
-          <div className="text-right max-w-3xl ml-auto">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-10 leading-[1.15] tracking-tight">
-              O que acontece no seu bairro, <br className="hidden md:block" />
+          <div className="text-center max-w-4xl mx-auto">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-[1.15] tracking-tight text-white drop-shadow-md">
+              O que acontece no seu bairro, <br className="hidden sm:block" />
               <span className="text-emerald-400">a comunidade conta.</span>
             </h2>
           </div>
