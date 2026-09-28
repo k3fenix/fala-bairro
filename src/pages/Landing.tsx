@@ -15,6 +15,7 @@ export default function Landing() {
 
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [selectedNews, setSelectedNews] = useState<any>(null);
+  const [selectedPet, setSelectedPet] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
@@ -221,11 +222,18 @@ export default function Landing() {
                 <p className="text-slate-600 font-medium mb-6">
                   Nossos vizinhos estão precisando de ajuda para encontrar seus pets. Compartilhe nos grupos!
                 </p>
+                <Link to="/login" className="bg-white text-red-600 hover:bg-red-50 border-2 border-red-200 font-bold px-6 py-3 rounded-xl shadow-sm transition-colors text-center w-max uppercase text-sm tracking-wide">
+                  Cadastrar Animal Perdido
+                </Link>
               </div>
 
               <div className="md:w-2/3 grid sm:grid-cols-2 gap-4 w-full">
                 {lostPets.map(pet => (
-                  <div key={pet.id} className="bg-white rounded-2xl p-4 shadow-md border border-red-100 flex gap-4 items-center">
+                  <div 
+                    key={pet.id} 
+                    className="bg-white rounded-2xl p-4 shadow-md border border-red-100 flex gap-4 items-center cursor-pointer hover:border-red-300 transition-colors"
+                    onClick={() => setSelectedPet(pet)}
+                  >
                     <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border-2 border-red-100">
                       {pet.image ? (
                         <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-contain bg-slate-100" />
@@ -601,6 +609,77 @@ export default function Landing() {
                 </div>
               ) : (
                 <p className="text-slate-400 italic text-lg">Nenhum detalhe adicional fornecido para esta notícia.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedPet && (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col md:flex-row overflow-y-auto overflow-x-hidden">
+          <div className="w-full relative">
+            <button 
+              onClick={() => setSelectedPet(null)}
+              className="fixed top-6 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-red-700 hover:text-red-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Voltar
+            </button>
+
+            <button 
+              onClick={() => {
+                const text = encodeURIComponent(`Olá! Vi no Fala do Bairro sobre o ${selectedPet.pet_name}. Queria dar uma informação.`);
+                window.open(`https://wa.me/${selectedPet.owner_whatsapp}?text=${text}`, '_blank');
+              }}
+              className="fixed bottom-6 right-6 md:top-6 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
+            >
+              <PhoneCall className="w-5 h-5" />
+              <span className="hidden sm:inline">Avisar Tutor</span>
+            </button>
+            
+            <div className="w-full h-[50vh] md:h-[65vh] relative bg-slate-900">
+              {selectedPet.image ? (
+                <img src={selectedPet.image} alt={selectedPet.pet_name} className="w-full h-full object-contain" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                   <ImageIcon className="w-24 h-24 text-white/10" />
+                </div>
+              )}
+              <div className="absolute top-6 left-6 md:top-8 md:left-8 bg-red-600/90 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 shadow-md mt-16 md:mt-0">
+                <span className="text-sm font-bold text-white uppercase tracking-widest">Pet Perdido</span>
+              </div>
+            </div>
+            
+            <div className="max-w-4xl mx-auto p-8 md:p-12 lg:p-16">
+              <h1 className="text-3xl md:text-5xl font-black text-slate-800 mb-2 leading-tight">
+                {selectedPet.pet_name}
+              </h1>
+              <p className="text-xl font-bold text-red-500 mb-8">{selectedPet.species}</p>
+              
+              <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
+                  <h4 className="font-bold text-slate-700 mb-2 uppercase text-sm tracking-wide">Visto por último em</h4>
+                  <p className="text-lg text-slate-800 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-red-500" />
+                    {selectedPet.last_seen_location}
+                  </p>
+                </div>
+                <div className="bg-green-50 p-6 rounded-2xl border border-green-100">
+                  <h4 className="font-bold text-slate-700 mb-2 uppercase text-sm tracking-wide">Contato do Tutor</h4>
+                  <p className="text-lg text-slate-800 flex items-center gap-2">
+                    <PhoneCall className="w-5 h-5 text-green-600" />
+                    {selectedPet.owner_whatsapp}
+                  </p>
+                </div>
+              </div>
+
+              {selectedPet.description && (
+                <div>
+                  <h4 className="font-bold text-slate-700 mb-4 uppercase text-sm tracking-wide">Descrição e Detalhes</h4>
+                  <div className="text-slate-700 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-medium">
+                    {selectedPet.description}
+                  </div>
+                </div>
               )}
             </div>
           </div>
