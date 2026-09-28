@@ -288,42 +288,39 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* News Reading Modal */}
+      {/* News Reading Full Screen View */}
       {selectedNews && (
         <div 
-          className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" 
-          onClick={() => setSelectedNews(null)}
+          className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-fade-in" 
         >
-          <div 
-            className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl relative animate-fade-in-up flex flex-col" 
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="w-full relative">
             <button 
               onClick={() => setSelectedNews(null)}
-              className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white rounded-full p-2 z-10 transition-colors"
+              className="fixed top-6 right-6 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.1)] text-blue-600 hover:text-blue-800 rounded-full px-5 py-2.5 z-[110] transition-colors flex items-center gap-2 font-bold border border-slate-100"
             >
               <X className="w-5 h-5" />
+              <span className="hidden sm:inline">Voltar ao Início</span>
             </button>
             
-            <div className="w-full h-64 md:h-80 relative flex-shrink-0">
+            <div className="w-full h-[50vh] md:h-[65vh] relative">
               {selectedNews.image ? (
                 <img src={selectedNews.image} alt={selectedNews.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                   <Zap className="w-16 h-16 text-white/10" />
+                   <Zap className="w-24 h-24 text-white/10" />
                 </div>
               )}
-              <div className="absolute top-5 left-5 bg-blue-600/90 backdrop-blur-md px-4 py-1.5 rounded-lg border border-white/10 shadow-md">
-                <span className="text-xs font-bold text-white uppercase tracking-widest">{selectedNews.label || 'Notícia'}</span>
+              <div className="absolute top-6 left-6 md:top-8 md:left-8 bg-blue-600/90 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 shadow-md">
+                <span className="text-sm font-bold text-white uppercase tracking-widest">{selectedNews.label || 'Notícia'}</span>
               </div>
             </div>
             
-            <div className="p-8 md:p-12">
-              <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-8 leading-tight">
+            <div className="max-w-4xl mx-auto p-8 md:p-12 lg:p-16">
+              <h1 className="text-3xl md:text-5xl font-black text-slate-800 mb-8 leading-tight">
                 {selectedNews.title}
-              </h2>
+              </h1>
               {selectedNews.description ? (
-                <div className="text-slate-600 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-medium">
+                <div className="text-slate-700 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-medium">
                   {selectedNews.description}
                 </div>
               ) : (
