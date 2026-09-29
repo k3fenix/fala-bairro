@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2, PhoneCall, AlertTriangle, Trash2, Edit2 } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2, PhoneCall, AlertTriangle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -491,50 +491,12 @@ export default function Landing() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {publicPosts.map((post) => {
-                const userName = localStorage.getItem('user_name') || '';
-                const isAdmin = localStorage.getItem('admin_auth') === 'true';
-                const isMine = post.author_name === userName;
-
-                return (
+              {publicPosts.map((post) => (
                 <div 
                   key={post.id} 
                   className="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 hover:border-blue-500/50 transition-colors group flex flex-col h-full shadow-xl cursor-pointer relative"
                   onClick={() => setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category })}
                 >
-                  {(isMine || isAdmin) && (
-                    <div className="absolute top-3 right-3 flex gap-2 z-10">
-                      {isMine && (
-                        <button 
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            const newContent = window.prompt('Editar publicação:', post.content);
-                            if (newContent && newContent !== post.content) {
-                              await supabase.from('posts').update({ content: newContent }).eq('id', post.id);
-                              setPublicPosts(prev => prev.map(p => p.id === post.id ? { ...p, content: newContent } : p));
-                            }
-                          }}
-                          className="bg-slate-800/80 hover:bg-slate-700 text-white p-2 rounded-full shadow-md backdrop-blur-md border border-white/10"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button 
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if (window.confirm('Tem certeza que deseja excluir esta postagem?')) {
-                            await supabase.from('posts').delete().eq('id', post.id);
-                            setPublicPosts(prev => prev.filter(p => p.id !== post.id));
-                          }
-                        }}
-                        className="bg-red-500/80 hover:bg-red-600 text-white p-2 rounded-full shadow-md backdrop-blur-md border border-white/10"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
                   {post.image ? (
                     <div className="h-48 overflow-hidden relative bg-slate-900">
                       <img src={post.image} alt="Post" className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
@@ -608,8 +570,7 @@ export default function Landing() {
                     </div>
                   </div>
                 </div>
-                );
-              })}
+              ))}
             </div>
           </div>
         </div>

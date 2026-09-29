@@ -18,7 +18,7 @@ export default function Feed() {
   const [showProfile, setShowProfile] = useState(false);
   const [showBusinessModal, setShowBusinessModal] = useState(false);
   const [showPetsModal, setShowPetsModal] = useState(false);
-  const [profileTab, setProfileTab] = useState('pessoal');
+  const [_profileTab, _setProfileTab] = useState('pessoal');
   const [businessName, setBusinessName] = useState('');
   const [businessCategory, setBusinessCategory] = useState('');
   const [businessDescription, setBusinessDescription] = useState('');
@@ -40,8 +40,10 @@ export default function Feed() {
 
   const baseNeighborhoods = ['Vila Rica', 'Centro', 'Jardim Botânico', 'Bela Vista', 'Nova Esperança'];
   const [allNeighborhoods, setAllNeighborhoods] = useState<string[]>(baseNeighborhoods);
-  const [selectedNeighborhood, setSelectedNeighborhood] = useState(registeredNeighborhood);
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState(localStorage.getItem('user_neighborhood') || 'Vila Rica');
   const [allPets, setAllPets] = useState<any[]>([]);
+  const [myBusinesses, setMyBusinesses] = useState<any[]>([]);
+  const [myPets, setMyPets] = useState<any[]>([]);
 
   useEffect(() => {
     const isImpersonating = !!localStorage.getItem('impersonatedUser');
@@ -54,11 +56,34 @@ export default function Feed() {
     fetchUserData();
     fetchPosts();
     fetchPets();
+    fetchMyBusinesses();
   }, [navigate]);
 
   const fetchPets = async () => {
     const { data } = await supabase.from('lost_pets').select('*');
-    if (data) setAllPets(data);
+    if (data) {
+      setAllPets(data);
+      const isAdmin = localStorage.getItem('admin_auth') === 'true';
+      if (isAdmin) {
+        setMyPets(data);
+      } else {
+        const userWhatsapp = localStorage.getItem('user_whatsapp') || '';
+        setMyPets(data.filter(p => p.owner_whatsapp === userWhatsapp));
+      }
+    }
+  };
+
+  const fetchMyBusinesses = async () => {
+    const { data } = await supabase.from('commercial_guide').select('*');
+    if (data) {
+      const isAdmin = localStorage.getItem('admin_auth') === 'true';
+      if (isAdmin) {
+        setMyBusinesses(data);
+      } else {
+        const userWhatsapp = localStorage.getItem('user_whatsapp') || '';
+        setMyBusinesses(data.filter(b => b.whatsapp === userWhatsapp));
+      }
+    }
   };
 
   const fetchSettings = async () => {
@@ -721,9 +746,131 @@ export default function Feed() {
         </div>
       </div>
 
+      {/* Meus Pets Section */}
+      {myPets.length > 0 && (
+        <div className="max-w-md mx-auto md:max-w-2xl px-4 mb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <Dog className="w-5 h-5 text-rose-500" /> Meus Pets Cadastrados
+            </h3>
+            <div className="space-y-3">
+              {myPets.map(pet => (
+                <div key={pet.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  {pet.image ? (
+                    <img src={pet.image} alt={pet.pet_name} className="w-14 h-14 rounded-xl object-cover border border-slate-200" />
+                  ) : (
+                    <div className="w-14 h-14 bg-rose-50 rounded-xl flex items-center justify-center border border-rose-100">
+                      <Dog className="w-6 h-6 text-rose-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-800 text-sm truncate">{pet.pet_name}</p>
+                    <p className="text-xs text-slate-500">{pet.species} • {pet.status}</p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      onClick={async () => {
+                        const newName = window.prompt('Nome do pet:', pet.pet_name);
+                        if (newName && newName !== pet.pet_name) {
+                          const newDesc = window.prompt('Descrição:', pet.description || '');
+                          const newLocation = window.prompt('Localização:', pet.last_seen_location || '');
+                          await supabase.from('lost_pets').update({ 
+                            pet_name: newName, 
+                            description: newDesc || pet.description,
+                            last_seen_location: newLocation || pet.last_seen_location 
+                          }).eq('id', pet.id);
+                          fetchPets();
+                        }
+                      }}
+                      className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                      title="Editar"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(`Excluir ${pet.pet_name}?`)) {
+                          await supabase.from('lost_pets').delete().eq('id', pet.id);
+                          fetchPets();
+                        }
+                      }}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Minhas Empresas Section */}
+      {myBusinesses.length > 0 && (
+        <div className="max-w-md mx-auto md:max-w-2xl px-4 mb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <Store className="w-5 h-5 text-amber-500" /> Minhas Empresas
+            </h3>
+            <div className="space-y-3">
+              {myBusinesses.map(biz => (
+                <div key={biz.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  {biz.image ? (
+                    <img src={biz.image} alt={biz.name} className="w-14 h-14 rounded-xl object-cover border border-slate-200" />
+                  ) : (
+                    <div className="w-14 h-14 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100">
+                      <Store className="w-6 h-6 text-amber-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-800 text-sm truncate">{biz.name}</p>
+                    <p className="text-xs text-slate-500">{biz.category}</p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      onClick={async () => {
+                        const newName = window.prompt('Nome do negócio:', biz.name);
+                        if (newName && newName !== biz.name) {
+                          const newDesc = window.prompt('Descrição:', biz.description || '');
+                          const newCat = window.prompt('Categoria:', biz.category || '');
+                          await supabase.from('commercial_guide').update({ 
+                            name: newName, 
+                            description: newDesc || biz.description,
+                            category: newCat || biz.category 
+                          }).eq('id', biz.id);
+                          fetchMyBusinesses();
+                        }
+                      }}
+                      className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                      title="Editar"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(`Excluir ${biz.name}?`)) {
+                          await supabase.from('commercial_guide').delete().eq('id', biz.id);
+                          fetchMyBusinesses();
+                        }
+                      }}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto md:max-w-2xl">
         {filteredPosts.map((post: any) => (
-          <PostCard key={post.id} post={post} onDelete={(id: number) => setPosts(posts.filter(p => p.id !== id))} />
+          <PostCard key={post.id} post={post} onDelete={(id: number) => setPosts(posts.filter(p => p.id !== id))} onImageClick={(img: string) => setSelectedImage(img)} />
         ))}
         {filteredPosts.length === 0 && (
           <div className="text-center text-slate-500 py-10">

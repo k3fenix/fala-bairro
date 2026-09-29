@@ -31,5 +31,9 @@
     "oxlint": "^1.81.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
+  },
+  "allowScripts": {
+    "@google/genai@2.24.0": true,
+    "protobufjs@7.6.6": true
   }
 }
