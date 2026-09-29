@@ -67,8 +67,12 @@ export default function Feed() {
       if (isAdmin) {
         setMyPets(data);
       } else {
-        const userWhatsapp = localStorage.getItem('user_whatsapp') || '';
-        setMyPets(data.filter(p => p.owner_whatsapp === userWhatsapp));
+        const userWhatsapp = localStorage.getItem('user_whatsapp');
+        if (userWhatsapp && userWhatsapp.trim() !== '') {
+          setMyPets(data.filter(p => p.owner_whatsapp === userWhatsapp));
+        } else {
+          setMyPets([]);
+        }
       }
     }
   };
@@ -80,8 +84,12 @@ export default function Feed() {
       if (isAdmin) {
         setMyBusinesses(data);
       } else {
-        const userWhatsapp = localStorage.getItem('user_whatsapp') || '';
-        setMyBusinesses(data.filter(b => b.whatsapp === userWhatsapp));
+        const userWhatsapp = localStorage.getItem('user_whatsapp');
+        if (userWhatsapp && userWhatsapp.trim() !== '') {
+          setMyBusinesses(data.filter(b => b.whatsapp === userWhatsapp));
+        } else {
+          setMyBusinesses([]);
+        }
       }
     }
   };
@@ -154,7 +162,12 @@ export default function Feed() {
     }
     await supabase.auth.signOut();
     localStorage.removeItem('user_auth');
+    localStorage.removeItem('admin_auth');
     localStorage.removeItem('user_name');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_whatsapp');
+    localStorage.removeItem('user_avatar');
+    localStorage.removeItem('user_neighborhood');
     navigate('/');
   };
 
@@ -204,6 +217,9 @@ export default function Feed() {
 
     const { error } = await supabase.from('commercial_guide').insert([item]);
     if (!error) {
+      if (!localStorage.getItem('user_whatsapp')) {
+        localStorage.setItem('user_whatsapp', businessWhatsapp);
+      }
       alert('Negócio cadastrado no Guia Comercial com sucesso!');
       setShowBusinessModal(false);
       setBusinessName('');
@@ -211,6 +227,7 @@ export default function Feed() {
       setBusinessDescription('');
       setBusinessWhatsapp('');
       setBusinessImage(null);
+      fetchMyBusinesses();
     } else {
       alert('Erro ao cadastrar negócio: ' + error.message);
     }
@@ -257,8 +274,12 @@ export default function Feed() {
     ]);
     
     if (!error) {
+      if (!localStorage.getItem('user_whatsapp')) {
+        localStorage.setItem('user_whatsapp', petWhatsapp);
+      }
       alert(`Pet cadastrado com sucesso!`);
       setShowPetsModal(false);
+      fetchPets();
     } else {
       alert('Erro ao cadastrar pet: ' + error.message);
     }
@@ -324,7 +345,8 @@ export default function Feed() {
     }
   };
 
-  let filteredPosts = posts.filter((p: any) => p.is_approved || p.author_name === userName);
+  const currentUserId = localStorage.getItem('user_id');
+  let filteredPosts = posts.filter((p: any) => p.is_approved || p.author_id === currentUserId);
 
   if (activeFilter === 'Meu bairro') {
     filteredPosts = filteredPosts.filter((p: any) => p.neighborhood === selectedNeighborhood);
@@ -913,9 +935,10 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
   const [newComment, setNewComment] = useState('');
   const [commentCount, setCommentCount] = useState(0);
 
+  const userId = localStorage.getItem('user_id');
   const userName = localStorage.getItem('user_name') || 'Anônimo';
   const isAdmin = localStorage.getItem('admin_auth') === 'true';
-  const isMine = post.author_name === userName;
+  const isMine = post.author_id === userId && userId !== null && userId !== '';
 
   useEffect(() => {
     fetchCommentCount();
@@ -1158,7 +1181,7 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
         <div className="px-4 pb-4 bg-slate-50 border-t border-slate-100">
           <div className="space-y-3 mt-4 mb-4">
             {comments.map((c: any) => {
-              const isMine = c.author_name === userName;
+              const isMine = c.author_name === userName && userName !== 'Anônimo' && userName !== '';
               return (
                 <div key={c.id} className="bg-slate-50 p-3 rounded-xl flex gap-3 group">
                   <div className="w-8 h-8 bg-slate-200 rounded-full overflow-hidden shrink-0">

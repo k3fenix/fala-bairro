@@ -54,7 +54,9 @@ export default function Login() {
           return;
         }
 
+        localStorage.removeItem('admin_auth');
         localStorage.setItem('user_auth', 'true');
+        localStorage.setItem('user_id', data.user.id);
         localStorage.setItem('user_name', profile.name);
         if (profile.avatar) localStorage.setItem('user_avatar', profile.avatar);
         if (profile.neighborhood) localStorage.setItem('user_neighborhood', profile.neighborhood);
