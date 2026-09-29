@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2, PhoneCall, AlertTriangle } from 'lucide-react';
+import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2, PhoneCall, AlertTriangle, Trash2, Edit2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Landing() {
@@ -114,7 +114,7 @@ export default function Landing() {
             <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-emerald-600 to-transparent z-10"></div>
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-emerald-600 to-transparent z-10"></div>
             
-            <div className="flex animate-marquee whitespace-nowrap min-w-full hover:[animation-play-state:paused]">
+            <div className="flex animate-marquee whitespace-nowrap w-max hover:[animation-play-state:paused]">
               {[...allPets, ...allPets, ...allPets, ...allPets].map((pet, idx) => (
                 <div 
                   key={`${pet.id}-${idx}`} 
@@ -491,13 +491,52 @@ export default function Landing() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {publicPosts.map((post) => (
-                <div key={post.id} className="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 hover:border-blue-500/50 transition-colors group flex flex-col h-full shadow-xl">
+              {publicPosts.map((post) => {
+                const userName = localStorage.getItem('user_name') || '';
+                const isAdmin = localStorage.getItem('admin_auth') === 'true';
+                const isMine = post.author_name === userName;
+
+                return (
+                <div 
+                  key={post.id} 
+                  className="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 hover:border-blue-500/50 transition-colors group flex flex-col h-full shadow-xl cursor-pointer relative"
+                  onClick={() => setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category })}
+                >
+                  {(isMine || isAdmin) && (
+                    <div className="absolute top-3 right-3 flex gap-2 z-10">
+                      {isMine && (
+                        <button 
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const newContent = window.prompt('Editar publicação:', post.content);
+                            if (newContent && newContent !== post.content) {
+                              await supabase.from('posts').update({ content: newContent }).eq('id', post.id);
+                              setPublicPosts(prev => prev.map(p => p.id === post.id ? { ...p, content: newContent } : p));
+                            }
+                          }}
+                          className="bg-slate-800/80 hover:bg-slate-700 text-white p-2 rounded-full shadow-md backdrop-blur-md border border-white/10"
+                          title="Editar"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button 
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (window.confirm('Tem certeza que deseja excluir esta postagem?')) {
+                            await supabase.from('posts').delete().eq('id', post.id);
+                            setPublicPosts(prev => prev.filter(p => p.id !== post.id));
+                          }
+                        }}
+                        className="bg-red-500/80 hover:bg-red-600 text-white p-2 rounded-full shadow-md backdrop-blur-md border border-white/10"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                   {post.image ? (
-                    <div 
-                      className="h-48 overflow-hidden relative cursor-pointer bg-slate-900"
-                      onClick={() => setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category })}
-                    >
+                    <div className="h-48 overflow-hidden relative bg-slate-900">
                       <img src={post.image} alt="Post" className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
                       <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
                         <MapPin className="w-3.5 h-3.5 text-blue-400" />
@@ -529,7 +568,7 @@ export default function Landing() {
                       </p>
                       {post.content.length > 120 && (
                         <button 
-                          onClick={() => setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category })}
+                          onClick={(e) => { e.stopPropagation(); setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category }); }}
                           className="text-blue-400 hover:text-blue-300 text-sm font-bold transition-colors underline decoration-blue-500/30 underline-offset-4"
                         >
                           Ler mais
@@ -537,13 +576,13 @@ export default function Landing() {
                       )}
                     </div>
                     
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 mt-auto">
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 mt-auto relative z-10">
                       <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-lg tracking-wide">
                         {post.category}
                       </span>
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => handleVote(post.id, 'likes')}
+                          onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'likes'); }}
                           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-likes`] ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-red-400'}`}
                         >
                           <Heart className="w-4 h-4" />
@@ -551,7 +590,7 @@ export default function Landing() {
                         </button>
 
                         <button 
-                          onClick={() => handleVote(post.id, 'upvotes')}
+                          onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'upvotes'); }}
                           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-upvotes`] ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-emerald-400'}`}
                         >
                           <ThumbsUp className="w-4 h-4" />
@@ -559,7 +598,7 @@ export default function Landing() {
                         </button>
 
                         <button 
-                          onClick={() => handleVote(post.id, 'downvotes')}
+                          onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'downvotes'); }}
                           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-downvotes`] ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-amber-400'}`}
                         >
                           <ThumbsDown className="w-4 h-4" />
@@ -569,7 +608,8 @@ export default function Landing() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

@@ -41,6 +41,7 @@ export default function Feed() {
   const baseNeighborhoods = ['Vila Rica', 'Centro', 'Jardim Botânico', 'Bela Vista', 'Nova Esperança'];
   const [allNeighborhoods, setAllNeighborhoods] = useState<string[]>(baseNeighborhoods);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(registeredNeighborhood);
+  const [allPets, setAllPets] = useState<any[]>([]);
 
   useEffect(() => {
     const isImpersonating = !!localStorage.getItem('impersonatedUser');
@@ -52,7 +53,13 @@ export default function Feed() {
     fetchSettings();
     fetchUserData();
     fetchPosts();
+    fetchPets();
   }, [navigate]);
+
+  const fetchPets = async () => {
+    const { data } = await supabase.from('lost_pets').select('*');
+    if (data) setAllPets(data);
+  };
 
   const fetchSettings = async () => {
     const { data } = await supabase.from('settings').select('*');
@@ -166,7 +173,8 @@ export default function Feed() {
       whatsapp: businessWhatsapp,
       neighborhood: selectedNeighborhood,
       rating: 5,
-      is_verified: false
+      is_verified: false,
+      image: businessImage
     };
 
     const { error } = await supabase.from('commercial_guide').insert([item]);
@@ -304,15 +312,45 @@ export default function Feed() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-slate-50 pb-20 pt-10">
+      {/* Pets Marquee Banner */}
+      {allPets.length > 0 && (
+        <div className="fixed top-0 left-0 right-0 bg-emerald-600 text-white text-xs md:text-sm font-bold shadow-md z-[120] flex items-center justify-center h-10">
+          <div className="w-[300px] md:w-[400px] overflow-hidden flex items-center relative h-full">
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-emerald-600 to-transparent z-10"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-emerald-600 to-transparent z-10"></div>
+            
+            <div className="flex animate-marquee whitespace-nowrap w-max hover:[animation-play-state:paused]">
+              {[...allPets, ...allPets, ...allPets, ...allPets].map((pet, idx) => (
+                <div 
+                  key={`${pet.id}-${idx}`} 
+                  onClick={() => alert('Para mais detalhes do pet, acesse a página inicial ou cadastre o seu no menu Pets!')}
+                  className="flex items-center gap-2 mx-4 cursor-pointer hover:bg-emerald-700/50 px-3 py-1 rounded-full transition-colors"
+                >
+                  {pet.image && <img src={pet.image} alt={pet.pet_name} className="w-5 h-5 rounded-full object-cover border border-white/20" />}
+                  <span className="text-white font-bold">{pet.pet_name}</span>
+                  {pet.status === 'Encontrado' || pet.status === 'Achado' ? (
+                    <span className="text-emerald-900 bg-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Achado</span>
+                  ) : pet.status === 'Perdido' ? (
+                    <span className="text-white bg-rose-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Perdido</span>
+                  ) : (
+                    <span className="text-white bg-blue-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">{pet.status}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {!!localStorage.getItem('impersonatedUser') && (
-        <div className="bg-red-600 text-white text-xs font-bold text-center py-2 px-4 shadow-md sticky top-0 z-50 flex items-center justify-center gap-2">
+        <div className="bg-red-600 text-white text-xs font-bold text-center py-2 px-4 shadow-md sticky top-10 z-50 flex items-center justify-center gap-2">
           <AlertTriangle className="w-4 h-4" /> 
           Você está navegando como se fosse {userName}. (Acesso Admin)
           <button onClick={handleLogout} className="ml-2 bg-black/20 hover:bg-black/40 px-3 py-1 rounded-full transition-colors">Sair / Voltar</button>
         </div>
       )}
-      <div className={`bg-white sticky ${!!localStorage.getItem('impersonatedUser') ? 'top-[32px]' : 'top-0'} z-40 shadow-sm px-4 pt-4 pb-3`}>
+      <div className={`bg-white sticky ${!!localStorage.getItem('impersonatedUser') ? 'top-[72px]' : 'top-10'} z-40 shadow-sm px-4 pt-4 pb-3`}>
         <div className="flex justify-between items-center mb-3">
           <div className="relative flex items-center bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
             <MapPin className="w-4 h-4 text-blue-600 absolute left-3 pointer-events-none" />
