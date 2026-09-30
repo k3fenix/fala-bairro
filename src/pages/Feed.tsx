@@ -63,16 +63,11 @@ export default function Feed() {
     const { data } = await supabase.from('lost_pets').select('*');
     if (data) {
       setAllPets(data);
-      const isAdmin = localStorage.getItem('admin_auth') === 'true';
-      if (isAdmin) {
-        setMyPets(data);
+      const userWhatsapp = localStorage.getItem('user_whatsapp');
+      if (userWhatsapp && userWhatsapp.trim() !== '') {
+        setMyPets(data.filter(p => p.owner_whatsapp === userWhatsapp));
       } else {
-        const userWhatsapp = localStorage.getItem('user_whatsapp');
-        if (userWhatsapp && userWhatsapp.trim() !== '') {
-          setMyPets(data.filter(p => p.owner_whatsapp === userWhatsapp));
-        } else {
-          setMyPets([]);
-        }
+        setMyPets([]);
       }
     }
   };
@@ -80,16 +75,11 @@ export default function Feed() {
   const fetchMyBusinesses = async () => {
     const { data } = await supabase.from('commercial_guide').select('*');
     if (data) {
-      const isAdmin = localStorage.getItem('admin_auth') === 'true';
-      if (isAdmin) {
-        setMyBusinesses(data);
+      const userWhatsapp = localStorage.getItem('user_whatsapp');
+      if (userWhatsapp && userWhatsapp.trim() !== '') {
+        setMyBusinesses(data.filter(b => b.whatsapp === userWhatsapp));
       } else {
-        const userWhatsapp = localStorage.getItem('user_whatsapp');
-        if (userWhatsapp && userWhatsapp.trim() !== '') {
-          setMyBusinesses(data.filter(b => b.whatsapp === userWhatsapp));
-        } else {
-          setMyBusinesses([]);
-        }
+        setMyBusinesses([]);
       }
     }
   };
@@ -430,7 +420,7 @@ export default function Feed() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {['Meu bairro', 'Todos', 'Mais recentes', 'Em alta'].map((filter) => (
+          {['Meu bairro', 'Todos', 'Mais recentes', 'Em alta', 'Área Pet'].map((filter) => (
             <button 
               key={filter}
               onClick={() => setActiveFilter(filter)}
@@ -501,6 +491,52 @@ export default function Feed() {
             <button onClick={handleSaveProfile} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md mb-4">
               Salvar Perfil
             </button>
+
+            {myPets.length > 0 && (
+              <div className="pt-4 border-t border-slate-100 mt-4">
+                <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                  <Dog className="w-5 h-5 text-rose-500" /> Meus Pets
+                </h4>
+                <div className="space-y-3 mb-4">
+                  {myPets.map(pet => (
+                    <div key={pet.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      {pet.image ? (
+                        <img src={pet.image} alt={pet.pet_name} className="w-10 h-10 rounded-lg object-cover border border-slate-200" />
+                      ) : (
+                        <div className="w-10 h-10 bg-rose-50 rounded-lg flex items-center justify-center border border-rose-100">
+                          <Dog className="w-5 h-5 text-rose-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-800 text-sm truncate">{pet.pet_name}</p>
+                        <p className="text-[10px] text-slate-500">{pet.status}</p>
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={async () => {
+                          const newName = window.prompt('Nome do pet:', pet.pet_name);
+                          if (newName && newName !== pet.pet_name) {
+                            const newDesc = window.prompt('Descrição:', pet.description || '');
+                            const newLocation = window.prompt('Localização:', pet.last_seen_location || '');
+                            await supabase.from('lost_pets').update({ pet_name: newName, description: newDesc || pet.description, last_seen_location: newLocation || pet.last_seen_location }).eq('id', pet.id);
+                            fetchPets();
+                          }
+                        }} className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md transition-colors" title="Editar">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={async () => {
+                          if (window.confirm(`Excluir ${pet.pet_name}?`)) {
+                            await supabase.from('lost_pets').delete().eq('id', pet.id);
+                            fetchPets();
+                          }
+                        }} className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-colors" title="Excluir">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="pt-4 border-t border-slate-100 mt-4">
               <button 
@@ -768,66 +804,7 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* Meus Pets Section */}
-      {myPets.length > 0 && (
-        <div className="max-w-md mx-auto md:max-w-2xl px-4 mb-4">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
-            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <Dog className="w-5 h-5 text-rose-500" /> Meus Pets Cadastrados
-            </h3>
-            <div className="space-y-3">
-              {myPets.map(pet => (
-                <div key={pet.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  {pet.image ? (
-                    <img src={pet.image} alt={pet.pet_name} className="w-14 h-14 rounded-xl object-cover border border-slate-200" />
-                  ) : (
-                    <div className="w-14 h-14 bg-rose-50 rounded-xl flex items-center justify-center border border-rose-100">
-                      <Dog className="w-6 h-6 text-rose-400" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-800 text-sm truncate">{pet.pet_name}</p>
-                    <p className="text-xs text-slate-500">{pet.species} • {pet.status}</p>
-                  </div>
-                  <div className="flex gap-1.5 shrink-0">
-                    <button
-                      onClick={async () => {
-                        const newName = window.prompt('Nome do pet:', pet.pet_name);
-                        if (newName && newName !== pet.pet_name) {
-                          const newDesc = window.prompt('Descrição:', pet.description || '');
-                          const newLocation = window.prompt('Localização:', pet.last_seen_location || '');
-                          await supabase.from('lost_pets').update({ 
-                            pet_name: newName, 
-                            description: newDesc || pet.description,
-                            last_seen_location: newLocation || pet.last_seen_location 
-                          }).eq('id', pet.id);
-                          fetchPets();
-                        }
-                      }}
-                      className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
-                      title="Editar"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (window.confirm(`Excluir ${pet.pet_name}?`)) {
-                          await supabase.from('lost_pets').delete().eq('id', pet.id);
-                          fetchPets();
-                        }
-                      }}
-                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
-                      title="Excluir"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Minhas Empresas Section */}
       {myBusinesses.length > 0 && (
@@ -891,13 +868,52 @@ export default function Feed() {
       )}
 
       <div className="max-w-md mx-auto md:max-w-2xl">
-        {filteredPosts.map((post: any) => (
-          <PostCard key={post.id} post={post} onDelete={(id: number) => setPosts(posts.filter(p => p.id !== id))} onImageClick={(img: string) => setSelectedImage(img)} />
-        ))}
-        {filteredPosts.length === 0 && (
-          <div className="text-center text-slate-500 py-10">
-            Nenhuma publicação encontrada para este filtro.
+        {activeFilter === 'Área Pet' ? (
+          <div className="space-y-4">
+            {allPets.map(pet => (
+              <div key={pet.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-32 h-32 bg-slate-100 rounded-xl overflow-hidden shrink-0">
+                  {pet.image ? (
+                    <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <Dog className="w-8 h-8" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-lg text-slate-800">{pet.pet_name}</h3>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider ${pet.status === 'Perdido' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                      {pet.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600 mb-1"><strong>Espécie:</strong> {pet.species}</p>
+                  <p className="text-sm text-slate-600 mb-2"><strong>Local:</strong> {pet.last_seen_location}</p>
+                  {pet.description && <p className="text-sm text-slate-700 mb-3 bg-slate-50 p-2 rounded-lg">{pet.description}</p>}
+                  <a href={`https://wa.me/${pet.owner_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
+                    Falar no WhatsApp
+                  </a>
+                </div>
+              </div>
+            ))}
+            {allPets.length === 0 && (
+              <div className="text-center text-slate-500 py-10">
+                Nenhum pet cadastrado na área.
+              </div>
+            )}
           </div>
+        ) : (
+          <>
+            {filteredPosts.map((post: any) => (
+              <PostCard key={post.id} post={post} onDelete={(id: number) => setPosts(posts.filter(p => p.id !== id))} onImageClick={(img: string) => setSelectedImage(img)} />
+            ))}
+            {filteredPosts.length === 0 && (
+              <div className="text-center text-slate-500 py-10">
+                Nenhuma publicação encontrada para este filtro.
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -938,7 +954,7 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
   const userId = localStorage.getItem('user_id');
   const userName = localStorage.getItem('user_name') || 'Anônimo';
   const isAdmin = localStorage.getItem('admin_auth') === 'true';
-  const isMine = post.author_id === userId && userId !== null && userId !== '';
+  const isMine = post.author_id === userId && userId !== null && userId !== '' && userId !== 'undefined' && userId !== 'null';
 
   useEffect(() => {
     fetchCommentCount();
@@ -1071,18 +1087,16 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
           </div>
         </div>
         
-        {(isMine || isAdmin) && (
+        {isMine && (
           <div className="relative">
             <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors">
               <MoreHorizontal className="w-5 h-5" />
             </button>
             {showMenu && (
               <div className="absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-lg border border-slate-100 z-10 py-1">
-                {isMine && (
-                  <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
-                    <Edit2 className="w-4 h-4" /> Editar
-                  </button>
-                )}
+                <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                  <Edit2 className="w-4 h-4" /> Editar
+                </button>
                 <button onClick={handleDeletePost} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
                   <Trash2 className="w-4 h-4" /> Excluir
                 </button>
@@ -1153,7 +1167,7 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
         </div>
         
         <div className="flex items-center gap-4 ml-auto">
-          {(isMine || isAdmin) && (
+          {isMine && (
             <div className="flex items-center gap-3 mr-2 border-r border-slate-200 pr-3">
               <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors">
                 <Edit2 className="w-4 h-4" />
