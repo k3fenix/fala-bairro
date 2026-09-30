@@ -492,58 +492,6 @@ export default function Feed() {
               Salvar Perfil
             </button>
 
-            {myPets.length > 0 && (
-              <div className="pt-4 border-t border-slate-100 mt-4">
-                <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <Dog className="w-5 h-5 text-rose-500" /> Meus Pets
-                </h4>
-                <div className="space-y-3 mb-4">
-                  {myPets.map(pet => (
-                    <div key={pet.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      {pet.image ? (
-                        <img src={pet.image} alt={pet.pet_name} className="w-10 h-10 rounded-lg object-cover border border-slate-200" />
-                      ) : (
-                        <div className="w-10 h-10 bg-rose-50 rounded-lg flex items-center justify-center border border-rose-100">
-                          <Dog className="w-5 h-5 text-rose-400" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-slate-800 text-sm truncate">{pet.pet_name}</p>
-                        <p className="text-[10px] text-slate-500">{pet.status}</p>
-                      </div>
-                      <div className="flex gap-1.5 shrink-0">
-                        <button onClick={async () => {
-                          const newStatus = pet.status === 'Perdido' ? 'Achado' : 'Perdido';
-                          await supabase.from('lost_pets').update({ status: newStatus }).eq('id', pet.id);
-                          fetchPets();
-                        }} className={`p-1.5 rounded-md transition-colors ${pet.status === 'Perdido' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600' : 'bg-rose-50 hover:bg-rose-100 text-rose-600'}`} title={pet.status === 'Perdido' ? "Marcar como Achado" : "Marcar como Perdido"}>
-                          {pet.status === 'Perdido' ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-                        </button>
-                        <button onClick={async () => {
-                          const newName = window.prompt('Nome do pet:', pet.pet_name);
-                          if (newName && newName !== pet.pet_name) {
-                            const newDesc = window.prompt('Descrição:', pet.description || '');
-                            const newLocation = window.prompt('Localização:', pet.last_seen_location || '');
-                            await supabase.from('lost_pets').update({ pet_name: newName, description: newDesc || pet.description, last_seen_location: newLocation || pet.last_seen_location }).eq('id', pet.id);
-                            fetchPets();
-                          }
-                        }} className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md transition-colors" title="Editar">
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={async () => {
-                          if (window.confirm(`Excluir ${pet.pet_name}?`)) {
-                            await supabase.from('lost_pets').delete().eq('id', pet.id);
-                            fetchPets();
-                          }
-                        }} className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-colors" title="Excluir">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             
             <div className="pt-4 border-t border-slate-100 mt-4">
               <button 
@@ -660,6 +608,59 @@ export default function Feed() {
             <button onClick={handleSavePet} className="w-full bg-rose-600 text-white font-bold py-3 rounded-xl hover:bg-rose-700 transition-colors shadow-md">
               Cadastrar Pet
             </button>
+
+            {myPets.length > 0 && (
+              <div className="pt-4 border-t border-slate-100 mt-6">
+                <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                  <Dog className="w-5 h-5 text-rose-500" /> Meus Pets
+                </h4>
+                <div className="space-y-3 mb-4">
+                  {myPets.map(pet => (
+                    <div key={pet.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      {pet.image ? (
+                        <img src={pet.image} alt={pet.pet_name} className="w-10 h-10 rounded-lg object-cover border border-slate-200" />
+                      ) : (
+                        <div className="w-10 h-10 bg-rose-50 rounded-lg flex items-center justify-center border border-rose-100">
+                          <Dog className="w-5 h-5 text-rose-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-800 text-sm truncate">{pet.pet_name}</p>
+                        <p className="text-[10px] text-slate-500">{pet.status}</p>
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={async () => {
+                          const newStatus = pet.status === 'Perdido' ? 'Achado' : 'Perdido';
+                          await supabase.from('lost_pets').update({ status: newStatus }).eq('id', pet.id);
+                          fetchPets();
+                        }} className={`p-1.5 rounded-md transition-colors ${pet.status === 'Perdido' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600' : 'bg-rose-50 hover:bg-rose-100 text-rose-600'}`} title={pet.status === 'Perdido' ? "Marcar como Achado" : "Marcar como Perdido"}>
+                          {pet.status === 'Perdido' ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                        </button>
+                        <button onClick={async () => {
+                          const newName = window.prompt('Nome do pet:', pet.pet_name);
+                          if (newName && newName !== pet.pet_name) {
+                            const newDesc = window.prompt('Descrição:', pet.description || '');
+                            const newLocation = window.prompt('Localização:', pet.last_seen_location || '');
+                            await supabase.from('lost_pets').update({ pet_name: newName, description: newDesc || pet.description, last_seen_location: newLocation || pet.last_seen_location }).eq('id', pet.id);
+                            fetchPets();
+                          }
+                        }} className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md transition-colors" title="Editar">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={async () => {
+                          if (window.confirm(`Excluir ${pet.pet_name}?`)) {
+                            await supabase.from('lost_pets').delete().eq('id', pet.id);
+                            fetchPets();
+                          }
+                        }} className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-colors" title="Excluir">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

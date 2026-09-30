@@ -309,7 +309,11 @@ export default function Landing() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {adoptionPets.map(pet => (
-              <div key={pet.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col">
+              <div 
+                key={pet.id} 
+                onClick={() => setSelectedPet(pet)}
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col cursor-pointer"
+              >
                 <div className="bg-emerald-500 text-white text-center py-2 font-bold text-sm">
                   Para Adoção
                 </div>
@@ -610,7 +614,7 @@ export default function Landing() {
           <div className="w-full relative">
             <button 
               onClick={() => setSelectedNews(null)}
-              className="fixed top-6 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-blue-700 hover:text-blue-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
+              className="fixed top-14 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-blue-700 hover:text-blue-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
             >
               <ArrowLeft className="w-5 h-5" />
               Voltar
@@ -622,7 +626,7 @@ export default function Landing() {
                 const text = encodeURIComponent(`Veja essa notícia no Fala do Bairro: ${selectedNews.title}`);
                 window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
               }}
-              className="fixed bottom-6 right-6 md:top-6 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
+              className="fixed bottom-6 right-6 md:top-14 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
             >
               <Share2 className="w-5 h-5" />
               <span className="hidden sm:inline">Compartilhar</span>
@@ -662,7 +666,7 @@ export default function Landing() {
           <div className="w-full relative">
             <button 
               onClick={() => setSelectedPet(null)}
-              className="fixed top-6 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-red-700 hover:text-red-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
+              className="fixed top-14 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-red-700 hover:text-red-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
             >
               <ArrowLeft className="w-5 h-5" />
               Voltar
@@ -673,7 +677,7 @@ export default function Landing() {
                 const text = encodeURIComponent(`Olá! Vi no Fala do Bairro sobre o ${selectedPet.pet_name}. Queria dar uma informação.`);
                 window.open(`https://wa.me/${selectedPet.owner_whatsapp}?text=${text}`, '_blank');
               }}
-              className="fixed bottom-6 right-6 md:top-6 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
+              className="fixed bottom-6 right-6 md:top-14 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
             >
               <PhoneCall className="w-5 h-5" />
               <span className="hidden sm:inline">Avisar Tutor</span>
