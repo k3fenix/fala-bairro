@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Image as ImageIcon, ChevronDown, Heart, ThumbsUp, ThumbsDown, MessageCircle, Megaphone, LogOut, User, Camera, X, Share2, AlertTriangle, Store, Dog, MoreHorizontal, Edit2 } from 'lucide-react';
+import { MapPin, Image as ImageIcon, ChevronDown, Heart, ThumbsUp, ThumbsDown, MessageCircle, Megaphone, LogOut, User, Camera, X, Share2, AlertTriangle, Store, Dog, MoreHorizontal, Edit2, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Trash2, Send } from 'lucide-react';
@@ -512,6 +512,13 @@ export default function Feed() {
                         <p className="text-[10px] text-slate-500">{pet.status}</p>
                       </div>
                       <div className="flex gap-1.5 shrink-0">
+                        <button onClick={async () => {
+                          const newStatus = pet.status === 'Perdido' ? 'Achado' : 'Perdido';
+                          await supabase.from('lost_pets').update({ status: newStatus }).eq('id', pet.id);
+                          fetchPets();
+                        }} className={`p-1.5 rounded-md transition-colors ${pet.status === 'Perdido' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600' : 'bg-rose-50 hover:bg-rose-100 text-rose-600'}`} title={pet.status === 'Perdido' ? "Marcar como Achado" : "Marcar como Perdido"}>
+                          {pet.status === 'Perdido' ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                        </button>
                         <button onClick={async () => {
                           const newName = window.prompt('Nome do pet:', pet.pet_name);
                           if (newName && newName !== pet.pet_name) {
