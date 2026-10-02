@@ -923,11 +923,10 @@ export default function Feed() {
                   <p className="text-sm text-slate-600 mb-1"><strong>Espécie:</strong> {pet.species}</p>
                   <p className="text-sm text-slate-600 mb-2"><strong>Local:</strong> {pet.last_seen_location}</p>
                   {pet.description && <p className="text-sm text-slate-700 mb-3 bg-slate-50 p-2 rounded-lg">{pet.description}</p>}
-                  <div className="flex flex-wrap gap-2 items-center mt-2 w-full">
-                    <a href={`https://wa.me/${pet.owner_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
-                      Falar no WhatsApp
-                    </a>
-                    {(pet.owner_whatsapp === localStorage.getItem('user_whatsapp') || localStorage.getItem('admin_auth') === 'true') && (
+                    <div className="flex flex-wrap gap-2 items-center mt-2 w-full">
+                      <a href={`https://wa.me/${pet.owner_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
+                        Falar no WhatsApp
+                      </a>
                       <div className="flex gap-2 items-center ml-auto">
                         <button onClick={async () => {
                           const newStatus = pet.status === 'Perdido' ? 'Achado' : pet.status === 'Adoção' ? 'Adotado' : 'Perdido';
@@ -958,8 +957,7 @@ export default function Feed() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                    )}
-                  </div>
+                    </div>
                 </div>
               </div>
             ))}
