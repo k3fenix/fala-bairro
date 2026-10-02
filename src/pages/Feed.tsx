@@ -34,6 +34,7 @@ export default function Feed() {
   const [petWhatsapp, setPetWhatsapp] = useState('');
   const [petStatus, setPetStatus] = useState('Perdido');
   const [petImage, setPetImage] = useState<string | null>(null);
+  const [editingPetId, setEditingPetId] = useState<number | null>(null);
 
   const [editName, setEditName] = useState(userName);
   const [editAvatar, setEditAvatar] = useState(userAvatar);
@@ -251,8 +252,9 @@ export default function Feed() {
       return;
     }
     
-    const { error } = await supabase.from('lost_pets').insert([
-      {
+    let error;
+    if (editingPetId) {
+      const res = await supabase.from('lost_pets').update({
         pet_name: petName,
         species: petSpecies,
         description: petDescription,
@@ -260,18 +262,34 @@ export default function Feed() {
         owner_whatsapp: petWhatsapp,
         status: petStatus,
         image: petImage
-      }
-    ]);
+      }).eq('id', editingPetId);
+      error = res.error;
+    } else {
+      const res = await supabase.from('lost_pets').insert([
+        {
+          pet_name: petName,
+          species: petSpecies,
+          description: petDescription,
+          last_seen_location: petLocation,
+          owner_whatsapp: petWhatsapp,
+          status: petStatus,
+          image: petImage
+        }
+      ]);
+      error = res.error;
+    }
     
     if (!error) {
       if (!localStorage.getItem('user_whatsapp')) {
         localStorage.setItem('user_whatsapp', petWhatsapp);
       }
-      alert(`Pet cadastrado com sucesso!`);
+      alert(`Pet ${editingPetId ? 'atualizado' : 'cadastrado'} com sucesso!`);
       setShowPetsModal(false);
+      setEditingPetId(null);
+      setPetName(''); setPetSpecies(''); setPetDescription(''); setPetLocation(''); setPetWhatsapp(''); setPetImage(null);
       fetchPets();
     } else {
-      alert('Erro ao cadastrar pet: ' + error.message);
+      alert('Erro ao salvar pet: ' + error.message);
     }
   };
 
@@ -530,7 +548,7 @@ export default function Feed() {
             </button>
             <div className="flex items-center gap-2 mb-4 justify-center text-rose-500">
               <Dog className="w-6 h-6" />
-              <h3 className="text-xl font-bold text-slate-800 text-center">Pets</h3>
+              <h3 className="text-xl font-bold text-slate-800 text-center">{editingPetId ? 'Editar Pet' : 'Pets'}</h3>
             </div>
             
             <p className="text-sm text-slate-600 mb-6 text-center">
@@ -606,7 +624,7 @@ export default function Feed() {
               />
             </div>
             <button onClick={handleSavePet} className="w-full bg-rose-600 text-white font-bold py-3 rounded-xl hover:bg-rose-700 transition-colors shadow-md">
-              Cadastrar Pet
+              {editingPetId ? 'Salvar Alterações' : 'Cadastrar Pet'}
             </button>
 
             {myPets.length > 0 && (
@@ -636,14 +654,16 @@ export default function Feed() {
                         }} className={`p-1.5 rounded-md transition-colors ${pet.status === 'Perdido' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600' : 'bg-rose-50 hover:bg-rose-100 text-rose-600'}`} title={pet.status === 'Perdido' ? "Marcar como Achado" : "Marcar como Perdido"}>
                           {pet.status === 'Perdido' ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                         </button>
-                        <button onClick={async () => {
-                          const newName = window.prompt('Nome do pet:', pet.pet_name);
-                          if (newName && newName !== pet.pet_name) {
-                            const newDesc = window.prompt('Descrição:', pet.description || '');
-                            const newLocation = window.prompt('Localização:', pet.last_seen_location || '');
-                            await supabase.from('lost_pets').update({ pet_name: newName, description: newDesc || pet.description, last_seen_location: newLocation || pet.last_seen_location }).eq('id', pet.id);
-                            fetchPets();
-                          }
+                        <button onClick={() => {
+                          setPetName(pet.pet_name);
+                          setPetSpecies(pet.species);
+                          setPetDescription(pet.description || '');
+                          setPetLocation(pet.last_seen_location || '');
+                          setPetWhatsapp(pet.owner_whatsapp);
+                          setPetStatus(pet.status);
+                          setPetImage(pet.image);
+                          setEditingPetId(pet.id);
+                          setShowPetsModal(true);
                         }} className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md transition-colors" title="Editar">
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
@@ -912,14 +932,16 @@ export default function Feed() {
                         }} className="px-3 py-2 rounded-xl text-sm font-bold transition-colors bg-slate-100 text-slate-700 hover:bg-slate-200">
                           Mudar Status
                         </button>
-                        <button onClick={async () => {
-                          const newName = window.prompt('Nome do pet:', pet.pet_name);
-                          if (newName && newName !== pet.pet_name) {
-                            const newDesc = window.prompt('Descrição:', pet.description || '');
-                            const newLocation = window.prompt('Localização:', pet.last_seen_location || '');
-                            await supabase.from('lost_pets').update({ pet_name: newName, description: newDesc || pet.description, last_seen_location: newLocation || pet.last_seen_location }).eq('id', pet.id);
-                            fetchPets();
-                          }
+                        <button onClick={() => {
+                          setPetName(pet.pet_name);
+                          setPetSpecies(pet.species);
+                          setPetDescription(pet.description || '');
+                          setPetLocation(pet.last_seen_location || '');
+                          setPetWhatsapp(pet.owner_whatsapp);
+                          setPetStatus(pet.status);
+                          setPetImage(pet.image);
+                          setEditingPetId(pet.id);
+                          setShowPetsModal(true);
                         }} className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors" title="Editar">
                           <Edit2 className="w-4 h-4" />
                         </button>
