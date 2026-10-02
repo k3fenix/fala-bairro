@@ -7,33 +7,22 @@ export default function Landing() {
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
-  const [adoptionPets, setAdoptionPets] = useState<any[]>([]);
   const [allPets, setAllPets] = useState<any[]>([]);
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
-  const [monetizationEnabled, setMonetizationEnabled] = useState(false);
 
   useEffect(() => {
     fetchPublicPosts();
     fetchCommercialGuide();
     fetchLostPets();
     fetchMarketplaceItems();
-    fetchSettings();
   }, []);
-
-  const fetchSettings = async () => {
-    const { data } = await supabase.from('settings').select('*').eq('key', 'monetization_enabled');
-    if (data && data.length > 0) {
-      setMonetizationEnabled(data[0].value === 'true');
-    }
-  };
 
   const fetchLostPets = async () => {
     const { data } = await supabase.from('lost_pets').select('*').order('created_at', { ascending: false });
     if (data) {
       setAllPets(data);
       setLostPets(data.filter(p => p.status === 'Perdido'));
-      setAdoptionPets(data.filter(p => p.status === 'Adoção'));
     }
   };
 
