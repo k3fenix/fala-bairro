@@ -384,17 +384,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Indicador de Arquitetura de Monetização */}
-        <div className="monetization-blueprint-note" id="monetizationStatusBox">
-          <div>
-            <strong>⚙️ Configuração de Plataforma Comunitária:</strong>
-            <span>{monetizationEnabled ? 'Módulos premium e taxas estão ativados.' : 'Taxas e cobranças desativadas. Todos os anúncios e publicações permanecem 100% gratuitos.'}</span>
-          </div>
-          <span className={`monetization-badge-status ${monetizationEnabled ? 'bg-emerald-200 text-emerald-800' : ''}`}>
-            MONETIZAÇÃO: {monetizationEnabled ? 'ATIVADA' : 'DESATIVADA'}
-          </span>
-        </div>
-
       </main>
 
       {/* ==========================================================================
