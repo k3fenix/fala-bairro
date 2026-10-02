@@ -1,38 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Users, Zap, ShieldCheck, MapPin, Heart, Image as ImageIcon, Menu, X, ThumbsUp, ThumbsDown, ArrowLeft, Home, Newspaper, Store, Megaphone, Share2, PhoneCall, AlertTriangle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import './Landing.css';
 
 export default function Landing() {
-  const [config, setConfig] = useState({
-    bgImage: '/imagens-da-noticias/design-sem-nome-5-.avif',
-    newsImg: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
-    newsMain: 'Reunião de Segurança Comunitária define novas regras',
-    newsSide1: 'Falta de Água na Rua 15 será resolvida amanhã',
-    newsSide2: 'Nova feira de rua aos domingos confirmada',
-    newsList: [] as any[]
-  });
-
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
-  const [selectedNews, setSelectedNews] = useState<any>(null);
-  const [selectedPet, setSelectedPet] = useState<any>(null);
-  const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
   const [adoptionPets, setAdoptionPets] = useState<any[]>([]);
   const [allPets, setAllPets] = useState<any[]>([]);
+  const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
+  const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    fetchSettings();
     fetchPublicPosts();
     fetchCommercialGuide();
     fetchLostPets();
+    fetchMarketplaceItems();
   }, []);
 
   const fetchLostPets = async () => {
-    const { data } = await supabase.from('lost_pets').select('*');
+    const { data } = await supabase.from('lost_pets').select('*').order('created_at', { ascending: false });
     if (data) {
       setAllPets(data);
       setLostPets(data.filter(p => p.status === 'Perdido'));
@@ -40,20 +28,19 @@ export default function Landing() {
     }
   };
 
+  const fetchMarketplaceItems = async () => {
+    const { data } = await supabase.from('marketplace_items').select('*').eq('status', 'Ativo').order('created_at', { ascending: false }).limit(6);
+    if (data) setMarketplaceItems(data);
+  };
+
   const fetchCommercialGuide = async () => {
-    const { data } = await supabase.from('commercial_guide').select('*');
+    const { data } = await supabase.from('commercial_guide').select('*').limit(6);
     if (data) setCommercialGuide(data);
   };
 
   const fetchPublicPosts = async () => {
-    // Busca os posts sem filtro SQL para evitar problemas de cache/tipagem de booleanos
-    const { data } = await supabase
-      .from('posts')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
+    const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
     if (data) {
-      // Filtra no JavaScript
       const approved = data.filter(p => p.is_approved === true || String(p.is_approved) === 'true').slice(0, 6);
       setPublicPosts(approved);
     }
@@ -61,760 +48,382 @@ export default function Landing() {
 
   const handleVote = async (postId: number, field: 'likes' | 'upvotes' | 'downvotes') => {
     const voteKey = `${postId}-${field}`;
-    if (sessionVotes[voteKey]) return; // Prevent multiple votes in same session
-    
+    if (sessionVotes[voteKey]) return;
     setSessionVotes(prev => ({ ...prev, [voteKey]: true }));
-    
-    // Otimista
     setPublicPosts(prev => prev.map(p => {
       if (p.id === postId) {
         return { ...p, [field]: (p[field] || 0) + 1 };
       }
       return p;
     }));
-
     const post = publicPosts.find(p => p.id === postId);
     if (post) {
       await supabase.from('posts').update({ [field]: (post[field] || 0) + 1 }).eq('id', postId);
     }
   };
 
-  const fetchSettings = async () => {
-    const { data } = await supabase.from('settings').select('*');
-    if (data) {
-      const getVal = (k: string) => data.find(s => s.key === k)?.value;
-      
-      let parsedNews = [];
-      try {
-        const rawNews = getVal('landing_news_list');
-        if (rawNews) parsedNews = JSON.parse(rawNews);
-      } catch (e) {}
+  const shareText = (text: string) => {
+    const url = encodeURIComponent(window.location.href);
+    const msg = encodeURIComponent(`${text} - Veja no Fala do Bairro: `);
+    window.open(`https://api.whatsapp.com/send?text=${msg}${url}`, '_blank');
+  };
 
-      setConfig(prev => ({
-        bgImage: getVal('landing_bg_image') || prev.bgImage,
-        newsList: Array.isArray(parsedNews) && parsedNews.length > 0 ? parsedNews : [
-          { id: '1', title: getVal('landing_news_main_title') || prev.newsMain, image: getVal('landing_news_main_img') || prev.newsImg, label: 'Destaque' },
-          { id: '2', title: getVal('landing_news_side1_title') || prev.newsSide1, image: '', label: 'Aviso Urgente' },
-          { id: '3', title: getVal('landing_news_side2_title') || prev.newsSide2, image: '', label: 'Comunidade' }
-        ],
-        newsImg: getVal('landing_news_main_img') || prev.newsImg,
-        newsMain: getVal('landing_news_main_title') || prev.newsMain,
-        newsSide1: getVal('landing_news_side1_title') || prev.newsSide1,
-        newsSide2: getVal('landing_news_side2_title') || prev.newsSide2,
-      }));
-    }
+  const openWhatsApp = (phone: string, msg: string) => {
+    const text = encodeURIComponent(msg);
+    window.open(`https://wa.me/55${phone.replace(/\D/g, '')}?text=${text}`, '_blank');
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-200 pb-20 md:pb-0 pt-10">
-      {/* Pets Marquee Banner */}
-      {allPets.length > 0 ? (
-        <div className="fixed top-0 left-0 right-0 bg-emerald-600 text-white text-xs md:text-sm font-bold shadow-md z-[120] flex items-center justify-center h-10">
-          <div className="w-[300px] md:w-[400px] overflow-hidden flex items-center relative h-full">
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-emerald-600 to-transparent z-10"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-emerald-600 to-transparent z-10"></div>
-            
-            <div className="flex animate-marquee whitespace-nowrap w-max hover:[animation-play-state:paused]">
-              {[...allPets, ...allPets, ...allPets, ...allPets].map((pet, idx) => (
-                <div 
-                  key={`${pet.id}-${idx}`} 
-                  onClick={() => setSelectedPet(pet)}
-                  className="flex items-center gap-2 mx-4 cursor-pointer hover:bg-emerald-700/50 px-3 py-1 rounded-full transition-colors"
-                >
-                  {pet.image && <img src={pet.image} alt={pet.pet_name} className="w-5 h-5 rounded-full object-cover border border-white/20" />}
-                  <span className="text-white font-bold">{pet.pet_name}</span>
-                  {pet.status === 'Encontrado' || pet.status === 'Achado' ? (
-                    <span className="text-emerald-900 bg-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Achado</span>
-                  ) : pet.status === 'Perdido' ? (
-                    <span className="text-white bg-rose-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">Perdido</span>
-                  ) : (
-                    <span className="text-white bg-blue-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest">{pet.status}</span>
-                  )}
-                </div>
-              ))}
+    <div className="landing-container">
+      {/* ==========================================================================
+          CABEÇALHO PRINCIPAL
+          ========================================================================== */}
+      <header className="top-header">
+        <div className="container top-header-inner">
+          <Link to="/" className="brand" title="Fala do Bairro - Início">
+            <div className="brand-icon">FB</div>
+            <div className="brand-text">
+              <h1>Fala do Bairro</h1>
+              <span>PORTAL COMUNITÁRIO</span>
             </div>
+          </Link>
+
+          <div className="location-badge" title="Bairro Selecionado">
+            📍 <span id="currentNeighborhood">Bairro Mário Covas</span> ▾
+          </div>
+
+          <div className="header-search">
+            <span className="header-search-icon">🔍</span>
+            <input type="text" placeholder="Buscar notícias, avisos ou empresas..." aria-label="Buscar no bairro" />
+          </div>
+
+          <div className="header-actions">
+            <Link to="/feed" className="btn-publish-main">
+              + <span className="hidden sm:inline">Publicar</span>
+            </Link>
+            <Link to="/login" className="btn-header-profile">
+              👤 <span className="hidden sm:inline">Conta</span>
+            </Link>
           </div>
         </div>
-      ) : (
-        <div className="fixed top-0 left-0 right-0 bg-emerald-600 text-white text-xs md:text-sm font-bold py-2.5 px-6 text-center shadow-md z-[120] h-10">
-          Carregando informações...
-        </div>
-      )}
+      </header>
 
-      {/* Hero Section */}
-      <div className="relative text-white overflow-hidden pb-32">
-        {/* Top Navigation Menu */}
-        <nav className="fixed top-10 left-0 right-0 z-[100] border-b border-white/10 bg-slate-900/90 backdrop-blur-md shadow-lg transition-all duration-300">
-          <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="w-6 h-6 text-emerald-400" />
-              <span className="font-black tracking-tight text-xl">Fala do Bairro</span>
-            </div>
-            
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center gap-8 font-bold text-sm">
-              <a href="#" className="text-white hover:text-emerald-400 transition-colors">Início</a>
-              <a href="#noticias" className="text-slate-300 hover:text-emerald-400 transition-colors">Notícias</a>
-              <a href="#mural" className="text-slate-300 hover:text-emerald-400 transition-colors">Mural Público</a>
-              <Link to="/login" className="text-slate-300 hover:text-emerald-400 transition-colors">Entrar</Link>
-              <Link to="/register" className="bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-5 py-2.5 rounded-xl transition-transform active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                Criar Conta
+      {/* Sub-navegação rápida por categorias */}
+      <nav className="subnav-chips" aria-label="Categorias rápidas">
+        <div className="chips-wrapper">
+          <a href="#inicio" className="chip active">🏠 Tudo</a>
+          <a href="#alertas" className="chip">🚨 Alertas</a>
+          <a href="#noticias" className="chip">📰 Notícias</a>
+          <a href="#mural" className="chip">📢 Mural</a>
+          <a href="#animais" className="chip">🐶 Animais</a>
+          <a href="#guia" className="chip">🏪 Guia Local</a>
+          <a href="#vendas" className="chip">🛒 Vendas & Trocas</a>
+        </div>
+      </nav>
+
+      <main className="container" id="inicio">
+
+        {/* ==========================================================================
+            SEÇÃO 1: ALERTAS URGENTES DO BAIRRO
+            ========================================================================== */}
+        {lostPets.length > 0 && (
+          <section id="alertas" className="alerts-container">
+            {lostPets.slice(0, 1).map(pet => (
+              <div key={pet.id} className="alert-card-urgent">
+                <div className="alert-card-content">
+                  <div className="alert-badge-icon">🐶</div>
+                  <div className="alert-card-text">
+                    <strong>ALERTA URGENTE DO BAIRRO</strong>
+                    <p>{pet.pet_name} desapareceu</p>
+                    <span>{pet.species} • Visto por último: {pet.last_seen_location}</span>
+                  </div>
+                </div>
+                <Link to="/feed" className="btn-alert-action">VER ALERTA</Link>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* ==========================================================================
+            SEÇÃO 2: NOTÍCIAS DO BAIRRO
+            ========================================================================== */}
+        <section id="noticias">
+          <div className="section-header">
+            <h2 className="section-title">📰 Notícias do Bairro</h2>
+            <Link to="/feed" className="section-link">Ver todas ➔</Link>
+          </div>
+
+          <div className="news-grid">
+            <article className="news-card">
+              <img className="news-image" src="https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80" alt="Obras" loading="lazy" />
+              <div className="news-body">
+                <div className="news-meta">
+                  <span className="news-category">Infraestrutura</span>
+                  <span className="news-neighborhood">• Mário Covas</span>
+                </div>
+                <h3 className="news-title">Obras de recapeamento na Avenida Central começam nesta segunda-feira</h3>
+                <p className="news-summary">Trânsito terá desvio temporário pela Rua das Flores durante toda a semana. Moradores devem ficar atentos às linhas de ônibus.</p>
+                <div className="news-footer">
+                  <span>Hoje às 09:30</span>
+                  <button className="share-btn-inline" onClick={() => shareText('Obras de recapeamento na Avenida Central')}>📤 Compartilhar</button>
+                </div>
+              </div>
+            </article>
+
+            <article className="news-card">
+              <img className="news-image" src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80" alt="Saúde" loading="lazy" />
+              <div className="news-body">
+                <div className="news-meta">
+                  <span className="news-category">Saúde</span>
+                  <span className="news-neighborhood">• Mário Covas</span>
+                </div>
+                <h3 className="news-title">Posto de Saúde do bairro terá mutirão de vacinação no próximo sábado</h3>
+                <p className="news-summary">Atendimento das 8h às 17h para atualização da caderneta de crianças, jovens e idosos. Leve documento com foto.</p>
+                <div className="news-footer">
+                  <span>Ontem</span>
+                  <button className="share-btn-inline" onClick={() => shareText('Mutirão de vacinação no Posto de Saúde')}>📤 Compartilhar</button>
+                </div>
+              </div>
+            </article>
+
+            <article className="news-card">
+              <img className="news-image" src="https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&w=600&q=80" alt="Cultura" loading="lazy" />
+              <div className="news-body">
+                <div className="news-meta">
+                  <span className="news-category">Cultura</span>
+                  <span className="news-neighborhood">• Praça da Paz</span>
+                </div>
+                <h3 className="news-title">Feira de produtores e artesanato local atrai mais de 400 famílias na praça</h3>
+                <p className="news-summary">Evento valoriza feirantes do bairro e movimenta a economia local com opções gastronômicas e música ao vivo.</p>
+                <div className="news-footer">
+                  <span>Há 2 dias</span>
+                  <button className="share-btn-inline" onClick={() => shareText('Feira de produtores na Praça da Paz')}>📤 Compartilhar</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        {/* ==========================================================================
+            SEÇÃO 3: MURAL DO BAIRRO (Comunidade)
+            ========================================================================== */}
+        <section id="mural" style={{ marginTop: '32px' }}>
+          <div className="mural-header-banner">
+            <div className="mural-banner-text">
+              <div>
+                <h2>📢 MURAL DO BAIRRO</h2>
+                <p>"Converse com seus vizinhos e compartilhe informações da comunidade."</p>
+              </div>
+              <Link to="/feed" className="btn-publish-main" style={{ background: '#fff', color: 'var(--primary)', alignSelf: 'flex-start', marginTop: '8px' }}>
+                + PUBLICAR NO MURAL
               </Link>
             </div>
-
-            {/* Mobile Menu Toggle */}
-            <button className="md:hidden p-2 text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
 
-          {/* Mobile Menu Dropdown */}
-          {isMenuOpen && (
-            <div className="md:hidden bg-slate-900 border-b border-white/10 px-6 py-6 flex flex-col gap-4 font-bold animate-fade-in-down absolute w-full">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="text-white hover:text-emerald-400">Início</a>
-              <a href="#noticias" onClick={() => setIsMenuOpen(false)} className="text-slate-300 hover:text-emerald-400">Notícias</a>
-              <a href="#mural" onClick={() => setIsMenuOpen(false)} className="text-slate-300 hover:text-emerald-400">Mural Público</a>
-              <div className="h-px bg-white/10 my-2"></div>
-              <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-slate-300 hover:text-emerald-400">Entrar na Conta</Link>
-              <Link to="/register" onClick={() => setIsMenuOpen(false)} className="bg-emerald-500 text-emerald-950 px-5 py-3 rounded-xl text-center mt-2">Criar Conta Grátis</Link>
-            </div>
-          )}
-        </nav>
-
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('${config.bgImage}')` }}
-        ></div>
-        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px]"></div>
-
-        <div className="max-w-5xl mx-auto px-6 pt-24 pb-20 relative z-10 flex flex-col items-center justify-center min-h-[50vh]">
-          {/* Main Copy */}
-          <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-[1.15] tracking-tight text-white drop-shadow-md">
-              O que acontece no seu bairro, <br className="hidden sm:block" />
-              <span className="text-emerald-400">a comunidade conta.</span>
-            </h2>
-          </div>
-        </div>
-      </div>
-
-      {/* Emergency Phones Quick Dial */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-32 relative z-20 mb-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <a href="tel:190" className="bg-red-500/90 backdrop-blur-md text-white p-4 rounded-2xl shadow-lg flex items-center justify-between hover:bg-red-600 transition-colors border border-red-400">
-            <div>
-              <p className="text-xs font-bold uppercase opacity-90">Polícia Militar</p>
-              <p className="text-2xl font-black">190</p>
-            </div>
-            <PhoneCall className="w-8 h-8 opacity-80" />
-          </a>
-          <a href="tel:192" className="bg-orange-500/90 backdrop-blur-md text-white p-4 rounded-2xl shadow-lg flex items-center justify-between hover:bg-orange-600 transition-colors border border-orange-400">
-            <div>
-              <p className="text-xs font-bold uppercase opacity-90">SAMU</p>
-              <p className="text-2xl font-black">192</p>
-            </div>
-            <PhoneCall className="w-8 h-8 opacity-80" />
-          </a>
-          <a href="tel:193" className="bg-red-700/90 backdrop-blur-md text-white p-4 rounded-2xl shadow-lg flex items-center justify-between hover:bg-red-800 transition-colors border border-red-600">
-            <div>
-              <p className="text-xs font-bold uppercase opacity-90">Bombeiros</p>
-              <p className="text-2xl font-black">193</p>
-            </div>
-            <PhoneCall className="w-8 h-8 opacity-80" />
-          </a>
-          <a href="tel:153" className="bg-blue-600/90 backdrop-blur-md text-white p-4 rounded-2xl shadow-lg flex items-center justify-between hover:bg-blue-700 transition-colors border border-blue-500">
-            <div>
-              <p className="text-xs font-bold uppercase opacity-90">Guarda Municipal</p>
-              <p className="text-2xl font-black">153</p>
-            </div>
-            <PhoneCall className="w-8 h-8 opacity-80" />
-          </a>
-        </div>
-      </div>
-
-      {/* Lost Pets Alert Section */}
-      {lostPets.length > 0 && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-20 mb-12">
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-[2rem] p-6 md:p-8 shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl"></div>
-            
-            <div className="flex flex-col gap-8 relative z-10">
-              <div className="flex flex-col items-center text-center">
-                <div className="flex items-center gap-2 text-red-600 mb-2">
-                  <AlertTriangle className="w-6 h-6 animate-pulse" />
-                  <span className="font-black uppercase tracking-widest text-sm">Alerta Pet Perdido</span>
-                </div>
-                <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4 leading-tight">
-                  Você viu este animal?
-                </h3>
-                <p className="text-slate-600 font-medium mb-6 max-w-2xl mx-auto">
-                  Nossos vizinhos estão precisando de ajuda para encontrar seus pets. Compartilhe nos grupos!
-                </p>
-                <Link to="/login" className="bg-white text-red-600 hover:bg-red-50 border-2 border-red-200 font-bold px-8 py-3 rounded-xl shadow-sm transition-colors uppercase text-sm tracking-wide">
-                  Cadastrar Animal Perdido
-                </Link>
-              </div>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-                {lostPets.map(pet => (
-                  <div 
-                    key={pet.id} 
-                    className="bg-white rounded-2xl p-4 shadow-md border border-red-100 flex gap-4 items-center cursor-pointer hover:border-red-300 transition-colors"
-                    onClick={() => setSelectedPet(pet)}
-                  >
-                    <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border-2 border-red-100">
-                      {pet.image ? (
-                        <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-contain bg-slate-100" />
-                      ) : (
-                        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-slate-400" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-black text-lg text-slate-800 leading-none mb-1">{pet.pet_name}</h4>
-                      <p className="text-xs font-bold text-red-500 mb-2">{pet.species}</p>
-                      <p className="text-xs text-slate-600 mb-3 line-clamp-2">{pet.description}</p>
-                      <button 
-                        onClick={() => {
-                          const text = encodeURIComponent(`Olá! Vi no Fala do Bairro sobre o ${pet.pet_name}. Queria dar uma informação.`);
-                          window.open(`https://wa.me/${pet.owner_whatsapp}?text=${text}`, '_blank');
-                        }}
-                        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 w-max"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5" />
-                        Avisar Tutor
-                      </button>
+          <div className="mural-feed">
+            {publicPosts.map(post => (
+              <div key={post.id} className="post-card">
+                <div className="post-author">
+                  <div className="author-info">
+                    <img src={post.author_avatar} alt="" className="author-avatar" style={{ objectFit: 'cover' }} />
+                    <div className="author-details">
+                      <h4>{post.author_name}</h4>
+                      <span>{post.neighborhood} • {new Date(post.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Adoption Pets Section */}
-      {adoptionPets.length > 0 && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-20 mb-12">
-          <div className="mb-6 flex justify-between items-end">
-            <div>
-              <h3 className="text-2xl font-black text-slate-800">Pets para adoção</h3>
-              <p className="text-slate-500 font-medium text-sm">Pets anunciados em sua região.</p>
-            </div>
-            <button className="text-sm font-bold text-slate-500 hover:text-emerald-600 underline">
-              Ver na minha região
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {adoptionPets.map(pet => (
-              <div 
-                key={pet.id} 
-                onClick={() => setSelectedPet(pet)}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col cursor-pointer"
-              >
-                <div className="bg-emerald-500 text-white text-center py-2 font-bold text-sm">
-                  Para Adoção
+                  <span className={`post-badge ${post.category === 'Aviso' ? 'badge-aviso' : post.category === 'Alerta' ? 'badge-alerta' : 'badge-evento'}`}>
+                    {post.category}
+                  </span>
                 </div>
-                <div className="h-48 overflow-hidden relative">
+                {post.image && <img src={post.image} alt="Publicação" style={{ width: '100%', borderRadius: '8px', marginBottom: '12px', objectFit: 'cover', maxHeight: '300px' }} />}
+                <p className="post-text">{post.content}</p>
+                <div className="post-actions">
+                  <div className="post-action-group">
+                    <button className="btn-action-ghost" onClick={() => handleVote(post.id, 'likes')}>👍 <span>{post.likes || 0} curtidas</span></button>
+                    <Link to="/feed" className="btn-action-ghost">💬 {post.comments?.length || 0} comentários</Link>
+                  </div>
+                  <div className="post-action-group">
+                    <button className="btn-action-ghost" onClick={() => shareText(`Publicação de ${post.author_name} no Mural`)}>📤 Compartilhar</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {publicPosts.length === 0 && (
+              <div className="post-card" style={{ textAlign: 'center', padding: '40px' }}>
+                <p>Nenhuma publicação no mural ainda.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ==========================================================================
+            SEÇÃO 4: ANIMAIS
+            ========================================================================== */}
+        <section id="animais" style={{ marginTop: '36px' }}>
+          <div className="section-header">
+            <h2 className="section-title">🐾 Animais no Bairro</h2>
+            <Link to="/feed" className="section-link">Ver mural pet ➔</Link>
+          </div>
+
+          <div className="animals-grid">
+            {allPets.slice(0, 3).map(pet => (
+              <div key={pet.id} className="animal-card">
+                <div className="animal-image-wrap">
                   {pet.image ? (
-                    <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-contain bg-slate-100" />
+                    <img className="animal-img" src={pet.image} alt={pet.pet_name} loading="lazy" />
                   ) : (
-                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                      <ImageIcon className="w-8 h-8 text-slate-400" />
-                    </div>
+                    <div className="animal-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🐾</div>
                   )}
+                  <span className={`animal-status-tag ${pet.status === 'Perdido' ? 'status-perdido' : pet.status === 'Encontrado' || pet.status === 'Achado' ? 'status-encontrado' : 'status-adocao'}`}>
+                    {pet.status === 'Perdido' ? '🚨 PERDIDO' : pet.status === 'Encontrado' || pet.status === 'Achado' ? '🐾 ENCONTRADO' : '❤️ ADOÇÃO'}
+                  </span>
                 </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-bold text-slate-800 text-lg leading-tight">{pet.pet_name}</h4>
-                    <button className="text-amber-400 hover:text-amber-500">
-                      <Heart className="w-5 h-5 fill-current" />
-                    </button>
-                  </div>
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-4 flex-1">{pet.description}</p>
-                  <div className="flex justify-between items-center mt-auto">
-                    <p className="text-[10px] text-slate-400 max-w-[60%] truncate">{pet.last_seen_location}</p>
-                    <button 
-                      onClick={() => {
-                        const text = encodeURIComponent(`Olá! Tenho interesse em adotar o ${pet.pet_name} que vi no Fala do Bairro.`);
-                        window.open(`https://wa.me/${pet.owner_whatsapp}?text=${text}`, '_blank');
-                      }}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm transition-colors"
-                    >
-                      Adotar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Dynamic News Highlights */}
-      {config.newsList && config.newsList.length > 0 && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-20 mb-20">
-          <div id="noticias" className="bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] p-6 md:p-10 lg:p-12 border border-slate-100 ring-1 ring-slate-900/5 scroll-mt-24">
-            <div className="flex flex-col items-center text-center mb-10">
-              <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-emerald-200">
-                Fique Informado
-              </span>
-              <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2 tracking-tight flex items-center justify-center gap-3">
-                <Zap className="w-8 h-8 text-emerald-500" /> Últimas Notícias
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {config.newsList.map((news: any, index: number) => {
-                return (
-                  <div 
-                    key={news.id || index} 
-                    onClick={() => setSelectedNews(news)}
-                    className="bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-emerald-300 hover:shadow-xl transition-all group flex flex-col cursor-pointer col-span-1"
-                  >
-                    
-                    <div className="overflow-hidden relative flex-shrink-0 h-48 md:h-56">
-                      {news.image ? (
-                        <img src={news.image} alt={news.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center transition-transform duration-700 group-hover:scale-105">
-                           <Zap className="w-16 h-16 text-white/10" />
-                        </div>
-                      )}
-                      <div className="absolute top-5 left-5 bg-blue-600/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-md">
-                        <span className="text-xs font-bold text-white uppercase tracking-widest">{news.label || 'Notícia'}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6 md:p-8 flex flex-col flex-1 bg-white">
-                      <h4 className="font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors mb-3 text-lg md:text-xl">
-                        {news.title}
-                      </h4>
-                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-blue-600 group-hover:text-emerald-500 font-bold text-sm">
-                        <span>Ler matéria completa</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Guia Comercial Section */}
-      {commercialGuide.length > 0 && (
-        <div id="guia" className="bg-slate-50 py-20 border-t border-slate-200 scroll-mt-20">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex flex-col items-center text-center mb-12">
-              <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-emerald-200">
-                Quem Indica?
-              </span>
-              <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4 tracking-tight flex items-center justify-center gap-3">
-                <Store className="w-8 h-8 text-emerald-500" /> Guia Comercial
-              </h3>
-              <p className="text-slate-500 font-medium max-w-xl mx-auto text-lg leading-relaxed">
-                Profissionais autônomos e comércios recomendados por seus vizinhos. Valorize o que é nosso!
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {commercialGuide.map((item) => (
-                <div 
-                  key={item.id} 
-                  onClick={() => setSelectedBusiness(item)}
-                  className="bg-white rounded-2xl p-6 border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all flex flex-col h-full cursor-pointer"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex gap-4 items-center">
-                      {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover border border-slate-200" />
-                      ) : (
-                        <div className="w-16 h-16 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100 text-emerald-500">
-                          <Store className="w-8 h-8" />
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="text-lg font-black text-slate-800 leading-tight">{item.name}</h4>
-                        <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded mt-1 inline-block">{item.category}</span>
-                      </div>
-                    </div>
-                    {item.is_verified && (
-                      <div className="bg-blue-50 text-blue-600 p-1.5 rounded-full" title="Verificado pela Comunidade">
-                        <ShieldCheck className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-slate-600 text-sm mb-6 flex-1 line-clamp-3">{item.description}</p>
-                  
-                  <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                    <div className="flex items-center gap-1 text-amber-400">
-                      <span className="text-sm font-bold text-slate-700 ml-1">★ {item.rating}</span>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        const text = encodeURIComponent(`Olá, ${item.name}! Vi seu anúncio no Fala do Bairro e gostaria de um orçamento.`);
-                        window.open(`https://wa.me/${item.whatsapp}?text=${text}`, '_blank');
-                      }}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      WhatsApp
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="text-center mt-12">
-               <Link to={localStorage.getItem('user_auth') === 'true' ? '/feed' : '/register'} className="inline-block border-2 border-emerald-500 text-emerald-600 font-bold px-8 py-4 rounded-xl hover:bg-emerald-50 transition-colors">
-                  Divulgar Grátis Meu Negócio
-               </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Public Mural Section */}
-      {publicPosts.length > 0 && (
-        <div id="mural" className="bg-slate-900 py-24 border-t border-slate-800 scroll-mt-20">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex flex-col items-center text-center mb-16">
-              <span className="bg-blue-600/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 border border-blue-500/30">
-                Portfólio da Comunidade
-              </span>
-              <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
-                Mural Público do Bairro
-              </h3>
-              <p className="text-slate-400 font-medium max-w-xl mx-auto text-lg leading-relaxed">
-                Aqui você pode se cadastrar, fazer suas próprias postagens, enviar denúncias e interagir com toda a comunidade em tempo real.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {publicPosts.map((post) => (
-                <div 
-                  key={post.id} 
-                  className="bg-slate-800 rounded-3xl overflow-hidden border border-slate-700 hover:border-blue-500/50 transition-colors group flex flex-col h-full shadow-xl cursor-pointer relative"
-                  onClick={() => setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category })}
-                >
-                  {post.image ? (
-                    <div className="h-48 overflow-hidden relative bg-slate-900">
-                      <img src={post.image} alt="Post" className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
-                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
-                        <MapPin className="w-3.5 h-3.5 text-blue-400" />
-                        <span className="text-xs font-bold text-white">{post.neighborhood}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="h-32 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center relative overflow-hidden">
-                      <ImageIcon className="w-12 h-12 text-slate-600/50" />
-                      <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
-                        <MapPin className="w-3.5 h-3.5 text-blue-400" />
-                        <span className="text-xs font-bold text-white">{post.neighborhood}</span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="p-6 flex flex-col flex-1">
-                    <div className="flex items-center gap-3 mb-4">
-                      <img src={post.author_avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-slate-600" />
-                      <div>
-                        <p className="text-white font-bold text-sm leading-tight">{post.author_name}</p>
-                        <p className="text-slate-400 text-xs">{post.handle}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1 mb-6">
-                      <p className="text-slate-300 text-sm leading-relaxed mb-2">
-                        {post.content.length > 120 ? post.content.substring(0, 120) + '...' : post.content}
-                      </p>
-                      {post.content.length > 120 && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setSelectedNews({ title: `Postagem de ${post.author_name}`, description: post.content, image: post.image, label: post.category }); }}
-                          className="text-blue-400 hover:text-blue-300 text-sm font-bold transition-colors underline decoration-blue-500/30 underline-offset-4"
-                        >
-                          Ler mais
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 mt-auto relative z-10">
-                      <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-lg tracking-wide">
-                        {post.category}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'likes'); }}
-                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-likes`] ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-red-400'}`}
-                        >
-                          <Heart className="w-4 h-4" />
-                          <span className="text-xs font-bold">{post.likes || 0}</span>
-                        </button>
-
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'upvotes'); }}
-                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-upvotes`] ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-emerald-400'}`}
-                        >
-                          <ThumbsUp className="w-4 h-4" />
-                          <span className="text-xs font-bold">{post.upvotes || 0}</span>
-                        </button>
-
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'downvotes'); }}
-                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors ${sessionVotes[`${post.id}-downvotes`] ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-amber-400'}`}
-                        >
-                          <ThumbsDown className="w-4 h-4" />
-                          <span className="text-xs font-bold">{post.downvotes || 0}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Features Grid */}
-      <div className="bg-slate-50 py-24 border-t border-slate-200">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">Por que usar o Fala do Bairro?</h3>
-            <p className="text-slate-500 font-medium max-w-lg mx-auto">Tudo que você precisa para estar conectado com a sua comunidade local em um só lugar.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { icon: <Zap className="w-6 h-6 text-amber-500" />, title: 'Informação Rápida', desc: 'Saiba de tudo que acontece no bairro em tempo real.', color: 'bg-amber-50' },
-              { icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />, title: 'Segurança Local', desc: 'Avisos da administração e alertas de vizinhos.', color: 'bg-emerald-50' },
-              { icon: <Users className="w-6 h-6 text-blue-500" />, title: 'Comunidade Unida', desc: 'Apoie o comércio local e conheça seus vizinhos.', color: 'bg-blue-50' },
-            ].map((item, i) => (
-               <div key={i} className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 p-8 rounded-3xl hover:-translate-y-1 transition-transform duration-300">
-                 <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center mb-6 shadow-inner`}>
-                   {item.icon}
-                 </div>
-                 <h4 className="font-bold text-slate-800 text-xl mb-3 tracking-tight">{item.title}</h4>
-                 <p className="text-slate-500 leading-relaxed font-medium">{item.desc}</p>
-               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* News Reading Full Screen View */}
-      {selectedNews && (
-        <div 
-          className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-fade-in" 
-        >
-          <div className="w-full relative">
-            <button 
-              onClick={() => setSelectedNews(null)}
-              className="fixed top-14 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-blue-700 hover:text-blue-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Voltar
-            </button>
-
-            <button 
-              onClick={() => {
-                const url = encodeURIComponent(window.location.href);
-                const text = encodeURIComponent(`Veja essa notícia no Fala do Bairro: ${selectedNews.title}`);
-                window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
-              }}
-              className="fixed bottom-6 right-6 md:top-14 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
-            >
-              <Share2 className="w-5 h-5" />
-              <span className="hidden sm:inline">Compartilhar</span>
-            </button>
-            
-            <div className="w-full h-[50vh] md:h-[65vh] relative bg-slate-900">
-              {selectedNews.image ? (
-                <img src={selectedNews.image} alt={selectedNews.title} className="w-full h-full object-contain" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                   <Zap className="w-24 h-24 text-white/10" />
-                </div>
-              )}
-              <div className="absolute top-6 left-6 md:top-8 md:left-8 bg-blue-600/90 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 shadow-md">
-                <span className="text-sm font-bold text-white uppercase tracking-widest">{selectedNews.label || 'Notícia'}</span>
-              </div>
-            </div>
-            
-            <div className="max-w-4xl mx-auto p-8 md:p-12 lg:p-16">
-              <h1 className="text-3xl md:text-5xl font-black text-slate-800 mb-8 leading-tight">
-                {selectedNews.title}
-              </h1>
-              {selectedNews.description ? (
-                <div className="text-slate-700 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-medium">
-                  {selectedNews.description}
-                </div>
-              ) : (
-                <p className="text-slate-400 italic text-lg">Nenhum detalhe adicional fornecido para esta notícia.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {selectedPet && (
-        <div className="fixed inset-0 z-[100] bg-white flex flex-col md:flex-row overflow-y-auto overflow-x-hidden">
-          <div className="w-full relative">
-            <button 
-              onClick={() => setSelectedPet(null)}
-              className="fixed top-14 left-6 bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.15)] text-red-700 hover:text-red-900 rounded-xl px-5 py-3 z-[110] transition-colors flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Voltar
-            </button>
-
-            <button 
-              onClick={() => {
-                const text = encodeURIComponent(`Olá! Vi no Fala do Bairro sobre o ${selectedPet.pet_name}. Queria dar uma informação.`);
-                window.open(`https://wa.me/${selectedPet.owner_whatsapp}?text=${text}`, '_blank');
-              }}
-              className="fixed bottom-6 right-6 md:top-14 md:bottom-auto bg-green-500 hover:bg-green-600 shadow-[0_8px_30px_rgba(34,197,94,0.3)] text-white rounded-full px-5 py-3 z-[110] transition-transform flex items-center gap-2 font-black text-sm uppercase tracking-wide border-2 border-white/20 active:scale-95"
-            >
-              <PhoneCall className="w-5 h-5" />
-              <span className="hidden sm:inline">Avisar Tutor</span>
-            </button>
-            
-            <div className="w-full h-[50vh] md:h-[65vh] relative bg-slate-900">
-              {selectedPet.image ? (
-                <img src={selectedPet.image} alt={selectedPet.pet_name} className="w-full h-full object-contain" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                   <ImageIcon className="w-24 h-24 text-white/10" />
-                </div>
-              )}
-              <div className="absolute top-6 left-6 md:top-8 md:left-8 bg-red-600/90 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 shadow-md mt-16 md:mt-0">
-                <span className="text-sm font-bold text-white uppercase tracking-widest">Pet Perdido</span>
-              </div>
-            </div>
-            
-            <div className="max-w-4xl mx-auto p-8 md:p-12 lg:p-16">
-              <h1 className="text-3xl md:text-5xl font-black text-slate-800 mb-2 leading-tight">
-                {selectedPet.pet_name}
-              </h1>
-              <p className="text-xl font-bold text-red-500 mb-8">{selectedPet.species}</p>
-              
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
-                  <h4 className="font-bold text-slate-700 mb-2 uppercase text-sm tracking-wide">Visto por último em</h4>
-                  <p className="text-lg text-slate-800 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-red-500" />
-                    {selectedPet.last_seen_location}
-                  </p>
-                </div>
-                <div className="bg-green-50 p-6 rounded-2xl border border-green-100">
-                  <h4 className="font-bold text-slate-700 mb-2 uppercase text-sm tracking-wide">Contato do Tutor</h4>
-                  <p className="text-lg text-slate-800 flex items-center gap-2">
-                    <PhoneCall className="w-5 h-5 text-green-600" />
-                    {selectedPet.owner_whatsapp}
-                  </p>
-                </div>
-              </div>
-
-              {selectedPet.description && (
-                <div>
-                  <h4 className="font-bold text-slate-700 mb-4 uppercase text-sm tracking-wide">Descrição e Detalhes</h4>
-                  <div className="text-slate-700 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-medium">
-                    {selectedPet.description}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Selected Business Modal */}
-      {selectedBusiness && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedBusiness(null)}>
-          <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSelectedBusiness(null)} className="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-md transition-colors z-10">
-              <X className="w-5 h-5" />
-            </button>
-            <div className="w-full bg-slate-100 flex items-center justify-center relative p-8">
-              {selectedBusiness.image ? (
-                <img src={selectedBusiness.image} alt={selectedBusiness.name} className="w-32 h-32 rounded-2xl object-cover shadow-lg border-4 border-white" />
-              ) : (
-                <div className="w-32 h-32 bg-emerald-100 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white text-emerald-500">
-                  <Store className="w-16 h-16" />
-                </div>
-              )}
-            </div>
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-2xl font-black text-slate-800 leading-tight">{selectedBusiness.name}</h3>
-                  <span className="text-sm font-bold text-slate-500">{selectedBusiness.category}</span>
-                </div>
-                {selectedBusiness.is_verified && (
-                  <div className="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3" /> Verificado
-                  </div>
-                )}
-              </div>
-              <p className="text-slate-600 mb-6">{selectedBusiness.description}</p>
-              
-              {(localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('user_whatsapp') === selectedBusiness.whatsapp) && (
-                <div className="flex gap-2 mb-6 border-b border-slate-100 pb-4">
-                  <button 
-                    onClick={async () => {
-                       if (confirm('Tem certeza que deseja excluir esta empresa?')) {
-                         await supabase.from('commercial_guide').delete().eq('id', selectedBusiness.id);
-                         alert('Empresa excluída com sucesso!');
-                         setSelectedBusiness(null);
-                         fetchCommercialGuide();
-                       }
-                    }}
-                    className="flex-1 bg-red-50 text-red-600 font-bold py-2 rounded-xl border border-red-100 hover:bg-red-100 text-sm"
-                  >
-                    Excluir Empresa
+                <div className="animal-info">
+                  <h3>{pet.pet_name}</h3>
+                  <p className="animal-sub">{pet.species} • {pet.last_seen_location}</p>
+                  <p className="animal-desc">{pet.description}</p>
+                  <button className="btn-contact-whatsapp" onClick={() => openWhatsApp(pet.owner_whatsapp, `Olá, vi o anúncio sobre o ${pet.pet_name} no Fala do Bairro!`)}>
+                    💬 Falar no WhatsApp
                   </button>
                 </div>
-              )}
+              </div>
+            ))}
+          </div>
+        </section>
 
-              <button 
-                onClick={() => {
-                  const text = encodeURIComponent(`Olá, ${selectedBusiness.name}! Vi seu anúncio no Fala do Bairro e gostaria de um orçamento.`);
-                  window.open(`https://wa.me/${selectedBusiness.whatsapp}?text=${text}`, '_blank');
-                }}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-5 h-5" />
-                Chamar no WhatsApp
-              </button>
+        {/* ==========================================================================
+            SEÇÃO 5: GUIA LOCAL & COMÉRCIO DO BAIRRO
+            ========================================================================== */}
+        <section id="guia" style={{ marginTop: '36px' }}>
+          <div className="section-header">
+            <h2 className="section-title">🏪 Encontre no seu Bairro</h2>
+            <Link to="/feed" className="section-link">Cadastrar empresa ➔</Link>
+          </div>
+
+          <div className="guia-search-box">
+            <div className="guia-search-input-wrap">
+              <input type="text" placeholder="🔎 O que você procura? Padaria, mecânico..." aria-label="Buscar comércio local" />
+              <button type="button">Buscar</button>
             </div>
           </div>
+
+          <div className="business-grid">
+            {commercialGuide.map(business => (
+              <div key={business.id} className="business-card">
+                {business.image ? (
+                  <img className="business-thumb" src={business.image} alt={business.name} loading="lazy" />
+                ) : (
+                  <div className="business-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏪</div>
+                )}
+                <div className="business-details">
+                  <span className="business-category">{business.category}</span>
+                  <h4>{business.name}</h4>
+                  <p className="business-address" style={{ fontSize: '11px' }}>{business.description?.substring(0, 40)}...</p>
+                  <button className="btn-business-cta" onClick={() => openWhatsApp(business.whatsapp, `Olá ${business.name}, vi o anúncio no Fala do Bairro!`)}>📱 WhatsApp</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ==========================================================================
+            SEÇÃO 6: VENDAS & TROCAS
+            ========================================================================== */}
+        <section id="vendas" style={{ marginTop: '36px' }}>
+          <div className="section-header">
+            <h2 className="section-title">🛒 Vendas & Trocas da Comunidade</h2>
+            <Link to="/feed" className="section-link">+ Anunciar item ➔</Link>
+          </div>
+
+          <div className="market-filter-bar">
+            <button className="market-filter-btn active">TODOS</button>
+            <button className="market-filter-btn">🏷️ VENDAS</button>
+            <button className="market-filter-btn">🔄 TROCAS</button>
+            <button className="market-filter-btn">🎁 GRÁTIS / DOAÇÃO</button>
+          </div>
+
+          <div className="market-grid">
+            {marketplaceItems.map(item => (
+              <div key={item.id} className="market-card">
+                <div className="market-img-wrap">
+                  {item.image ? (
+                    <img className="market-img" src={item.image} alt={item.title} loading="lazy" />
+                  ) : (
+                    <div className="market-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📦</div>
+                  )}
+                  <span className={`market-type-tag ${item.type === 'Venda' ? 'tag-venda' : item.type === 'Troca' ? 'tag-troca' : 'tag-gratis'}`}>
+                    {item.type}
+                  </span>
+                </div>
+                <div className="market-info">
+                  <div className="market-price">{item.type === 'Venda' ? `R$ ${item.price}` : item.type}</div>
+                  <div className="market-title">{item.title}</div>
+                  <div className="market-meta">
+                    <span>{item.neighborhood}</span>
+                    <button onClick={() => openWhatsApp(item.seller_whatsapp, `Olá, vi o anúncio: ${item.title} no Fala do Bairro!`)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: 'bold' }}>Contatar</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {marketplaceItems.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px', gridColumn: '1 / -1', background: 'var(--surface)', borderRadius: 'var(--radius)' }}>
+                <p>Nenhum anúncio disponível no momento.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Indicador de Arquitetura de Monetização (Mantida 100% Gratuita e Desativada) */}
+        <div className="monetization-blueprint-note" id="monetizationStatusBox">
+          <div>
+            <strong>⚙️ Configuração de Plataforma Comunitária:</strong>
+            <span>Taxas e cobranças desativadas. Todos os anúncios e publicações permanecem 100% gratuitos.</span>
+          </div>
+          <span className="monetization-badge-status">MONETIZAÇÃO: DESATIVADA</span>
         </div>
-      )}
 
-      {/* Mobile Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center h-16 z-[90] pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
-        <a href="#" className="flex flex-col items-center justify-center w-full h-full text-blue-600">
-          <Home className="w-5 h-5 mb-1" />
-          <span className="text-[10px] font-bold tracking-wide">Início</span>
-        </a>
-        <a href="#noticias" className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-blue-600 transition-colors">
-          <Newspaper className="w-5 h-5 mb-1" />
-          <span className="text-[10px] font-bold tracking-wide">Notícias</span>
-        </a>
-        <a href="#mural" className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-blue-600 transition-colors">
-          <Megaphone className="w-5 h-5 mb-1" />
-          <span className="text-[10px] font-bold tracking-wide">Mural</span>
-        </a>
-        <Link to="/login" className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-blue-600 transition-colors">
-          <Store className="w-5 h-5 mb-1" />
-          <span className="text-[10px] font-bold tracking-wide">Guia Local</span>
-        </Link>
-      </div>
+      </main>
 
+      {/* ==========================================================================
+          RODAPÉ INSTITUCIONAL
+          ========================================================================== */}
+      <footer className="footer-site">
+        <div className="container">
+          <div className="footer-content">
+            <div className="footer-about">
+              <h3>Fala do Bairro</h3>
+              <p>Plataforma comunitária independente feita para conectar vizinhos, dar voz aos acontecimentos locais, resgatar animais e fortalecer os pequenos negócios da região.</p>
+            </div>
+            <div className="footer-links">
+              <h4>Navegação</h4>
+              <ul style={{ padding: 0 }}>
+                <li><a href="#noticias">Notícias Locais</a></li>
+                <li><a href="#mural">Mural da Comunidade</a></li>
+                <li><a href="#animais">Animais Perdidos</a></li>
+                <li><a href="#guia">Guia de Empresas</a></li>
+                <li><a href="#vendas">Vendas e Trocas</a></li>
+              </ul>
+            </div>
+            <div className="footer-links">
+              <h4>Ajuda & Segurança</h4>
+              <ul style={{ padding: 0 }}>
+                <li><a href="#">Regras da Comunidade</a></li>
+                <li><a href="#">Termos de Uso</a></li>
+                <li><a href="#">Política de Privacidade</a></li>
+                <li><a href="#">Como anunciar no Bairro</a></li>
+                <li><a href="#">Fale com a Moderação</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="footer-bottom">
+            <span>&copy; 2026 Fala do Bairro (www.faladobairro.online) — Todos os direitos reservados.</span>
+            <span>Feito com orgulho para fortalecer a nossa comunidade local.</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

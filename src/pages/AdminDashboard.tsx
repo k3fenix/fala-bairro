@@ -343,7 +343,12 @@ function OverviewTab() {
 
   return (
     <>
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Visão Geral</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-slate-800">Visão Geral</h2>
+        <div className="bg-slate-200 border border-slate-300 text-slate-500 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 cursor-not-allowed" title="Em breve">
+          <span>[ MONETIZAÇÃO: DESATIVADA ]</span>
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Usuários" value={totalUsers} icon={<Users className="w-6 h-6 text-blue-500" />} />
         <StatCard title="Publicações" value={totalPosts} icon={<FileText className="w-6 h-6 text-emerald-500" />} />

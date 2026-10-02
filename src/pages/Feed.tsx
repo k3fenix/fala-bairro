@@ -7,9 +7,9 @@ import { Trash2, Send } from 'lucide-react';
 export default function Feed() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<any[]>([]);
-  const [activeFilter, setActiveFilter] = useState('Meu bairro');
+  const [activeFilter, setActiveFilter] = useState('Mural');
   const [postContent, setPostContent] = useState('');
-  const [postCategory, setPostCategory] = useState('Postagem');
+  const [postCategory, setPostCategory] = useState('Informação');
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
   const [globalAnnouncement, setGlobalAnnouncement] = useState('');
   
@@ -35,6 +35,16 @@ export default function Feed() {
   const [petStatus, setPetStatus] = useState('Perdido');
   const [petImage, setPetImage] = useState<string | null>(null);
   const [editingPetId, setEditingPetId] = useState<number | null>(null);
+  const [allMarketplace, setAllMarketplace] = useState<any[]>([]);
+  const [marketplaceFilter, setMarketplaceFilter] = useState('Todos');
+  const [showMarketModal, setShowMarketModal] = useState(false);
+  const [marketTitle, setMarketTitle] = useState('');
+  const [marketDesc, setMarketDesc] = useState('');
+  const [marketPrice, setMarketPrice] = useState('');
+  const [marketType, setMarketType] = useState('Venda');
+  const [marketCondition, setMarketCondition] = useState('Usado');
+  const [marketImage, setMarketImage] = useState<string | null>(null);
+  const [marketWhatsapp, setMarketWhatsapp] = useState('');
 
   const [editName, setEditName] = useState(userName);
   const [editAvatar, setEditAvatar] = useState(userAvatar);
@@ -58,7 +68,13 @@ export default function Feed() {
     fetchPosts();
     fetchPets();
     fetchMyBusinesses();
+    fetchMarketplace();
   }, [navigate]);
+
+  const fetchMarketplace = async () => {
+    const { data } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false });
+    if (data) setAllMarketplace(data);
+  };
 
   const fetchPets = async () => {
     const { data } = await supabase.from('lost_pets').select('*');
@@ -294,6 +310,45 @@ export default function Feed() {
   };
 
 
+  const handleMarketImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMarketImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveMarketplace = async () => {
+    if (!marketTitle || !marketWhatsapp) {
+      alert('Preencha os campos obrigatórios (Título e WhatsApp).');
+      return;
+    }
+    const item = {
+      seller_name: userName,
+      seller_whatsapp: marketWhatsapp,
+      title: marketTitle,
+      description: marketDesc,
+      price: marketPrice ? parseFloat(marketPrice) : 0,
+      type: marketType,
+      condition: marketCondition,
+      neighborhood: selectedNeighborhood,
+      image: marketImage,
+      status: 'Ativo'
+    };
+    const { error } = await supabase.from('marketplace_items').insert([item]);
+    if (!error) {
+      alert('Anúncio publicado com sucesso!');
+      setShowMarketModal(false);
+      setMarketTitle(''); setMarketDesc(''); setMarketPrice(''); setMarketWhatsapp(''); setMarketImage(null);
+      fetchMarketplace();
+    } else {
+      alert('Erro: ' + error.message);
+    }
+  };
+
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -356,14 +411,10 @@ export default function Feed() {
   const currentUserId = localStorage.getItem('user_id');
   let filteredPosts = posts.filter((p: any) => p.is_approved || p.author_id === currentUserId);
 
-  if (activeFilter === 'Meu bairro') {
+  if (activeFilter === 'Mural') {
     filteredPosts = filteredPosts.filter((p: any) => p.neighborhood === selectedNeighborhood);
-  } else if (activeFilter === 'Em alta') {
-    filteredPosts.sort((a: any, b: any) => {
-      const aScore = (a.likes || 0) + (a.upvotes || 0);
-      const bScore = (b.likes || 0) + (b.upvotes || 0);
-      return bScore - aScore;
-    });
+  } else if (activeFilter === 'Notícias') {
+    filteredPosts = filteredPosts.filter((p: any) => ['Informação', 'Aviso', 'Alerta'].includes(p.category));
   }
 
   return (
@@ -438,7 +489,7 @@ export default function Feed() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {['Meu bairro', 'Todos', 'Mais recentes', 'Em alta', 'Área Pet'].map((filter) => (
+          {['Mural', 'Notícias', 'Área Pet', 'Guia Local', 'Vendas & Trocas'].map((filter) => (
             <button 
               key={filter}
               onClick={() => setActiveFilter(filter)}
@@ -689,6 +740,81 @@ export default function Feed() {
         </div>
       )}
 
+      {showMarketModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setShowMarketModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-2 mb-4 justify-center text-blue-600">
+              <Store className="w-6 h-6" />
+              <h3 className="text-xl font-bold text-slate-800 text-center">Novo Anúncio</h3>
+            </div>
+            
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-full h-32 bg-slate-100 rounded-xl overflow-hidden mb-2 relative group flex items-center justify-center border-2 border-dashed border-slate-300">
+                {marketImage ? (
+                  <img src={marketImage} alt="Anúncio" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-slate-400 flex flex-col items-center">
+                    <ImageIcon className="w-8 h-8 mb-1" />
+                    <span className="text-xs font-medium">Adicionar Foto</span>
+                  </div>
+                )}
+                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Camera className="w-6 h-6 text-white" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleMarketImageUpload} />
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Tipo</label>
+                <select value={marketType} onChange={(e) => setMarketType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 text-sm font-medium">
+                  <option value="Venda">Venda</option>
+                  <option value="Troca">Troca</option>
+                  <option value="Grátis">Grátis/Doação</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Condição</label>
+                <select value={marketCondition} onChange={(e) => setMarketCondition(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 text-sm font-medium">
+                  <option value="Novo">Novo</option>
+                  <option value="Usado">Usado</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">O que você está anunciando?</label>
+              <input type="text" value={marketTitle} onChange={(e) => setMarketTitle(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-medium text-sm" placeholder="Ex: Bicicleta Caloi 29" />
+            </div>
+
+            {marketType === 'Venda' && (
+              <div className="mb-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Preço (R$)</label>
+                <input type="number" value={marketPrice} onChange={(e) => setMarketPrice(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-medium text-sm" placeholder="150.00" />
+              </div>
+            )}
+
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Descrição</label>
+              <textarea value={marketDesc} onChange={(e) => setMarketDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-medium text-sm min-h-[60px]" placeholder="Detalhes do produto..." />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp para Contato</label>
+              <input type="text" value={marketWhatsapp} onChange={(e) => setMarketWhatsapp(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-medium text-sm" placeholder="5511999999999" />
+            </div>
+
+            <button onClick={handleSaveMarketplace} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md">
+              Publicar Anúncio
+            </button>
+          </div>
+        </div>
+      )}
+
       {showBusinessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
@@ -800,21 +926,22 @@ export default function Feed() {
             )}
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
-              <div className="flex items-center gap-3">
-                <label className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg border transition-colors ${postCategory === 'Postagem' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
-                  <input type="radio" name="category" value="Postagem" checked={postCategory === 'Postagem'} onChange={() => setPostCategory('Postagem')} className="hidden" />
-                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${postCategory === 'Postagem' ? 'border-blue-500' : 'border-slate-300'}`}>
-                    {postCategory === 'Postagem' && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
-                  </div>
-                  <span className="text-sm font-bold">Postagem</span>
-                </label>
-                <label className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg border transition-colors ${postCategory === 'Denúncia' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
-                  <input type="radio" name="category" value="Denúncia" checked={postCategory === 'Denúncia'} onChange={() => setPostCategory('Denúncia')} className="hidden" />
-                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${postCategory === 'Denúncia' ? 'border-red-500' : 'border-slate-300'}`}>
-                    {postCategory === 'Denúncia' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
-                  </div>
-                  <span className="text-sm font-bold">Denúncia</span>
-                </label>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <select 
+                  value={postCategory}
+                  onChange={(e) => setPostCategory(e.target.value)}
+                  className="bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg px-3 py-2 outline-none focus:border-blue-500 w-full sm:w-auto"
+                >
+                  <option value="Informação">Informação</option>
+                  <option value="Aviso">Aviso</option>
+                  <option value="Alerta">Alerta</option>
+                  <option value="Animal">Animal</option>
+                  <option value="Comércio">Comércio</option>
+                  <option value="Evento">Evento</option>
+                  <option value="Pergunta">Pergunta</option>
+                  <option value="Achados e Perdidos">Achados e Perdidos</option>
+                  <option value="Outros">Outros</option>
+                </select>
               </div>
 
               <div className="flex items-center gap-4">
@@ -968,6 +1095,84 @@ export default function Feed() {
                 Nenhum pet cadastrado na área.
               </div>
             )}
+          </div>
+        ) : activeFilter === 'Vendas & Trocas' ? (
+          <div className="space-y-4">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex gap-2 overflow-x-auto no-scrollbar">
+               <button onClick={() => setMarketplaceFilter('Todos')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Todos' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Todos</button>
+               <button onClick={() => setMarketplaceFilter('Vendas')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Venda' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Vendas</button>
+               <button onClick={() => setMarketplaceFilter('Trocas')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Troca' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Trocas</button>
+               <button onClick={() => setMarketplaceFilter('Grátis')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Grátis' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Grátis</button>
+            </div>
+            <button onClick={() => setShowMarketModal(true)} className="w-full bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold py-3 rounded-2xl transition-colors shadow-sm mb-4">
+              + Novo Anúncio
+            </button>
+
+            {allMarketplace.filter(m => marketplaceFilter === 'Todos' || m.type === marketplaceFilter || (marketplaceFilter === 'Grátis' && m.type === 'Grátis/Doação')).map(item => (
+              <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-32 h-32 bg-slate-100 rounded-xl overflow-hidden shrink-0 relative cursor-pointer" onClick={() => item.image && setSelectedImage(item.image)}>
+                  {item.image ? (
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <Store className="w-8 h-8" />
+                    </div>
+                  )}
+                  {item.status === 'Vendido' && (
+                    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
+                      <span className="bg-red-600 text-white font-bold px-3 py-1 rounded-full text-xs transform -rotate-12">VENDIDO</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="font-bold text-lg text-slate-800">{item.title}</h3>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${item.type === 'Venda' ? 'bg-blue-100 text-blue-700' : item.type === 'Troca' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{item.type}</span>
+                  </div>
+                  {item.type === 'Venda' && <p className="font-bold text-emerald-600 text-lg mb-1">R$ {Number(item.price).toFixed(2)}</p>}
+                  <p className="text-xs font-medium text-slate-500 mb-2">Condição: {item.condition} • Vendedor: {item.seller_name}</p>
+                  {item.description && <p className="text-[13px] text-slate-600 mb-3 bg-slate-50 p-3 rounded-lg border border-slate-100">{item.description}</p>}
+                  <div className="mt-2 flex gap-2 flex-wrap">
+                    <a href={`https://wa.me/${String(item.seller_whatsapp).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors">
+                      Chamar no WhatsApp
+                    </a>
+                    {userName === item.seller_name && item.status !== 'Vendido' && (
+                      <button onClick={async () => {
+                        await supabase.from('marketplace_items').update({ status: 'Vendido' }).eq('id', item.id);
+                        fetchMarketplace();
+                      }} className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">
+                        <CheckCircle className="w-4 h-4" /> Marcar Vendido
+                      </button>
+                    )}
+                    {(userName === item.seller_name || localStorage.getItem('admin_auth') === 'true') && (
+                      <button onClick={async () => {
+                        if (confirm('Excluir este anúncio permanentemente?')) {
+                          await supabase.from('marketplace_items').delete().eq('id', item.id);
+                          fetchMarketplace();
+                        }
+                      }} className="inline-flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {allMarketplace.length === 0 && (
+              <div className="text-center text-slate-500 py-10 bg-white rounded-2xl shadow-sm border border-slate-100">
+                <Store className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="font-bold text-lg text-slate-700">Nenhum anúncio ainda.</p>
+                <p className="text-sm">Seja o primeiro a publicar algo!</p>
+              </div>
+            )}
+          </div>
+        ) : activeFilter === 'Guia Local' ? (
+          <div className="space-y-4">
+            <div className="text-center text-slate-500 py-10 bg-white rounded-2xl shadow-sm border border-slate-100">
+              <Store className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="font-bold text-lg text-slate-700">Guia Local</p>
+              <p className="text-sm">Veja todos os comércios do bairro! (Em breve integrado aqui)</p>
+            </div>
           </div>
         ) : (
           <>
