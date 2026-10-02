@@ -555,12 +555,16 @@ export default function Feed() {
               Cadastre um pet perdido para a comunidade ajudar a encontrar, ou disponibilize um para adoção.
             </p>
 
-            <div className="flex gap-4 mb-4">
-              <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Perdido' ? 'bg-red-50 border-red-200 text-red-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+            <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+              <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-2 py-2 rounded-lg border transition-colors ${petStatus === 'Perdido' ? 'bg-red-50 border-red-200 text-red-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'} text-xs sm:text-sm`}>
                 <input type="radio" name="petStatus" value="Perdido" checked={petStatus === 'Perdido'} onChange={() => setPetStatus('Perdido')} className="hidden" />
                 Perdido
               </label>
-              <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${petStatus === 'Adoção' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+              <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-2 py-2 rounded-lg border transition-colors ${petStatus === 'Achado' ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'} text-xs sm:text-sm`}>
+                <input type="radio" name="petStatus" value="Achado" checked={petStatus === 'Achado'} onChange={() => setPetStatus('Achado')} className="hidden" />
+                Achado
+              </label>
+              <label className={`flex-1 flex items-center justify-center gap-2 cursor-pointer px-2 py-2 rounded-lg border transition-colors ${petStatus === 'Adoção' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'} text-xs sm:text-sm`}>
                 <input type="radio" name="petStatus" value="Adoção" checked={petStatus === 'Adoção'} onChange={() => setPetStatus('Adoção')} className="hidden" />
                 Adoção
               </label>
@@ -923,7 +927,7 @@ export default function Feed() {
                     <a href={`https://wa.me/${pet.owner_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
                       Falar no WhatsApp
                     </a>
-                    {pet.owner_whatsapp === localStorage.getItem('user_whatsapp') && localStorage.getItem('user_whatsapp') && (
+                    {(pet.owner_whatsapp === localStorage.getItem('user_whatsapp') || localStorage.getItem('admin_auth') === 'true') && (
                       <div className="flex gap-2 items-center ml-auto">
                         <button onClick={async () => {
                           const newStatus = pet.status === 'Perdido' ? 'Achado' : pet.status === 'Adoção' ? 'Adotado' : 'Perdido';
