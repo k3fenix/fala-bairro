@@ -925,7 +925,7 @@ export default function Feed() {
                   {pet.description && <p className="text-sm text-slate-700 mb-3 bg-slate-50 p-2 rounded-lg">{pet.description}</p>}
                     <div className="flex flex-wrap gap-2 items-center mt-2 w-full">
                       {pet.owner_whatsapp && (
-                        <a href={`https://wa.me/${pet.owner_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
+                        <a href={`https://wa.me/${String(pet.owner_whatsapp).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
                           Falar no WhatsApp
                         </a>
                       )}
