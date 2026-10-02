@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus } from 'lucide-react';
+import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus, Wallet } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminDashboard() {
@@ -43,6 +43,7 @@ export default function AdminDashboard() {
           <TabButton icon={<AlertTriangle />} label="Pets Perdidos" active={activeTab === 'pets'} onClick={() => setActiveTab('pets')} />
           <TabButton icon={<Megaphone />} label="Mural de Avisos" active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} />
           <TabButton icon={<LayoutDashboard />} label="Capa do Site" active={activeTab === 'landing'} onClick={() => setActiveTab('landing')} />
+          <TabButton icon={<Wallet />} label="Monetização" active={activeTab === 'monetization'} onClick={() => setActiveTab('monetization')} />
           <TabButton icon={<Trash2 />} label="Exclusões de Conta" active={activeTab === 'deletions'} onClick={() => setActiveTab('deletions')} />
         </div>
 
@@ -53,6 +54,7 @@ export default function AdminDashboard() {
           {activeTab === 'pets' && <PetsTab />}
           {activeTab === 'announcements' && <AnnouncementsTab />}
           {activeTab === 'landing' && <LandingConfigTab />}
+          {activeTab === 'monetization' && <MonetizationTab />}
           {activeTab === 'deletions' && <DeletionsTab />}
         </div>
       </div>
@@ -1022,6 +1024,85 @@ function DeletionsTab() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function MonetizationTab() {
+  const [monetizationEnabled, setMonetizationEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    setLoading(true);
+    const { data } = await supabase.from('settings').select('*').eq('key', 'monetization_enabled');
+    if (data && data.length > 0) {
+      setMonetizationEnabled(data[0].value === 'true');
+    }
+    setLoading(false);
+  };
+
+  const toggleMonetization = async () => {
+    const newValue = !monetizationEnabled;
+    const { error } = await supabase.from('settings').upsert({
+      key: 'monetization_enabled',
+      value: String(newValue)
+    });
+    if (!error) {
+      setMonetizationEnabled(newValue);
+      alert(`Monetização ${newValue ? 'ATIVADA' : 'DESATIVADA'} com sucesso!`);
+    } else {
+      alert('Erro ao salvar configuração.');
+    }
+  };
+
+  if (loading) return <div>Carregando configurações...</div>;
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-slate-800 mb-2">Painel de Monetização</h2>
+      <p className="text-slate-500 mb-8">Controle as taxas e cobranças de funcionalidades premium do portal.</p>
+      
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-6">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              Status Global de Cobranças
+              <span className={`px-2 py-1 rounded text-xs font-bold ${monetizationEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                {monetizationEnabled ? 'ATIVADA' : 'DESATIVADA'}
+              </span>
+            </h3>
+            <p className="text-sm text-slate-500 mt-1">Ao ativar, o sistema passa a exibir os indicativos de cobrança para novos anúncios e módulos premium.</p>
+          </div>
+          <button 
+            onClick={toggleMonetization}
+            className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${monetizationEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+          >
+            <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${monetizationEnabled ? 'translate-x-9' : 'translate-x-1'}`} />
+          </button>
+        </div>
+
+        <div className="opacity-50 pointer-events-none">
+          <h3 className="text-lg font-bold text-slate-800 mb-4">Configurações Futuras (Em breve)</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-4 border border-slate-200 rounded-lg bg-slate-50">
+              <label className="block text-sm font-bold text-slate-700 mb-1">Taxa fixa por Venda/Troca (R$)</label>
+              <input type="number" disabled value="5.00" className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 cursor-not-allowed" />
+            </div>
+            <div className="p-4 border border-slate-200 rounded-lg bg-slate-50">
+              <label className="block text-sm font-bold text-slate-700 mb-1">Anúncio Destaque no Mural (R$)</label>
+              <input type="number" disabled value="15.00" className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 cursor-not-allowed" />
+            </div>
+            <div className="p-4 border border-slate-200 rounded-lg bg-slate-50">
+              <label className="block text-sm font-bold text-slate-700 mb-1">Empresa Destaque no Guia (R$ / mês)</label>
+              <input type="number" disabled value="39.90" className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 cursor-not-allowed" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

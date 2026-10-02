@@ -11,13 +11,22 @@ export default function Landing() {
   const [allPets, setAllPets] = useState<any[]>([]);
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
+  const [monetizationEnabled, setMonetizationEnabled] = useState(false);
 
   useEffect(() => {
     fetchPublicPosts();
     fetchCommercialGuide();
     fetchLostPets();
     fetchMarketplaceItems();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('settings').select('*').eq('key', 'monetization_enabled');
+    if (data && data.length > 0) {
+      setMonetizationEnabled(data[0].value === 'true');
+    }
+  };
 
   const fetchLostPets = async () => {
     const { data } = await supabase.from('lost_pets').select('*').order('created_at', { ascending: false });
@@ -375,13 +384,15 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Indicador de Arquitetura de Monetização (Mantida 100% Gratuita e Desativada) */}
+        {/* Indicador de Arquitetura de Monetização */}
         <div className="monetization-blueprint-note" id="monetizationStatusBox">
           <div>
             <strong>⚙️ Configuração de Plataforma Comunitária:</strong>
-            <span>Taxas e cobranças desativadas. Todos os anúncios e publicações permanecem 100% gratuitos.</span>
+            <span>{monetizationEnabled ? 'Módulos premium e taxas estão ativados.' : 'Taxas e cobranças desativadas. Todos os anúncios e publicações permanecem 100% gratuitos.'}</span>
           </div>
-          <span className="monetization-badge-status">MONETIZAÇÃO: DESATIVADA</span>
+          <span className={`monetization-badge-status ${monetizationEnabled ? 'bg-emerald-200 text-emerald-800' : ''}`}>
+            MONETIZAÇÃO: {monetizationEnabled ? 'ATIVADA' : 'DESATIVADA'}
+          </span>
         </div>
 
       </main>
