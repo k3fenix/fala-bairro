@@ -14,6 +14,7 @@ export default function Landing() {
   const [selectedPostDetails, setSelectedPostDetails] = useState<any>(null);
   const [selectedNewsDetails, setSelectedNewsDetails] = useState<any>(null);
   const [selectedMarketDetails, setSelectedMarketDetails] = useState<any>(null);
+  const [showPublishModal, setShowPublishModal] = useState(false);
 
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
@@ -103,9 +104,9 @@ export default function Landing() {
           </div>
 
           <div className="header-actions">
-            <Link to="/feed" className="btn-publish-main">
+            <button onClick={() => setShowPublishModal(true)} className="btn-publish-main">
               + <span className="hidden sm:inline">Publicar</span>
-            </Link>
+            </button>
             <Link to="/login" className="btn-header-profile">
               👤 <span className="hidden sm:inline">Conta</span>
             </Link>
@@ -122,7 +123,7 @@ export default function Landing() {
           <a href="#mural" className="chip">📢 Mural</a>
           <a href="#animais" className="chip">🐶 Animais</a>
           <a href="#guia" className="chip">🏪 Guia Local</a>
-          <a href="#vendas" className="chip">🛒 Vendas & Trocas</a>
+          <a href="#vendas" className="chip">🛒 Marketplace</a>
         </div>
       </nav>
 
@@ -337,8 +338,8 @@ export default function Landing() {
             ========================================================================== */}
         <section id="vendas" style={{ marginTop: '36px' }}>
           <div className="section-header">
-            <h2 className="section-title">🛒 Vendas & Trocas da Comunidade</h2>
-            <Link to="/feed" className="section-link">+ Anunciar item ➔</Link>
+            <h2 className="section-title">🛒 Fala do Bairro Marketplace</h2>
+            <Link to="/marketplace" className="section-link">Explorar Marketplace ➔</Link>
           </div>
 
           <div className="market-filter-bar">
@@ -583,6 +584,59 @@ export default function Landing() {
                   Negociar no WhatsApp
                 </a>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================================================
+          MODAL DE PUBLICAÇÃO
+          ========================================================================== */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-[150] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowPublishModal(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">O que você quer publicar?</h3>
+                <p className="text-sm text-slate-500 mt-1">Escolha uma das opções abaixo</p>
+              </div>
+              <button onClick={() => setShowPublishModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors">
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-4 grid grid-cols-1 gap-2">
+              <Link to="/feed" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group">
+                <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📝</div>
+                <div>
+                  <h4 className="font-bold text-slate-800">Postagem</h4>
+                  <p className="text-xs text-slate-500">Comunique-se com seus vizinhos</p>
+                </div>
+              </Link>
+              
+              <Link to="/feed" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group">
+                <div className="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🚨</div>
+                <div>
+                  <h4 className="font-bold text-slate-800">Alerta Urgente</h4>
+                  <p className="text-xs text-slate-500">Avisos de segurança ou utilidade pública</p>
+                </div>
+              </Link>
+
+              <Link to="/marketplace/anunciar" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group">
+                <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🛍️</div>
+                <div>
+                  <h4 className="font-bold text-slate-800">Venda / Marketplace</h4>
+                  <p className="text-xs text-slate-500">Anuncie produtos e serviços</p>
+                </div>
+              </Link>
+
+              <Link to="/feed" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🐶</div>
+                <div>
+                  <h4 className="font-bold text-slate-800">Animal Perdido</h4>
+                  <p className="text-xs text-slate-500">Ajude a encontrar pets perdidos</p>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
