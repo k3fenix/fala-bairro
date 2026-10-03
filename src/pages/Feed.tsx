@@ -773,8 +773,9 @@ export default function Feed() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Tipo</label>
                 <select value={marketType} onChange={(e) => setMarketType(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 text-sm font-medium">
                   <option value="Venda">Venda</option>
+                  <option value="Compra">Compra</option>
                   <option value="Troca">Troca</option>
-                  <option value="Grátis">Grátis/Doação</option>
+                  <option value="Grátis/Doação">Grátis/Doação</option>
                 </select>
               </div>
               <div>
@@ -791,7 +792,7 @@ export default function Feed() {
               <input type="text" value={marketTitle} onChange={(e) => setMarketTitle(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-medium text-sm" placeholder="Ex: Bicicleta Caloi 29" />
             </div>
 
-            {marketType === 'Venda' && (
+            {(marketType === 'Venda' || marketType === 'Compra') && (
               <div className="mb-3">
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Preço (R$)</label>
                 <input type="number" value={marketPrice} onChange={(e) => setMarketPrice(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-medium text-sm" placeholder="150.00" />
@@ -901,67 +902,69 @@ export default function Feed() {
         </p>
       </div>
 
-      <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-100">
-        <div className="flex gap-3">
-          <div className="w-10 h-10 bg-slate-200 rounded-full overflow-hidden shrink-0">
-            <img src={userAvatar} alt="User" />
-          </div>
-          <div className="flex-1">
-            <textarea 
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
-              placeholder="Conte para o bairro o que aconteceu..."
-              className="w-full bg-slate-50 text-slate-800 p-3 rounded-2xl mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[80px]"
-            ></textarea>
-            
-            {selectedMedia && (
-              <div className="mb-3 bg-blue-50 text-blue-700 text-sm p-2 rounded-lg flex items-center justify-between border border-blue-100">
-                <span className="truncate font-medium flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4" /> {selectedMedia.name}
-                </span>
-                <button onClick={() => setSelectedMedia(null)} className="text-blue-500 hover:text-blue-800">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+      {['Mural', 'Notícias'].includes(activeFilter) && (
+        <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-100">
+          <div className="flex gap-3">
+            <div className="w-10 h-10 bg-slate-200 rounded-full overflow-hidden shrink-0">
+              <img src={userAvatar} alt="User" />
+            </div>
+            <div className="flex-1">
+              <textarea 
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
+                placeholder="Conte para o bairro o que aconteceu..."
+                className="w-full bg-slate-50 text-slate-800 p-3 rounded-2xl mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[80px]"
+              ></textarea>
+              
+              {selectedMedia && (
+                <div className="mb-3 bg-blue-50 text-blue-700 text-sm p-2 rounded-lg flex items-center justify-between border border-blue-100">
+                  <span className="truncate font-medium flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4" /> {selectedMedia.name}
+                  </span>
+                  <button onClick={() => setSelectedMedia(null)} className="text-blue-500 hover:text-blue-800">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <select 
-                  value={postCategory}
-                  onChange={(e) => setPostCategory(e.target.value)}
-                  className="bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg px-3 py-2 outline-none focus:border-blue-500 w-full sm:w-auto"
-                >
-                  <option value="Informação">Informação</option>
-                  <option value="Aviso">Aviso</option>
-                  <option value="Alerta">Alerta</option>
-                  <option value="Animal">Animal</option>
-                  <option value="Comércio">Comércio</option>
-                  <option value="Evento">Evento</option>
-                  <option value="Pergunta">Pergunta</option>
-                  <option value="Achados e Perdidos">Achados e Perdidos</option>
-                  <option value="Outros">Outros</option>
-                </select>
-              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <select 
+                    value={postCategory}
+                    onChange={(e) => setPostCategory(e.target.value)}
+                    className="bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg px-3 py-2 outline-none focus:border-blue-500 w-full sm:w-auto"
+                  >
+                    <option value="Informação">Informação</option>
+                    <option value="Aviso">Aviso</option>
+                    <option value="Alerta">Alerta</option>
+                    <option value="Animal">Animal</option>
+                    <option value="Comércio">Comércio</option>
+                    <option value="Evento">Evento</option>
+                    <option value="Pergunta">Pergunta</option>
+                    <option value="Achados e Perdidos">Achados e Perdidos</option>
+                    <option value="Outros">Outros</option>
+                  </select>
+                </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer text-slate-500">
-                  <ImageIcon className="w-5 h-5" />
-                  <span className="text-sm font-medium">Foto/Vídeo</span>
-                  <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => e.target.files && setSelectedMedia(e.target.files[0])} />
-                </label>
-                <button 
-                  onClick={handlePublish}
-                  disabled={!postContent.trim() && !selectedMedia}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  PUBLICAR
-                </button>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer text-slate-500">
+                    <ImageIcon className="w-5 h-5" />
+                    <span className="text-sm font-medium">Foto/Vídeo</span>
+                    <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => e.target.files && setSelectedMedia(e.target.files[0])} />
+                  </label>
+                  <button 
+                    onClick={handlePublish}
+                    disabled={!postContent.trim() && !selectedMedia}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    PUBLICAR
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
 
 
@@ -1093,78 +1096,161 @@ export default function Feed() {
             {allPets.length === 0 && (
               <div className="text-center text-slate-500 py-10">
                 Nenhum pet cadastrado na área.
+           <div className="space-y-6">
+            
+            {/* HERO MARKETPLACE */}
+            <div className="bg-gradient-to-br from-[#ff6500] to-[#ff3d00] text-white rounded-[24px] p-6 sm:p-10 flex items-center justify-between shadow-lg relative overflow-hidden">
+              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white 0%, transparent 25%)' }}></div>
+              <div className="relative z-10 flex-1">
+                <h2 className="text-3xl sm:text-5xl font-black leading-tight mb-4 tracking-tight">Compre. Venda.<br/>Encontre.</h2>
+                <p className="text-white/95 text-[15px] sm:text-[17px] max-w-md mb-6 leading-relaxed">
+                  O Marketplace do Fala do Bairro. Produtos e serviços de pessoas da sua vizinhança.
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 border border-white/25 text-sm font-bold shadow-sm backdrop-blur-md">
+                  📍 {selectedNeighborhood}
+                </div>
               </div>
-            )}
-          </div>
-        ) : activeFilter === 'Vendas & Trocas' ? (
-          <div className="space-y-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex gap-2 overflow-x-auto no-scrollbar">
-               <button onClick={() => setMarketplaceFilter('Todos')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Todos' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Todos</button>
-               <button onClick={() => setMarketplaceFilter('Vendas')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Venda' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Vendas</button>
-               <button onClick={() => setMarketplaceFilter('Trocas')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Troca' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Trocas</button>
-               <button onClick={() => setMarketplaceFilter('Grátis')} className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${marketplaceFilter === 'Grátis' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Grátis</button>
+              <div className="hidden sm:flex items-center justify-center w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white/10 border border-white/20 text-6xl shadow-inner relative z-10 shrink-0 ml-6 backdrop-blur-sm">
+                🛍️
+              </div>
             </div>
-            <button onClick={() => setShowMarketModal(true)} className="w-full bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold py-3 rounded-2xl transition-colors shadow-sm mb-4">
-              + Novo Anúncio
-            </button>
 
-            {allMarketplace.filter(m => marketplaceFilter === 'Todos' || m.type === marketplaceFilter || (marketplaceFilter === 'Grátis' && m.type === 'Grátis/Doação')).map(item => (
-              <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4">
-                <div className="w-full sm:w-32 h-32 bg-slate-100 rounded-xl overflow-hidden shrink-0 relative cursor-pointer" onClick={() => item.image && setSelectedImage(item.image)}>
+            {/* CATEGORIES GRID (VISUAL) */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-slate-800">Explorar categorias</h3>
+              </div>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-3">
+                {[
+                  { icon: '🚗', name: 'Veículos' },
+                  { icon: '🏠', name: 'Imóveis' },
+                  { icon: '📱', name: 'Eletrônicos' },
+                  { icon: '🛋️', name: 'Casa' },
+                  { icon: '👕', name: 'Moda' },
+                  { icon: '🎮', name: 'Games' },
+                  { icon: '🐶', name: 'Pets' },
+                  { icon: '🔨', name: 'Serviços' },
+                ].map(cat => (
+                  <div key={cat.name} onClick={() => alert('Em breve: Filtro por categorias específicas!')} className="bg-white border border-slate-200 hover:border-[#ffb07a] rounded-2xl p-3 text-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md group">
+                    <div className="text-2xl sm:text-3xl mb-1 group-hover:scale-110 transition-transform">{cat.icon}</div>
+                    <span className="block text-[10px] sm:text-xs font-bold text-slate-600">{cat.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center mb-2 mt-8">
+              <h3 className="text-xl font-bold text-slate-800">Produtos e serviços</h3>
+              <button onClick={() => setShowMarketModal(true)} className="bg-[#ff6500] hover:bg-[#e95600] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2">
+                + Vender
+              </button>
+            </div>
+
+            {/* FILTERS */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+               <button onClick={() => setMarketplaceFilter('Todos')} className={`px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-colors border ${marketplaceFilter === 'Todos' ? 'bg-[#fff5ee] text-[#ff6500] border-[#ff6500]' : 'bg-white text-slate-600 border-slate-200 hover:border-[#ffb07a] hover:text-[#ff6500]'}`}>🔥 Todos</button>
+               <button onClick={() => setMarketplaceFilter('Venda')} className={`px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-colors border ${marketplaceFilter === 'Venda' ? 'bg-[#fff5ee] text-[#ff6500] border-[#ff6500]' : 'bg-white text-slate-600 border-slate-200 hover:border-[#ffb07a] hover:text-[#ff6500]'}`}>💰 Vendas</button>
+               <button onClick={() => setMarketplaceFilter('Compra')} className={`px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-colors border ${marketplaceFilter === 'Compra' ? 'bg-[#fff5ee] text-[#ff6500] border-[#ff6500]' : 'bg-white text-slate-600 border-slate-200 hover:border-[#ffb07a] hover:text-[#ff6500]'}`}>🛒 Compras</button>
+               <button onClick={() => setMarketplaceFilter('Troca')} className={`px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-colors border ${marketplaceFilter === 'Troca' ? 'bg-[#fff5ee] text-[#ff6500] border-[#ff6500]' : 'bg-white text-slate-600 border-slate-200 hover:border-[#ffb07a] hover:text-[#ff6500]'}`}>🔄 Trocas</button>
+               <button onClick={() => setMarketplaceFilter('Grátis/Doação')} className={`px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-colors border ${marketplaceFilter === 'Grátis/Doação' ? 'bg-[#fff5ee] text-[#ff6500] border-[#ff6500]' : 'bg-white text-slate-600 border-slate-200 hover:border-[#ffb07a] hover:text-[#ff6500]'}`}>🎁 Grátis</button>
+            </div>
+
+            {/* PRODUCTS GRID */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            {allMarketplace.filter(m => marketplaceFilter === 'Todos' || m.type === marketplaceFilter).map(item => (
+              <div key={item.id} className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#ffb07a] hover:shadow-[0_10px_30px_rgba(0,0,0,0.09)] transition-all cursor-pointer group flex flex-col" onClick={() => item.image && setSelectedImage(item.image)}>
+                
+                <div className="h-40 sm:h-48 bg-slate-100 relative overflow-hidden shrink-0">
                   {item.image ? (
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <Store className="w-8 h-8" />
+                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                      <Store className="w-10 h-10" />
                     </div>
                   )}
+                  <button onClick={(e) => { e.stopPropagation(); alert('Favoritado!'); }} className="absolute top-2 right-2 w-8 h-8 bg-white/95 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 shadow-sm transition-colors text-lg">
+                    ♡
+                  </button>
+                  <span className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+                    {item.condition}
+                  </span>
+                  
                   {item.status === 'Vendido' && (
-                    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
-                      <span className="bg-red-600 text-white font-bold px-3 py-1 rounded-full text-xs transform -rotate-12">VENDIDO</span>
+                    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-10">
+                      <span className="bg-red-600 text-white font-black px-3 py-1 rounded-full text-xs transform -rotate-12 shadow-md tracking-wider">VENDIDO</span>
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-lg text-slate-800">{item.title}</h3>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${item.type === 'Venda' ? 'bg-blue-100 text-blue-700' : item.type === 'Troca' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{item.type}</span>
-                  </div>
-                  {item.type === 'Venda' && <p className="font-bold text-emerald-600 text-lg mb-1">R$ {Number(item.price).toFixed(2)}</p>}
-                  <p className="text-xs font-medium text-slate-500 mb-2">Condição: {item.condition} • Vendedor: {item.seller_name}</p>
-                  {item.description && <p className="text-[13px] text-slate-600 mb-3 bg-slate-50 p-3 rounded-lg border border-slate-100">{item.description}</p>}
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    <a href={`https://wa.me/${String(item.seller_whatsapp).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors">
-                      Chamar no WhatsApp
-                    </a>
-                    {userName === item.seller_name && item.status !== 'Vendido' && (
-                      <button onClick={async () => {
-                        await supabase.from('marketplace_items').update({ status: 'Vendido' }).eq('id', item.id);
-                        fetchMarketplace();
-                      }} className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">
-                        <CheckCircle className="w-4 h-4" /> Marcar Vendido
-                      </button>
+
+                <div className="p-3 sm:p-4 flex flex-col flex-1">
+                  <h3 className="font-bold text-[13px] sm:text-[15px] text-slate-800 line-clamp-2 leading-tight mb-2 min-h-[2.5rem]">{item.title}</h3>
+                  <div className="mt-auto">
+                    {(item.type === 'Venda' || item.type === 'Compra') ? (
+                       <p className="font-black text-[#1d2433] text-lg sm:text-xl mb-1">{item.type === 'Compra' ? 'Até ' : ''}R$ {Number(item.price).toFixed(2)}</p>
+                    ) : (
+                       <p className={`font-black text-lg sm:text-xl mb-1 ${item.type === 'Troca' ? 'text-amber-600' : 'text-emerald-600'}`}>{item.type}</p>
                     )}
-                    {(userName === item.seller_name || localStorage.getItem('admin_auth') === 'true') && (
-                      <button onClick={async () => {
-                        if (confirm('Excluir este anúncio permanentemente?')) {
-                          await supabase.from('marketplace_items').delete().eq('id', item.id);
-                          fetchMarketplace();
-                        }
-                      }} className="inline-flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <p className="text-xs text-slate-500 mb-2 sm:mb-3 truncate">📍 {item.neighborhood}</p>
+                    
+                    <div className="pt-2 sm:pt-3 border-t border-slate-100 flex flex-col gap-2">
+                       <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate">👤 {item.seller_name}</p>
+                       <div className="flex flex-wrap gap-1 mt-1">
+                         <a href={`https://wa.me/${String(item.seller_whatsapp).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1 text-center bg-[#20b95a] hover:bg-[#1da651] text-white text-[11px] font-bold py-1.5 rounded-lg transition-colors">
+                           WhatsApp
+                         </a>
+                         {userName === item.seller_name && item.status !== 'Vendido' && (
+                           <button onClick={async (e) => { e.stopPropagation(); await supabase.from('marketplace_items').update({ status: 'Vendido' }).eq('id', item.id); fetchMarketplace(); }} className="flex-1 text-center bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold py-1.5 rounded-lg transition-colors">
+                             Vendido
+                           </button>
+                         )}
+                         {(userName === item.seller_name || localStorage.getItem('admin_auth') === 'true') && (
+                           <button onClick={async (e) => { e.stopPropagation(); if (confirm('Excluir anúncio?')) { await supabase.from('marketplace_items').delete().eq('id', item.id); fetchMarketplace(); } }} className="px-2 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold py-1.5 rounded-lg transition-colors">
+                             <Trash2 className="w-3.5 h-3.5 mx-auto" />
+                           </button>
+                         )}
+                       </div>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
-            {allMarketplace.length === 0 && (
-              <div className="text-center text-slate-500 py-10 bg-white rounded-2xl shadow-sm border border-slate-100">
-                <Store className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="font-bold text-lg text-slate-700">Nenhum anúncio ainda.</p>
-                <p className="text-sm">Seja o primeiro a publicar algo!</p>
+            </div>
+
+            {allMarketplace.filter(m => marketplaceFilter === 'Todos' || m.type === marketplaceFilter).length === 0 && (
+              <div className="text-center text-slate-500 py-12 bg-white rounded-3xl shadow-sm border border-slate-100 mt-4">
+                <Store className="w-14 h-14 text-slate-300 mx-auto mb-4" />
+                <p className="font-bold text-xl text-slate-700 mb-1">Nenhum anúncio ainda.</p>
+                <p className="text-sm">Seja o primeiro a publicar algo na sua vizinhança!</p>
+                <button onClick={() => setShowMarketModal(true)} className="mt-6 bg-[#ff6500] text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-[#e95600] transition-colors">
+                  Anunciar agora
+                </button>
               </div>
             )}
+
+            {/* TRUST SECTION */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-12 mb-4">
+              <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">🛡️</div>
+                <strong className="block text-slate-800 text-[13px] mb-1.5">Compra mais segura</strong>
+                <p className="text-[12px] text-slate-500 leading-relaxed">Sistema preparado para moderação e controle da vizinhança.</p>
+              </div>
+              <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">👤</div>
+                <strong className="block text-slate-800 text-[13px] mb-1.5">Vendedores Locais</strong>
+                <p className="text-[12px] text-slate-500 leading-relaxed">Perfis com histórico para ajudar na sua decisão de compra.</p>
+              </div>
+              <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">📍</div>
+                <strong className="block text-slate-800 text-[13px] mb-1.5">No seu bairro</strong>
+                <p className="text-[12px] text-slate-500 leading-relaxed">Encontre produtos de pessoas perto da sua localização.</p>
+              </div>
+              <div className="bg-white p-5 rounded-2xl border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="text-3xl mb-3">🚨</div>
+                <strong className="block text-slate-800 text-[13px] mb-1.5">Denúncias</strong>
+                <p className="text-[12px] text-slate-500 leading-relaxed">Usuários podem denunciar anúncios suspeitos para análise.</p>
+              </div>
+            </div>
+
           </div>
         ) : activeFilter === 'Guia Local' ? (
           <div className="space-y-4">

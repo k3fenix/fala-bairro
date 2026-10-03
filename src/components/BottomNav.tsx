@@ -1,4 +1,4 @@
-import { Home, Newspaper, Megaphone, Store, PlusCircle } from 'lucide-react';
+import { Home, Newspaper, Megaphone, Store, PlusCircle, ShoppingBag } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 
 export default function BottomNav() {
@@ -26,6 +26,10 @@ export default function BottomNav() {
       <Link to="/mural" className={`flex flex-col items-center ${location.pathname === '/mural' ? 'text-blue-600' : 'text-slate-400'}`}>
         <Megaphone className="w-5 h-5 mb-1" />
         <span className="text-[10px] font-medium leading-none">Mural</span>
+      </Link>
+      <Link to="/marketplace" className={`flex flex-col items-center ${location.pathname === '/marketplace' ? 'text-blue-600' : 'text-slate-400'}`}>
+        <ShoppingBag className="w-5 h-5 mb-1" />
+        <span className="text-[10px] font-medium leading-none text-center">Mercado</span>
       </Link>
       <Link to="/guide" className={`flex flex-col items-center ${location.pathname === '/guide' ? 'text-blue-600' : 'text-slate-400'}`}>
         <Store className="w-5 h-5 mb-1" />

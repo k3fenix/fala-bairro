@@ -42,6 +42,7 @@ export default function AdminDashboard() {
           <TabButton icon={<Store />} label="Guia Comercial" active={activeTab === 'commercial'} onClick={() => setActiveTab('commercial')} />
           <TabButton icon={<AlertTriangle />} label="Pets Perdidos" active={activeTab === 'pets'} onClick={() => setActiveTab('pets')} />
           <TabButton icon={<Megaphone />} label="Mural de Avisos" active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} />
+          <TabButton icon={<Store />} label="Marketplace V2" active={activeTab === 'marketplace'} onClick={() => setActiveTab('marketplace')} />
           <TabButton icon={<LayoutDashboard />} label="Capa do Site" active={activeTab === 'landing'} onClick={() => setActiveTab('landing')} />
           <TabButton icon={<Wallet />} label="Monetização" active={activeTab === 'monetization'} onClick={() => setActiveTab('monetization')} />
           <TabButton icon={<Trash2 />} label="Exclusões de Conta" active={activeTab === 'deletions'} onClick={() => setActiveTab('deletions')} />
@@ -54,6 +55,7 @@ export default function AdminDashboard() {
           {activeTab === 'pets' && <PetsTab />}
           {activeTab === 'announcements' && <AnnouncementsTab />}
           {activeTab === 'landing' && <LandingConfigTab />}
+          {activeTab === 'marketplace' && <MarketplaceAdminTab />}
           {activeTab === 'monetization' && <MonetizationTab />}
           {activeTab === 'deletions' && <DeletionsTab />}
         </div>
@@ -1101,6 +1103,69 @@ function MonetizationTab() {
               <input type="number" disabled value="39.90" className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 cursor-not-allowed" />
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MarketplaceAdminTab() {
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('marketplace_settings').select('*').eq('key', 'marketplace_enabled').single();
+    if (data) {
+      setIsEnabled(data.value === 'true');
+    }
+  };
+
+  const toggleMarketplace = async () => {
+    const actionText = isEnabled ? 'DESATIVAR' : 'ATIVAR';
+    if (confirm(`Deseja realmente ${actionText} o Marketplace?\n\n${isEnabled ? 'O Marketplace ficará invisível para os usuários e novas publicações serão bloqueadas.\nNenhum anúncio ou dado será apagado.' : 'O Marketplace será disponibilizado para os usuários.'}`)) {
+      const newValue = isEnabled ? 'false' : 'true';
+      await supabase.from('marketplace_settings').update({ value: newValue }).eq('key', 'marketplace_enabled');
+      setIsEnabled(!isEnabled);
+      alert(`Marketplace ${!isEnabled ? 'ativado' : 'desativado'} com sucesso!`);
+    }
+  };
+
+  if (isEnabled === null) return <div>Carregando...</div>;
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-slate-800">Marketplace V2</h2>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`w-4 h-4 rounded-full ${isEnabled ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'}`}></div>
+            <h3 className="font-bold text-xl text-slate-800">Status: {isEnabled ? '🟢 ATIVO' : '🔴 DESATIVADO'}</h3>
+          </div>
+          <p className="text-slate-600 text-sm max-w-md">
+            Botão mestre. Quando desativado, toda a área do Marketplace some para o público, mas os dados permanecem intactos.
+          </p>
+        </div>
+        <button 
+          onClick={toggleMarketplace}
+          className={`px-8 py-4 rounded-xl font-black text-lg shadow-lg transition-transform hover:scale-105 ${isEnabled ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/30' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'}`}
+        >
+          {isEnabled ? 'Desativar Marketplace' : 'Ativar Marketplace'}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl flex flex-col items-center justify-center min-h-[200px] text-center">
+          <Store className="w-12 h-12 text-slate-300 mb-3" />
+          <h3 className="font-bold text-slate-800 mb-2">Fase 2 em construção...</h3>
+          <p className="text-sm text-slate-500 max-w-xs">
+            Gestão de categorias, aprovação de anúncios pendentes e relatórios entrarão nesta área.
+          </p>
         </div>
       </div>
     </div>
