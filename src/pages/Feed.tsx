@@ -35,6 +35,11 @@ export default function Feed() {
   const [petStatus, setPetStatus] = useState('Perdido');
   const [petImage, setPetImage] = useState<string | null>(null);
   const [editingPetId, setEditingPetId] = useState<number | null>(null);
+  
+  const [selectedPetDetails, setSelectedPetDetails] = useState<any>(null);
+  const [selectedBusinessDetails, setSelectedBusinessDetails] = useState<any>(null);
+  const [selectedPostDetails, setSelectedPostDetails] = useState<any>(null);
+
   const [allMarketplace, setAllMarketplace] = useState<any[]>([]);
   const [marketplaceFilter, setMarketplaceFilter] = useState('Todos');
   const [showMarketModal, setShowMarketModal] = useState(false);
@@ -702,14 +707,14 @@ export default function Feed() {
                         <p className="text-[10px] text-slate-500">{pet.status}</p>
                       </div>
                       <div className="flex gap-1.5 shrink-0">
-                        <button onClick={async () => {
+                        <button onClick={async (e) => { e.stopPropagation();
                           const newStatus = pet.status === 'Perdido' ? 'Achado' : 'Perdido';
                           await supabase.from('lost_pets').update({ status: newStatus }).eq('id', pet.id);
                           fetchPets();
                         }} className={`p-1.5 rounded-md transition-colors ${pet.status === 'Perdido' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600' : 'bg-rose-50 hover:bg-rose-100 text-rose-600'}`} title={pet.status === 'Perdido' ? "Marcar como Achado" : "Marcar como Perdido"}>
                           {pet.status === 'Perdido' ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                         </button>
-                        <button onClick={() => {
+                        <button onClick={(e) => { e.stopPropagation();
                           setPetName(pet.pet_name);
                           setPetSpecies(pet.species);
                           setPetDescription(pet.description || '');
@@ -722,7 +727,7 @@ export default function Feed() {
                         }} className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md transition-colors" title="Editar">
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={async () => {
+                        <button onClick={async (e) => { e.stopPropagation();
                           if (window.confirm(`Excluir ${pet.pet_name}?`)) {
                             await supabase.from('lost_pets').delete().eq('id', pet.id);
                             fetchPets();
@@ -1010,7 +1015,7 @@ export default function Feed() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={async () => {
+                      onClick={async (e) => { e.stopPropagation();
                         if (window.confirm(`Excluir ${biz.name}?`)) {
                           await supabase.from('commercial_guide').delete().eq('id', biz.id);
                           fetchMyBusinesses();
@@ -1033,7 +1038,7 @@ export default function Feed() {
         {activeFilter === 'Área Pet' ? (
           <div className="space-y-4">
             {allPets.map(pet => (
-              <div key={pet.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4">
+              <div key={pet.id} onClick={() => setSelectedPetDetails(pet)} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4 cursor-pointer hover:border-blue-400 transition-colors">
                 <div className="w-full sm:w-32 h-32 bg-slate-100 rounded-xl overflow-hidden shrink-0">
                   {pet.image ? (
                     <img src={pet.image} alt={pet.pet_name} className="w-full h-full object-cover" />
@@ -1055,19 +1060,19 @@ export default function Feed() {
                   {pet.description && <p className="text-sm text-slate-700 mb-3 bg-slate-50 p-2 rounded-lg">{pet.description}</p>}
                     <div className="flex flex-wrap gap-2 items-center mt-2 w-full">
                       {pet.owner_whatsapp && (
-                        <a href={`https://wa.me/${String(pet.owner_whatsapp).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
+                        <a href={`https://wa.me/${String(pet.owner_whatsapp).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors">
                           Falar no WhatsApp
                         </a>
                       )}
                       <div className="flex gap-2 items-center ml-auto">
-                        <button onClick={async () => {
+                        <button onClick={async (e) => { e.stopPropagation();
                           const newStatus = pet.status === 'Perdido' ? 'Achado' : pet.status === 'Adoção' ? 'Adotado' : 'Perdido';
                           await supabase.from('lost_pets').update({ status: newStatus }).eq('id', pet.id);
                           fetchPets();
                         }} className="px-3 py-2 rounded-xl text-sm font-bold transition-colors bg-slate-100 text-slate-700 hover:bg-slate-200">
                           Mudar Status
                         </button>
-                        <button onClick={() => {
+                        <button onClick={(e) => { e.stopPropagation();
                           setPetName(pet.pet_name);
                           setPetSpecies(pet.species);
                           setPetDescription(pet.description || '');
@@ -1080,7 +1085,7 @@ export default function Feed() {
                         }} className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors" title="Editar">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={async () => {
+                        <button onClick={async (e) => { e.stopPropagation();
                           if (window.confirm(`Excluir ${pet.pet_name}?`)) {
                             await supabase.from('lost_pets').delete().eq('id', pet.id);
                             fetchPets();
@@ -1266,7 +1271,7 @@ export default function Feed() {
         ) : (
           <>
             {filteredPosts.map((post: any) => (
-              <PostCard key={post.id} post={post} onDelete={(id: number) => setPosts(posts.filter(p => p.id !== id))} onImageClick={(img: string) => setSelectedImage(img)} />
+              <PostCard key={post.id} post={post} onDelete={(id: number) => setPosts(posts.filter(p => p.id !== id))} onImageClick={(img: string) => setSelectedImage(img)} onPostClick={() => setSelectedPostDetails(post)} />
             ))}
             {filteredPosts.length === 0 && (
               <div className="text-center text-slate-500 py-10">
@@ -1276,6 +1281,101 @@ export default function Feed() {
           </>
         )}
       </div>
+
+      
+      {/* Pet Details Modal */}
+      {selectedPetDetails && (
+        <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedPetDetails(null)}>
+          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            {selectedPetDetails.image && (
+              <div className="w-full h-64 bg-slate-100">
+                <img src={selectedPetDetails.image} alt="Pet" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-slate-800">{selectedPetDetails.pet_name}</h2>
+                <button onClick={() => setSelectedPetDetails(null)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200">
+                  <X className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
+              <p className="text-slate-600 mb-2"><strong>Status:</strong> {selectedPetDetails.status}</p>
+              <p className="text-slate-600 mb-2"><strong>Espécie:</strong> {selectedPetDetails.species}</p>
+              <p className="text-slate-600 mb-2"><strong>Visto por último:</strong> {selectedPetDetails.last_seen_location}</p>
+              {selectedPetDetails.description && (
+                <div className="bg-slate-50 p-4 rounded-xl mt-4">
+                  <p className="text-slate-700 whitespace-pre-wrap">{selectedPetDetails.description}</p>
+                </div>
+              )}
+              {selectedPetDetails.owner_whatsapp && (
+                <a href={"https://wa.me/" + String(selectedPetDetails.owner_whatsapp).replace(/\D/g, '')} target="_blank" rel="noreferrer" className="mt-6 flex items-center justify-center gap-2 bg-green-500 text-white w-full py-3 rounded-xl font-bold hover:bg-green-600 transition-colors">
+                  Falar no WhatsApp
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Business Details Modal */}
+      {selectedBusinessDetails && (
+        <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedBusinessDetails(null)}>
+          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            {selectedBusinessDetails.image && (
+              <div className="w-full h-64 bg-slate-100">
+                <img src={selectedBusinessDetails.image} alt="Business" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-slate-800">{selectedBusinessDetails.name}</h2>
+                <button onClick={() => setSelectedBusinessDetails(null)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200">
+                  <X className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
+              <p className="text-blue-600 font-bold mb-4">{selectedBusinessDetails.category}</p>
+              <p className="text-slate-600 mb-2"><strong>Bairro:</strong> {selectedBusinessDetails.neighborhood}</p>
+              {selectedBusinessDetails.description && (
+                <div className="bg-slate-50 p-4 rounded-xl mt-4">
+                  <p className="text-slate-700 whitespace-pre-wrap">{selectedBusinessDetails.description}</p>
+                </div>
+              )}
+              {selectedBusinessDetails.whatsapp && (
+                <a href={"https://wa.me/" + String(selectedBusinessDetails.whatsapp).replace(/\D/g, '')} target="_blank" rel="noreferrer" className="mt-6 flex items-center justify-center gap-2 bg-green-500 text-white w-full py-3 rounded-xl font-bold hover:bg-green-600 transition-colors">
+                  Falar no WhatsApp
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Post Details Modal */}
+      {selectedPostDetails && (
+        <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedPostDetails(null)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+              <h2 className="font-bold text-lg">Detalhes da Publicação</h2>
+              <button onClick={() => setSelectedPostDetails(null)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200">
+                <X className="w-5 h-5 text-slate-600" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <img src={selectedPostDetails.author_avatar || 'https://i.pravatar.cc/150'} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
+                <div>
+                  <p className="font-bold text-slate-800">{selectedPostDetails.author_name}</p>
+                  <p className="text-xs text-slate-500">{selectedPostDetails.category}</p>
+                </div>
+              </div>
+              <p className="text-slate-800 whitespace-pre-wrap text-lg mb-4">{selectedPostDetails.content}</p>
+              {selectedPostDetails.image && (
+                <img src={selectedPostDetails.image} alt="Post" className="w-full rounded-2xl mb-4" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedImage && (
         <div className="fixed inset-0 z-[120] bg-black/90 flex flex-col items-center justify-center">
@@ -1292,7 +1392,7 @@ export default function Feed() {
   );
 }
 
-function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: number) => void, onImageClick: (img: string) => void }) {
+function PostCard({ post, onDelete, onImageClick, onPostClick }: { post: any, onDelete: (id: number) => void, onImageClick: (img: string) => void, onPostClick?: () => void }) {
   const [liked, setLiked] = useState(false);
   const [upvoted, setUpvoted] = useState(false);
   const [downvoted, setDownvoted] = useState(false);
@@ -1420,7 +1520,7 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
   };
 
   return (
-    <div className="bg-white mb-4 sm:mb-6 shadow-sm sm:rounded-2xl sm:border sm:border-slate-100 transition-all hover:shadow-md overflow-hidden">
+    <div className="bg-white mb-4 sm:mb-6 shadow-sm sm:rounded-2xl sm:border sm:border-slate-100 transition-all hover:shadow-md hover:border-blue-300 overflow-hidden cursor-pointer" onClick={onPostClick}>
       <div className="flex justify-between items-start p-4 relative">
         <div className="flex gap-3">
           <div className="w-10 h-10 bg-slate-200 rounded-full overflow-hidden shrink-0">
@@ -1449,15 +1549,15 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
         
         {isMine && (
           <div className="relative">
-            <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors">
+            <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors">
               <MoreHorizontal className="w-5 h-5" />
             </button>
             {showMenu && (
               <div className="absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-lg border border-slate-100 z-10 py-1">
-                <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
                   <Edit2 className="w-4 h-4" /> Editar
                 </button>
-                <button onClick={handleDeletePost} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                <button onClick={(e) => { e.stopPropagation(); handleDeletePost(); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
                   <Trash2 className="w-4 h-4" /> Excluir
                 </button>
               </div>
@@ -1479,7 +1579,7 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
               src={post.image} 
               alt="Post content"
               className="w-full h-full object-contain cursor-pointer"
-              onClick={() => onImageClick(post.image)}
+              onClick={(e) => { e.stopPropagation(); onImageClick(post.image); }}
             />
           )}
         </div>
@@ -1512,15 +1612,15 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
 
       <div className="flex justify-between items-center text-slate-500 p-4 border-t border-slate-50 flex-wrap gap-y-3">
         <div className="flex gap-6">
-          <button onClick={handleLike} className={`flex items-center gap-1.5 transition-colors group ${liked ? 'text-red-500' : 'hover:text-red-500'}`}>
+          <button onClick={(e) => { e.stopPropagation(); handleLike(); }} className={`flex items-center gap-1.5 transition-colors group ${liked ? 'text-red-500' : 'hover:text-red-500'}`}>
             <Heart className={`w-5 h-5 transition-transform ${liked ? 'fill-red-500 scale-110' : 'group-hover:fill-red-500'}`} />
             <span className="text-sm font-medium">{likes}</span>
           </button>
-          <button onClick={handleUpvote} className={`flex items-center gap-1.5 transition-colors ${upvoted ? 'text-blue-600' : 'hover:text-blue-600'}`}>
+          <button onClick={(e) => { e.stopPropagation(); handleUpvote(); }} className={`flex items-center gap-1.5 transition-colors ${upvoted ? 'text-blue-600' : 'hover:text-blue-600'}`}>
             <ThumbsUp className={`w-5 h-5 transition-transform ${upvoted ? 'fill-blue-600 scale-110' : ''}`} />
             <span className="text-sm font-medium">{upvotes}</span>
           </button>
-          <button onClick={handleDownvote} className={`flex items-center gap-1.5 transition-colors ${downvoted ? 'text-slate-800' : 'hover:text-slate-800'}`}>
+          <button onClick={(e) => { e.stopPropagation(); handleDownvote(); }} className={`flex items-center gap-1.5 transition-colors ${downvoted ? 'text-slate-800' : 'hover:text-slate-800'}`}>
             <ThumbsDown className={`w-5 h-5 transition-transform ${downvoted ? 'fill-slate-800 scale-110' : ''}`} />
             <span className="text-sm font-medium">{downvotes}</span>
           </button>
@@ -1529,18 +1629,18 @@ function PostCard({ post, onDelete, onImageClick }: { post: any, onDelete: (id: 
         <div className="flex items-center gap-4 ml-auto">
           {isMine && (
             <div className="flex items-center gap-3 mr-2 border-r border-slate-200 pr-3">
-              <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors">
+              <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); setShowMenu(false); }} className="flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors">
                 <Edit2 className="w-4 h-4" />
                 <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">Editar</span>
               </button>
-              <button onClick={handleDeletePost} className="flex items-center gap-1 text-red-400 hover:text-red-600 transition-colors">
+              <button onClick={(e) => { e.stopPropagation(); handleDeletePost(); }} className="flex items-center gap-1 text-red-400 hover:text-red-600 transition-colors">
                 <Trash2 className="w-4 h-4" />
                 <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">Excluir</span>
               </button>
             </div>
           )}
           <button 
-            onClick={() => setShowComments(!showComments)}
+            onClick={(e) => { e.stopPropagation(); setShowComments(!showComments); }}
             className={`flex items-center gap-1.5 transition-colors ${showComments ? 'text-blue-600' : 'hover:text-blue-500'}`}
           >
             <MessageCircle className="w-5 h-5" />
