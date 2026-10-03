@@ -84,7 +84,7 @@ export default function MarketplaceNew() {
       // 1. Inserir Anúncio
       const priceNum = parseFloat(formData.price.replace(',', '.'));
       
-      const { data: insertedListing, error } = await supabase.from('marketplace_listings').insert({
+      const { error } = await supabase.from('marketplace_listings').insert({
         user_id: user.id,
         title: formData.title,
         category_id: formData.category_id,
