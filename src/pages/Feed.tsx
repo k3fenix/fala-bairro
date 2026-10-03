@@ -1096,8 +1096,11 @@ export default function Feed() {
             {allPets.length === 0 && (
               <div className="text-center text-slate-500 py-10">
                 Nenhum pet cadastrado na área.
+              </div>
+            )}
+          </div>
+        ) : activeFilter === 'Vendas & Trocas' ? (
            <div className="space-y-6">
-            
             {/* HERO MARKETPLACE */}
             <div className="bg-gradient-to-br from-[#ff6500] to-[#ff3d00] text-white rounded-[24px] p-6 sm:p-10 flex items-center justify-between shadow-lg relative overflow-hidden">
               <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white 0%, transparent 25%)' }}></div>
