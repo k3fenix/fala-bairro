@@ -6,6 +6,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Marketplace from './pages/Marketplace';
+import MarketplaceNew from './pages/MarketplaceNew';
 import BottomNav from './components/BottomNav';
 
 // Wrapper to conditionally hide BottomNav on admin routes
@@ -29,6 +30,7 @@ function App() {
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace/anunciar" element={<MarketplaceNew />} />
           {/* Add more routes here */}
         </Routes>
         <NavigationWrapper />

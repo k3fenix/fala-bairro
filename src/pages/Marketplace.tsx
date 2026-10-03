@@ -6,10 +6,33 @@ import { Store } from 'lucide-react';
 export default function Marketplace() {
   const navigate = useNavigate();
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [listings, setListings] = useState<any[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     checkMarketplaceStatus();
   }, []);
+
+  useEffect(() => {
+    if (isEnabled) {
+      fetchCategories();
+      fetchListings();
+    }
+  }, [isEnabled]);
+
+  const fetchCategories = async () => {
+    const { data } = await supabase.from('marketplace_categories').select('*').eq('is_active', true).order('order_index');
+    if (data) setCategories(data);
+  };
+
+  const fetchListings = async () => {
+    setLoading(true);
+    const { data } = await supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false });
+    if (data) setListings(data);
+    setLoading(false);
+  };
 
   const checkMarketplaceStatus = async () => {
     const { data } = await supabase.from('marketplace_settings').select('*').eq('key', 'marketplace_enabled').single();
@@ -72,7 +95,7 @@ export default function Marketplace() {
             </button>
           </div>
 
-          <button className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-bold px-[18px] py-[13px] rounded-[12px] order-2 sm:order-none">
+          <button onClick={() => navigate('/marketplace/anunciar')} className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-bold px-[18px] py-[13px] rounded-[12px] order-2 sm:order-none">
             + Vender
           </button>
         </div>
@@ -100,12 +123,71 @@ export default function Marketplace() {
       </section>
 
       <main className="max-w-[1250px] mx-auto p-[30px_20px]">
-        {/* Próxima etapa (Fase 4): Implementar categorias dinamicas e grids de produtos aqui */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-slate-500 shadow-sm mt-8">
-           <Store className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-           <p className="text-xl font-bold text-slate-700 mb-2">Construção da Fase 3 concluída.</p>
-           <p>Na Fase 4 os anúncios aparecerão aqui integrados ao banco de dados.</p>
+        {/* CATEGORIAS */}
+        <div className="mb-[40px]">
+          <h2 className="text-[20px] font-bold text-[#1d2433] mb-[15px]">Explorar Categorias</h2>
+          <div className="flex gap-[12px] overflow-x-auto pb-[10px] snap-x no-scrollbar" style={{ scrollbarWidth: 'none' }}>
+            <button 
+              onClick={() => setActiveCategory('all')}
+              className={`snap-start shrink-0 flex flex-col items-center justify-center w-[90px] h-[90px] rounded-[18px] border transition-all ${activeCategory === 'all' ? 'border-[#ff6500] bg-[#fff5ef] text-[#ff6500]' : 'border-[#e7e7e7] bg-white hover:border-[#ccc]'}`}
+            >
+              <div className="text-[28px] mb-[4px]">🌟</div>
+              <span className="text-[13px] font-bold">Todos</span>
+            </button>
+            {categories.map(cat => (
+              <button 
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id.toString())}
+                className={`snap-start shrink-0 flex flex-col items-center justify-center w-[90px] h-[90px] rounded-[18px] border transition-all ${activeCategory === cat.id.toString() ? 'border-[#ff6500] bg-[#fff5ef] text-[#ff6500]' : 'border-[#e7e7e7] bg-white hover:border-[#ccc]'}`}
+              >
+                <div className="text-[28px] mb-[4px]">{cat.icon}</div>
+                <span className="text-[13px] font-bold text-center leading-tight px-1">{cat.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* LISTINGS GRID */}
+        <div className="mb-[20px] flex justify-between items-end">
+          <h2 className="text-[24px] font-bold text-[#1d2433]">Recomendações para você</h2>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12 text-slate-500 font-medium">Carregando anúncios...</div>
+        ) : listings.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-slate-500 shadow-sm mt-4">
+             <Store className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+             <p className="text-xl font-bold text-slate-700 mb-2">Nenhum anúncio encontrado.</p>
+             <p>Seja o primeiro a publicar algo à venda!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-[20px]">
+            {listings.filter(l => activeCategory === 'all' || l.category_id?.toString() === activeCategory).map(item => (
+              <div key={item.id} className="bg-white border border-[#e7e7e7] rounded-[18px] overflow-hidden transition-all hover:-translate-y-1 hover:shadow-[0_12px_25px_rgba(0,0,0,0.06)] group flex flex-col cursor-pointer" onClick={() => navigate(`/marketplace/anuncio/${item.id}`)}>
+                <div className="relative aspect-square bg-[#f5f5f5] overflow-hidden flex items-center justify-center">
+                  <div className="text-[50px] opacity-20">📦</div>
+                  <button className="absolute top-[12px] right-[12px] w-[35px] h-[35px] rounded-full bg-white/90 backdrop-blur text-[#666] flex items-center justify-center text-[18px] hover:text-[#ff3d00] transition-colors z-10 shadow-sm">
+                    ♡
+                  </button>
+                  <div className="absolute top-[12px] left-[12px] px-[10px] py-[4px] rounded-[8px] bg-white/90 backdrop-blur text-[11px] font-bold text-[#333] shadow-sm uppercase tracking-wide">
+                    {item.condition || 'Usado'}
+                  </div>
+                </div>
+                <div className="p-[16px] flex-1 flex flex-col">
+                  <div className="text-[20px] font-black text-[#1d2433] mb-[6px]">
+                    {Number(item.price) > 0 ? `R$ ${Number(item.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Grátis'}
+                  </div>
+                  <h3 className="text-[15px] font-medium text-[#444] mb-[12px] line-clamp-2 flex-1 leading-tight">
+                    {item.title}
+                  </h3>
+                  <div className="text-[12px] text-[#888] font-medium mt-auto flex items-center gap-[6px]">
+                    📍 <span className="truncate">{item.neighborhood}, {item.city}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
       {/* FOOTER */}
