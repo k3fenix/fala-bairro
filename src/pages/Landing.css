@@ -942,3 +942,172 @@
   from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* ==========================================================================
+   HERO BANNER (MESTRE DA CASA / PORTAL)
+   ========================================================================== */
+.hero-banner {
+  position: relative;
+  width: 100%;
+  min-height: 380px;
+  background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.85)), url('https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 16px;
+  color: #ffffff;
+  margin-bottom: 24px;
+}
+
+.hero-banner-content {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+
+.hero-tag {
+  display: inline-block;
+  background: rgba(212, 160, 23, 0.2);
+  border: 1px solid #d4a017;
+  color: #f59e0b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  backdrop-filter: blur(4px);
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #d4a017;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 4px 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.hero-description {
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  max-width: 520px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.hero-cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+}
+
+.btn-hero-primary {
+  background: linear-gradient(135deg, #d4a017, #b8860b);
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.88rem;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(212, 160, 23, 0.4);
+  transition: all 0.2s ease;
+  letter-spacing: 0.03em;
+}
+
+.btn-hero-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(212, 160, 23, 0.6);
+}
+
+.btn-hero-secondary {
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.03em;
+}
+
+.btn-hero-secondary:hover {
+  background: #0f172a;
+  border-color: #d4a017;
+}
+
+/* ==========================================================================
+   AJUSTES RESPONSIVOS MOBILE (CELULAR) - VISUAL SUPER LIMPO E DESPOLUÍDO
+   ========================================================================== */
+@media (max-width: 768px) {
+  .hero-banner {
+    min-height: 220px;
+    padding: 20px 12px;
+    background-position: center top;
+    margin-bottom: 16px;
+  }
+
+  /* Ocultar os títulos gigantes redundantes no celular conforme solicitado */
+  .mobile-hide {
+    display: none !important;
+  }
+
+  /* Tag menorzinha, subida mais para cima e bem ajustada */
+  .hero-tag {
+    font-size: 0.65rem;
+    padding: 4px 12px;
+    margin-top: 0;
+    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+    background: rgba(212, 160, 23, 0.25);
+  }
+
+  .hero-description {
+    font-size: 0.82rem;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    padding: 0 10px;
+    color: #f1f5f9;
+  }
+
+  /* Botões menores, bonitos, elegantes e alinhados no celular */
+  .hero-cta-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 240px;
+    margin: 0 auto;
+  }
+
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    width: 100%;
+    font-size: 0.76rem;
+    padding: 8px 14px;
+    border-radius: 9999px;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+}
+
