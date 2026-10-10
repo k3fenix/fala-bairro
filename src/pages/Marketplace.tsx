@@ -284,8 +284,16 @@ export default function Marketplace() {
                   </div>
 
                   <div className="p-[16px] flex-1 flex flex-col">
-                    <div className="text-[20px] font-black text-[#1d2433] mb-[4px]">
-                      {Number(item.price) > 0 ? `R$ ${Number(item.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Grátis'}
+                    <div className="text-[18px] font-black mb-[4px]">
+                      {item.accepts_trade || item.type === 'Troca' ? (
+                        <span className="text-purple-600 font-extrabold text-xs bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200/60 inline-flex items-center gap-1">
+                          🔄 Aceita Troca
+                        </span>
+                      ) : Number(item.price) > 0 ? (
+                        <span className="text-[#1d2433]">R$ {Number(item.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                      ) : (
+                        <span className="text-emerald-600 font-extrabold text-xs">🎁 Grátis</span>
+                      )}
                     </div>
                     <h3 className="text-[14px] font-bold text-slate-800 mb-[10px] line-clamp-2 flex-1 leading-tight group-hover:text-[#ff6500] transition-colors">
                       {item.title}

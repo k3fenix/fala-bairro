@@ -208,9 +208,22 @@ export default function MarketplaceAd() {
               </div>
             </div>
 
-            {/* PREÇO */}
-            <div className="text-3xl sm:text-4xl font-black text-[#16a34a] mb-6 leading-none">
-              {Number(ad.price) > 0 ? `R$ ${Number(ad.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Grátis / Troca'}
+            {/* PREÇO OU BADGE DE TROCA */}
+            <div className="mb-6">
+              {ad.accepts_trade || ad.type === 'Troca' ? (
+                <div className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 border border-purple-200 px-5 py-2.5 rounded-2xl font-black text-lg shadow-sm">
+                  <Repeat className="w-5 h-5 text-purple-600" />
+                  <span>Disponível para Troca</span>
+                </div>
+              ) : Number(ad.price) > 0 ? (
+                <div className="text-3xl sm:text-4xl font-black text-[#16a34a] leading-none">
+                  R$ {Number(ad.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-5 py-2.5 rounded-2xl font-black text-lg shadow-sm">
+                  🎁 Doação Grátis
+                </div>
+              )}
             </div>
 
             <div className="space-y-4 mb-8">

@@ -372,7 +372,15 @@ export default function Landing() {
                   </span>
                 </div>
                 <div className="market-info">
-                  <div className="market-price">{item.type === 'Venda' ? `R$ ${item.price}` : item.type}</div>
+                  <div className="market-price">
+                    {item.type === 'Troca' || item.type === 'Trocas' ? (
+                      <span style={{ color: '#9333ea', fontWeight: '800', fontSize: '0.88rem' }}>🔄 Para Troca</span>
+                    ) : item.type === 'Grátis' || item.type === 'Grátis/Doação' ? (
+                      <span style={{ color: '#16a34a', fontWeight: '800', fontSize: '0.88rem' }}>🎁 Grátis</span>
+                    ) : (
+                      `R$ ${item.price}`
+                    )}
+                  </div>
                   <div className="market-title">{item.title}</div>
                   <div className="market-meta">
                     <span>{item.neighborhood}</span>
@@ -675,7 +683,7 @@ export default function Landing() {
       {/* Marketplace Details Modal */}
       {selectedMarketDetails && (
         <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedMarketDetails(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 120, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '28rem', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '28rem', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', position: 'sticky', top: 0, backgroundColor: 'white' }}>
               <h2 className="font-bold text-lg" style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: 0 }}>Detalhes do Anúncio</h2>
               <button onClick={() => setSelectedMarketDetails(null)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200" style={{ padding: '8px', borderRadius: '9999px', backgroundColor: '#f1f5f9', border: 'none', cursor: 'pointer' }}>
@@ -683,22 +691,40 @@ export default function Landing() {
               </button>
             </div>
             {selectedMarketDetails.image && (
-              <div className="w-full bg-slate-100" style={{ width: '100%', backgroundColor: '#f1f5f9' }}>
-                <img src={selectedMarketDetails.image} alt="Produto" className="w-full object-contain max-h-64" style={{ width: '100%', objectFit: 'contain', maxHeight: '16rem' }} />
+              <div className="w-full h-64 bg-slate-900 relative overflow-hidden flex items-center justify-center">
+                <img src={selectedMarketDetails.image} alt="" className="absolute inset-0 w-full h-full object-cover blur-lg opacity-40 scale-110" />
+                <img src={selectedMarketDetails.image} alt={selectedMarketDetails.title} className="relative z-10 max-h-full max-w-full object-contain p-2 drop-shadow-xl" />
+                <div className="absolute top-3 left-3 z-20">
+                  <span className={`px-3 py-1.5 rounded-xl font-extrabold text-xs uppercase shadow-md backdrop-blur-md ${selectedMarketDetails.type === 'Troca' || selectedMarketDetails.type === 'Trocas' ? 'bg-purple-600/95 text-white' : selectedMarketDetails.type === 'Grátis' || selectedMarketDetails.type === 'Grátis/Doação' ? 'bg-emerald-600/95 text-white' : 'bg-blue-600/95 text-white'}`}>
+                    {selectedMarketDetails.type === 'Troca' || selectedMarketDetails.type === 'Trocas' ? '🔄 TROCA' : selectedMarketDetails.type}
+                  </span>
+                </div>
               </div>
             )}
             <div className="p-6" style={{ padding: '24px' }}>
               <div className="flex gap-2 mb-2" style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                <span className="text-xs font-bold px-2 py-1 rounded-md" style={{ fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', backgroundColor: selectedMarketDetails.type === 'Venda' ? '#eff6ff' : selectedMarketDetails.type === 'Troca' ? '#fdf4ff' : '#f0fdf4', color: selectedMarketDetails.type === 'Venda' ? '#2563eb' : selectedMarketDetails.type === 'Troca' ? '#c026d3' : '#16a34a' }}>
-                  {selectedMarketDetails.type}
-                </span>
                 <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md" style={{ fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', color: '#ea580c', backgroundColor: '#fff7ed' }}>
-                  {selectedMarketDetails.category}
+                  {selectedMarketDetails.category || 'Geral'}
                 </span>
               </div>
               <h1 className="text-2xl font-bold text-slate-800 mb-2" style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '8px' }}>{selectedMarketDetails.title}</h1>
-              <div className="text-3xl font-black text-green-600 mb-4" style={{ fontSize: '1.875rem', fontWeight: '900', color: '#16a34a', marginBottom: '16px' }}>
-                {selectedMarketDetails.type === 'Venda' ? `R$ ${selectedMarketDetails.price}` : selectedMarketDetails.type}
+              
+              <div className="mb-4">
+                {selectedMarketDetails.type === 'Troca' || selectedMarketDetails.type === 'Trocas' ? (
+                  <div className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 border border-purple-200 px-4 py-2 rounded-2xl font-black text-base shadow-sm">
+                    <span className="text-lg">🔄</span>
+                    <span>Disponível para Troca</span>
+                  </div>
+                ) : selectedMarketDetails.type === 'Grátis' || selectedMarketDetails.type === 'Grátis/Doação' ? (
+                  <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-2xl font-black text-base shadow-sm">
+                    <span className="text-lg">🎁</span>
+                    <span>Doação / Grátis</span>
+                  </div>
+                ) : (
+                  <div className="text-2xl sm:text-3xl font-black text-emerald-600" style={{ fontSize: '1.75rem', fontWeight: '900', color: '#16a34a', marginBottom: '16px' }}>
+                    {Number(selectedMarketDetails.price) > 0 ? `R$ ${Number(selectedMarketDetails.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Sob Consulta'}
+                  </div>
+                )}
               </div>
               
               <div className="bg-slate-50 p-4 rounded-xl mb-6" style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
