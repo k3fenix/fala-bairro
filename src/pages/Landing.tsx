@@ -136,37 +136,6 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Banner Mestre da Casa / Fala do Bairro */}
-      <section className="hero-banner">
-        <div className="hero-banner-content">
-          <div className="hero-tag">
-            COZINHA — INSTALAÇÕES ELÉTRICAS E TORNEIRAS
-          </div>
-          
-          <h2 className="hero-title mobile-hide">MESTRE DA CASA</h2>
-          <h3 className="hero-subtitle mobile-hide">Seu problema em casa, nossa solução.</h3>
-          
-          <p className="hero-description">
-            Serviços residenciais com qualidade, segurança e agilidade.
-          </p>
-
-          <div className="hero-cta-buttons">
-            <button 
-              className="btn-hero-primary"
-              onClick={() => openWhatsApp('67999999999', 'Olá! Gostaria de solicitar um orçamento para serviços residenciais.')}
-            >
-              SOLICITAR ORÇAMENTO
-            </button>
-            <button 
-              className="btn-hero-secondary"
-              onClick={() => openWhatsApp('67999999999', 'Olá! Gostaria de agendar um serviço residencial.')}
-            >
-              AGENDAR SERVIÇO
-            </button>
-          </div>
-        </div>
-      </section>
-
       <main className="container" id="inicio">
 
         {/* ==========================================================================
