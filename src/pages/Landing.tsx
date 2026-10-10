@@ -13,6 +13,7 @@ export default function Landing() {
   const [selectedBusinessDetails, setSelectedBusinessDetails] = useState<any>(null);
   const [selectedPostDetails, setSelectedPostDetails] = useState<any>(null);
   const [selectedNewsDetails, setSelectedNewsDetails] = useState<any>(null);
+  const [isNewsFullScreen, setIsNewsFullScreen] = useState(false);
   const [selectedMarketDetails, setSelectedMarketDetails] = useState<any>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
 
@@ -104,6 +105,14 @@ export default function Landing() {
           </div>
 
           <div className="header-actions">
+            <Link 
+              to="/marketplace" 
+              className="btn-publish-main" 
+              style={{ backgroundColor: '#ff6500', color: '#ffffff', textDecoration: 'none' }}
+              title="Acessar o Marketplace"
+            >
+              🛒 <span className="hidden sm:inline">Marketplace</span>
+            </Link>
             <button onClick={() => setShowPublishModal(true)} className="btn-publish-main">
               + <span className="hidden sm:inline">Publicar</span>
             </button>
@@ -492,11 +501,11 @@ export default function Landing() {
       {/* Post Details Modal */}
       {selectedPostDetails && (
         <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedPostDetails(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 120, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '32rem', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '48rem', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', position: 'sticky', top: 0, backgroundColor: 'white' }}>
               <h2 className="font-bold text-lg">Detalhes da Publicação</h2>
-              <button onClick={() => setSelectedPostDetails(null)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200" style={{ padding: '8px', borderRadius: '9999px', backgroundColor: '#f1f5f9', border: 'none', cursor: 'pointer' }}>
-                X
+              <button onClick={() => setSelectedPostDetails(null)} className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full hover:bg-slate-200" style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#f1f5f9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                ✕
               </button>
             </div>
             <div className="p-6" style={{ padding: '24px' }}>
@@ -507,35 +516,157 @@ export default function Landing() {
                   <p className="text-xs text-slate-500" style={{ fontSize: '0.75rem', margin: 0, color: '#64748b' }}>{selectedPostDetails.category}</p>
                 </div>
               </div>
-              <p className="text-slate-800 whitespace-pre-wrap text-lg mb-4" style={{ fontSize: '1.125rem', marginBottom: '16px' }}>{selectedPostDetails.content}</p>
+              <p className="text-slate-800 whitespace-pre-wrap text-lg leading-relaxed mb-4" style={{ fontSize: '1.125rem', color: '#334155', lineHeight: '1.7', marginBottom: '16px' }}>{selectedPostDetails.content}</p>
               {selectedPostDetails.image && (
-                <img src={selectedPostDetails.image} alt="Post" className="w-full rounded-2xl mb-4" style={{ width: '100%', borderRadius: '16px' }} />
+                <img src={selectedPostDetails.image} alt="Post" className="w-full rounded-2xl mb-4 max-h-[500px] object-cover" style={{ width: '100%', borderRadius: '16px', maxHeight: '500px', objectFit: 'cover' }} />
               )}
             </div>
           </div>
         </div>
       )}
 
-      {/* News Details Modal */}
+      {/* News Details Modal (Expanded Reader View) */}
       {selectedNewsDetails && (
-        <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedNewsDetails(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 120, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '32rem', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', position: 'sticky', top: 0, backgroundColor: 'white' }}>
-              <h2 className="font-bold text-lg" style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: 0 }}>Notícia Local</h2>
-              <button onClick={() => setSelectedNewsDetails(null)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200" style={{ padding: '8px', borderRadius: '9999px', backgroundColor: '#f1f5f9', border: 'none', cursor: 'pointer' }}>
-                X
-              </button>
-            </div>
-            {selectedNewsDetails.image && (
-              <img src={selectedNewsDetails.image} alt="News" className="w-full h-64 object-cover" style={{ width: '100%', height: '16rem', objectFit: 'cover' }} />
-            )}
-            <div className="p-6" style={{ padding: '24px' }}>
-              <div className="flex gap-2 mb-3" style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md" style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#2563eb', backgroundColor: '#eff6ff', padding: '4px 8px', borderRadius: '6px' }}>{selectedNewsDetails.category}</span>
-                <span className="text-xs text-slate-500 flex items-center" style={{ fontSize: '0.75rem', color: '#64748b' }}>{selectedNewsDetails.neighborhood}</span>
+        <div 
+          className="fixed inset-0 z-[150] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-0 sm:p-4 transition-all duration-300"
+          onClick={() => setSelectedNewsDetails(null)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 150, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div 
+            className={`bg-white shadow-2xl flex flex-col transition-all duration-300 ${isNewsFullScreen ? 'w-full h-full rounded-none' : 'w-full max-w-5xl max-h-[96vh] sm:rounded-3xl overflow-hidden'}`}
+            onClick={e => e.stopPropagation()} 
+            style={{ 
+              backgroundColor: 'white', 
+              width: isNewsFullScreen ? '100vw' : '100%', 
+              maxWidth: isNewsFullScreen ? '100vw' : '1050px', 
+              height: isNewsFullScreen ? '100vh' : 'auto', 
+              maxHeight: isNewsFullScreen ? '100vh' : '95vh', 
+              borderRadius: isNewsFullScreen ? '0' : '24px', 
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Top Bar / Reader Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm" style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ffffff', position: 'sticky', top: 0, zIndex: 20 }}>
+              <div className="flex items-center gap-3" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="bg-blue-600 text-white font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full" style={{ backgroundColor: '#2563eb', color: 'white', fontWeight: 'bold', fontSize: '0.75rem', padding: '4px 12px', borderRadius: '9999px' }}>
+                  {selectedNewsDetails.category || 'Notícia Local'}
+                </span>
+                <span className="text-sm font-semibold text-slate-500 hidden sm:inline" style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                  📍 {selectedNewsDetails.neighborhood || 'Bairro'} • Fala Bairro Notícias
+                </span>
               </div>
-              <h1 className="text-2xl font-bold text-slate-800 mb-4" style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '16px' }}>{selectedNewsDetails.title}</h1>
-              <p className="text-slate-700 text-lg leading-relaxed mb-6" style={{ fontSize: '1.125rem', color: '#334155', lineHeight: 1.625, marginBottom: '24px' }}>{selectedNewsDetails.summary}</p>
+
+              <div className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => setIsNewsFullScreen(!isNewsFullScreen)}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                  title={isNewsFullScreen ? "Restaurar tamanho" : "Expandir tela cheia"}
+                  style={{ padding: '6px 12px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', color: '#334155' }}
+                >
+                  {isNewsFullScreen ? '📉 Tela Padrão' : '⛶ Tela Cheia'}
+                </button>
+
+                <button 
+                  onClick={() => setSelectedNewsDetails(null)} 
+                  className="w-9 h-9 flex items-center justify-center bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 rounded-full font-bold transition" 
+                  title="Fechar Notícia"
+                  style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#f1f5f9', border: 'none', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Main Article Scrollable Body */}
+            <div className="flex-1 overflow-y-auto" style={{ overflowY: 'auto', flex: 1, paddingBottom: '32px' }}>
+              {/* Hero Image */}
+              {selectedNewsDetails.image && (
+                <div className="w-full relative bg-slate-900 overflow-hidden" style={{ width: '100%', maxHeight: isNewsFullScreen ? '480px' : '380px', backgroundColor: '#0f172a' }}>
+                  <img 
+                    src={selectedNewsDetails.image} 
+                    alt={selectedNewsDetails.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                    style={{ width: '100%', height: '100%', maxHeight: isNewsFullScreen ? '480px' : '380px', objectFit: 'cover' }} 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }} />
+                </div>
+              )}
+
+              {/* Article Content Container */}
+              <div className="max-w-3xl mx-auto px-6 py-8" style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
+                {/* Meta details bar */}
+                <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100 text-slate-500 text-sm" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', marginBottom: '24px', fontSize: '0.875rem', color: '#64748b' }}>
+                  <div className="flex items-center gap-3" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="font-semibold text-slate-700" style={{ fontWeight: '600', color: '#334155' }}>🗓️ {selectedNewsDetails.date || 'Hoje'}</span>
+                    <span>•</span>
+                    <span>⏱️ 2 min de leitura</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: selectedNewsDetails.title, text: selectedNewsDetails.summary, url: window.location.href }).catch(() => {});
+                      } else {
+                        navigator.clipboard.writeText(`${selectedNewsDetails.title} - ${selectedNewsDetails.summary}`);
+                        alert('Link da notícia copiado!');
+                      }
+                    }}
+                    className="text-blue-600 font-bold hover:underline flex items-center gap-1"
+                    style={{ color: '#2563eb', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    📤 Compartilhar Notícia
+                  </button>
+                </div>
+
+                {/* Article Main Headline */}
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6" style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', lineHeight: '1.25', marginBottom: '24px' }}>
+                  {selectedNewsDetails.title}
+                </h1>
+
+                {/* Lead Summary Box */}
+                <div className="p-5 bg-blue-50/70 border-l-4 border-blue-600 rounded-r-2xl mb-8" style={{ padding: '20px', backgroundColor: '#eff6ff', borderLeft: '4px solid #2563eb', borderRadius: '0 16px 16px 0', marginBottom: '32px' }}>
+                  <p className="text-slate-800 text-lg sm:text-xl font-medium leading-relaxed" style={{ fontSize: '1.2rem', color: '#1e293b', lineHeight: '1.7', margin: 0 }}>
+                    {selectedNewsDetails.summary}
+                  </p>
+                </div>
+
+                {/* Rich Body Paragraphs */}
+                <div className="article-body space-y-6 text-slate-700 text-lg leading-relaxed" style={{ fontSize: '1.125rem', color: '#334155', lineHeight: '1.8' }}>
+                  <p>
+                    Acompanhe os detalhes atualizados e novidades importantes enviadas diretamente pela comunidade e equipes locais do bairro. Moradores e comerciantes do <strong>{selectedNewsDetails.neighborhood || 'bairro'}</strong> contam com atualizações em tempo real no portal Fala Bairro.
+                  </p>
+
+                  <p>
+                    Fique atento aos prazos e programações indicadas. Para dúvidas ou orientações adicionais, você pode compartilhar este boletim com vizinhos e grupos locais do seu bairro.
+                  </p>
+                </div>
+
+                {/* Action Footer */}
+                <div className="mt-12 pt-8 border-t border-slate-200 flex flex-wrap gap-4 items-center justify-between" style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="flex gap-3" style={{ display: 'flex', gap: '12px' }}>
+                    <button 
+                      onClick={() => {
+                        const text = `📰 *${selectedNewsDetails.title}*\n\n${selectedNewsDetails.summary}\n\nVia Fala Bairro`;
+                        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                      }}
+                      className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition"
+                      style={{ padding: '12px 20px', backgroundColor: '#059669', color: 'white', fontWeight: 'bold', borderRadius: '16px', border: 'none', cursor: 'pointer' }}
+                    >
+                      💬 Enviar no WhatsApp
+                    </button>
+                  </div>
+
+                  <button 
+                    onClick={() => setSelectedNewsDetails(null)}
+                    className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition"
+                    style={{ padding: '12px 24px', backgroundColor: '#f1f5f9', color: '#334155', fontWeight: 'bold', borderRadius: '16px', border: 'none', cursor: 'pointer' }}
+                  >
+                    Fechar Leitura
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
