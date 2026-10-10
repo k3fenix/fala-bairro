@@ -97,8 +97,8 @@ export default function Marketplace() {
     const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
     const userAuth = localStorage.getItem('user_auth');
     if (!userStr && userAuth !== 'true') {
-      alert('🔒 Para vender no Marketplace do Fala do Bairro é obrigatório estar cadastrado e conectado! Por favor, faça login ou crie sua conta.');
-      navigate('/login');
+      alert('🔒 Para vender no Marketplace do Fala do Bairro é obrigatório estar cadastrado e conectado! Por favor, faça seu cadastro ou login.');
+      navigate('/register');
       return;
     }
     navigate('/marketplace/anunciar');
@@ -108,8 +108,8 @@ export default function Marketplace() {
     const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
     const userAuth = localStorage.getItem('user_auth');
     if (!userStr && userAuth !== 'true') {
-      alert('🔒 É obrigatório estar conectado para acessar esta área!');
-      navigate('/login');
+      alert('🔒 É obrigatório estar conectado para acessar esta área! Redirecionando para o cadastro...');
+      navigate('/register');
       return;
     }
     navigate(path);
@@ -166,6 +166,9 @@ export default function Marketplace() {
             </button>
             <button onClick={() => handleProtectedAction('/marketplace/meus-anuncios')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-semibold text-sm cursor-pointer">
               📦 Meus Anúncios
+            </button>
+            <button onClick={() => navigate('/register')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-bold text-sm cursor-pointer" title="Entrar ou Cadastrar">
+              👤 Entrar / Cadastrar
             </button>
           </div>
 

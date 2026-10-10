@@ -34,7 +34,7 @@ export default function MarketplaceNew() {
     const userAuth = localStorage.getItem('user_auth');
     if (!userStr && userAuth !== 'true') {
       alert('🔒 Atenção: É OBRIGATÓRIO fazer Cadastro / Login no Fala do Bairro para anunciar produtos no Marketplace!');
-      navigate('/login');
+      navigate('/register');
       return;
     }
     fetchCategories();

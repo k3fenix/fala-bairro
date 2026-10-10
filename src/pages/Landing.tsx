@@ -116,8 +116,8 @@ export default function Landing() {
             <button onClick={() => setShowPublishModal(true)} className="btn-publish-main">
               + <span className="hidden sm:inline">Publicar</span>
             </button>
-            <Link to="/login" className="btn-header-profile">
-              👤 <span className="hidden sm:inline">Conta</span>
+            <Link to="/register" className="btn-header-profile" title="Entrar ou Cadastrar">
+              👤 <span className="hidden sm:inline">Entrar / Cadastrar</span>
             </Link>
           </div>
         </div>
@@ -760,7 +760,7 @@ export default function Landing() {
                   const userAuth = localStorage.getItem('user_auth');
                   if (!userStr && userAuth !== 'true') {
                     alert('🔒 Para anunciar no Marketplace do Fala do Bairro é obrigatório estar cadastrado e conectado! Por favor, faça login ou crie sua conta.');
-                    navigate('/login');
+                    navigate('/register');
                     return;
                   }
                   navigate('/marketplace/anunciar');
