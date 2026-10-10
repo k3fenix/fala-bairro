@@ -30,8 +30,15 @@ export default function MarketplaceNew() {
   });
 
   useEffect(() => {
+    const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
+    const userAuth = localStorage.getItem('user_auth');
+    if (!userStr && userAuth !== 'true') {
+      alert('🔒 Atenção: É OBRIGATÓRIO fazer Cadastro / Login no Fala do Bairro para anunciar produtos no Marketplace!');
+      navigate('/login');
+      return;
+    }
     fetchCategories();
-  }, []);
+  }, [navigate]);
 
   const fetchCategories = async () => {
     const { data } = await supabase.from('marketplace_categories').select('*').eq('is_active', true).order('order_index');

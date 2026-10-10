@@ -753,13 +753,26 @@ export default function Landing() {
                 </div>
               </Link>
 
-              <Link to="/marketplace/anunciar" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group">
+              <button 
+                onClick={() => {
+                  setShowPublishModal(false);
+                  const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
+                  const userAuth = localStorage.getItem('user_auth');
+                  if (!userStr && userAuth !== 'true') {
+                    alert('🔒 Para anunciar no Marketplace do Fala do Bairro é obrigatório estar cadastrado e conectado! Por favor, faça login ou crie sua conta.');
+                    navigate('/login');
+                    return;
+                  }
+                  navigate('/marketplace/anunciar');
+                }}
+                className="w-full text-left flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group cursor-pointer"
+              >
                 <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🛍️</div>
                 <div>
                   <h4 className="font-bold text-slate-800">Venda / Marketplace</h4>
-                  <p className="text-xs text-slate-500">Anuncie produtos e serviços</p>
+                  <p className="text-xs text-slate-500">Anuncie produtos e serviços no bairro</p>
                 </div>
-              </Link>
+              </button>
 
               <Link to="/feed" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group">
                 <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🐶</div>

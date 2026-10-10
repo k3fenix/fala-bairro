@@ -93,6 +93,28 @@ export default function Marketplace() {
     return matchesCategory && matchesSearch && matchesTrade;
   });
 
+  const handleProtectedSellClick = () => {
+    const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
+    const userAuth = localStorage.getItem('user_auth');
+    if (!userStr && userAuth !== 'true') {
+      alert('🔒 Para vender no Marketplace do Fala do Bairro é obrigatório estar cadastrado e conectado! Por favor, faça login ou crie sua conta.');
+      navigate('/login');
+      return;
+    }
+    navigate('/marketplace/anunciar');
+  };
+
+  const handleProtectedAction = (path: string) => {
+    const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
+    const userAuth = localStorage.getItem('user_auth');
+    if (!userStr && userAuth !== 'true') {
+      alert('🔒 É obrigatório estar conectado para acessar esta área!');
+      navigate('/login');
+      return;
+    }
+    navigate(path);
+  };
+
   if (isEnabled === null) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500 font-medium">Carregando Marketplace...</div>;
   }
@@ -139,15 +161,15 @@ export default function Marketplace() {
           </div>
 
           <div className="hidden lg:flex gap-[8px]">
-            <button onClick={() => navigate('/marketplace/favoritos')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-semibold text-sm cursor-pointer">
+            <button onClick={() => handleProtectedAction('/marketplace/favoritos')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-semibold text-sm cursor-pointer">
               ❤️ Favoritos
             </button>
-            <button onClick={() => navigate('/marketplace/meus-anuncios')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-semibold text-sm cursor-pointer">
+            <button onClick={() => handleProtectedAction('/marketplace/meus-anuncios')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-semibold text-sm cursor-pointer">
               📦 Meus Anúncios
             </button>
           </div>
 
-          <button onClick={() => navigate('/marketplace/anunciar')} className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold px-[20px] py-[13px] rounded-[12px] order-2 sm:order-none cursor-pointer shadow-md shadow-orange-500/20">
+          <button onClick={handleProtectedSellClick} className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold px-[20px] py-[13px] rounded-[12px] order-2 sm:order-none cursor-pointer shadow-md shadow-orange-500/20">
             + Vender
           </button>
         </div>
@@ -221,7 +243,7 @@ export default function Marketplace() {
              <Store className="w-16 h-16 mx-auto mb-4 text-slate-300" />
              <p className="text-xl font-bold text-slate-800 mb-2">Nenhum anúncio encontrado.</p>
              <p className="text-slate-500 mb-6">Tente pesquisar por outro termo ou seja o primeiro a publicar nesta categoria!</p>
-             <button onClick={() => navigate('/marketplace/anunciar')} className="bg-[#ff6500] hover:bg-[#e95600] text-white px-6 py-3 rounded-2xl font-bold shadow-md cursor-pointer transition-colors">
+             <button onClick={handleProtectedSellClick} className="bg-[#ff6500] hover:bg-[#e95600] text-white px-6 py-3 rounded-2xl font-bold shadow-md cursor-pointer transition-colors">
                + Anunciar Meu Produto
              </button>
           </div>
