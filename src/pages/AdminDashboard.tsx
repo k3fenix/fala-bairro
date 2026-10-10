@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus, Wallet } from 'lucide-react';
+import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus, Wallet, Lock, KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminDashboard() {
@@ -46,6 +46,7 @@ export default function AdminDashboard() {
           <TabButton icon={<LayoutDashboard />} label="Capa do Site" active={activeTab === 'landing'} onClick={() => setActiveTab('landing')} />
           <TabButton icon={<Wallet />} label="Monetização" active={activeTab === 'monetization'} onClick={() => setActiveTab('monetization')} />
           <TabButton icon={<Trash2 />} label="Exclusões de Conta" active={activeTab === 'deletions'} onClick={() => setActiveTab('deletions')} />
+          <TabButton icon={<Lock />} label="Minha Conta Admin" active={activeTab === 'security'} onClick={() => setActiveTab('security')} />
         </div>
 
         <div className="flex-1 p-6 max-w-6xl overflow-y-auto">
@@ -58,6 +59,7 @@ export default function AdminDashboard() {
           {activeTab === 'marketplace' && <MarketplaceAdminTab />}
           {activeTab === 'monetization' && <MonetizationTab />}
           {activeTab === 'deletions' && <DeletionsTab />}
+          {activeTab === 'security' && <AdminSecurityTab />}
         </div>
       </div>
     </div>
@@ -1167,6 +1169,124 @@ function MarketplaceAdminTab() {
             Gestão de categorias, aprovação de anúncios pendentes e relatórios entrarão nesta área.
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminSecurityTab() {
+  const [adminEmail, setAdminEmail] = useState(localStorage.getItem('admin_custom_email') || 'lucianoalkine@gmail.com');
+  const [adminPassword, setAdminPassword] = useState(localStorage.getItem('admin_custom_password') || '14182171Lu@');
+  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchSavedSettings();
+  }, []);
+
+  const fetchSavedSettings = async () => {
+    try {
+      const { data: eData } = await supabase.from('marketplace_settings').select('*').eq('key', 'admin_email').single();
+      if (eData && eData.value) setAdminEmail(eData.value);
+
+      const { data: pData } = await supabase.from('marketplace_settings').select('*').eq('key', 'admin_password').single();
+      if (pData && pData.value) setAdminPassword(pData.value);
+    } catch (err) {
+      console.log('Sem dados salvos em settings');
+    }
+  };
+
+  const handleSaveCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const cleanEmail = adminEmail.trim();
+      const cleanPass = adminPassword.trim();
+
+      localStorage.setItem('admin_custom_email', cleanEmail);
+      localStorage.setItem('admin_custom_password', cleanPass);
+
+      await supabase.from('marketplace_settings').upsert({
+        key: 'admin_email',
+        value: cleanEmail,
+        description: 'E-mail do Administrador'
+      }, { onConflict: 'key' });
+
+      await supabase.from('marketplace_settings').upsert({
+        key: 'admin_password',
+        value: cleanPass,
+        description: 'Senha do Administrador'
+      }, { onConflict: 'key' });
+
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 4000);
+    } catch (err: any) {
+      alert('Erro ao salvar credenciais: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-extrabold text-slate-900">Configurações da Conta do Administrador</h2>
+          <p className="text-slate-500 text-sm">Altere o e-mail e a senha que você usa para acessar o painel /admin</p>
+        </div>
+      </div>
+
+      {savedSuccess && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl mb-6 flex items-center gap-3 shadow-sm">
+          <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
+          <div>
+            <p className="font-bold text-sm">Credenciais Atualizadas com Sucesso!</p>
+            <p className="text-xs text-emerald-700">Seu novo e-mail e senha de administrador já estão salvos e ativos para login no /admin.</p>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm max-w-xl">
+        <form onSubmit={handleSaveCredentials} className="space-y-6">
+          <div>
+            <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-600" /> E-mail do Administrador
+            </label>
+            <input 
+              type="email" 
+              value={adminEmail}
+              onChange={e => setAdminEmail(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 outline-none focus:border-blue-600 focus:bg-white font-medium transition-colors"
+              required
+            />
+            <p className="text-xs text-slate-500 mt-1">Este e-mail será usado para acessar a rota `/admin`.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-blue-600" /> Nova Senha de Administrador
+            </label>
+            <input 
+              type="text" 
+              value={adminPassword}
+              onChange={e => setAdminPassword(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 outline-none focus:border-blue-600 focus:bg-white font-bold transition-colors"
+              required
+            />
+            <p className="text-xs text-slate-500 mt-1">Digite a nova senha desejada para o acesso do administrador.</p>
+          </div>
+
+          <div className="pt-2">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-base py-3.5 rounded-2xl transition-all shadow-md shadow-blue-600/20 cursor-pointer disabled:opacity-50"
+            >
+              {loading ? 'Salvando Alterações...' : '💾 Salvar Novo E-mail e Senha'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
