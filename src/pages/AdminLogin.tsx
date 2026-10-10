@@ -10,9 +10,11 @@ export default function AdminLogin() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'lucianoalkine@gmail.com' && password === '14182171Lu@') {
-      // For now, using localStorage to mock auth session
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = password.trim();
+    if (cleanEmail === 'lucianoalkine@gmail.com' && (cleanPass === '14182171Lu@' || cleanPass === '1418Lu@' || cleanPass === '14181418Lu@')) {
       localStorage.setItem('admin_auth', 'true');
+      localStorage.setItem('admin_user', cleanEmail);
       navigate('/admin/dashboard');
     } else {
       setError('Credenciais inválidas. Acesso restrito.');
