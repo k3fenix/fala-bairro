@@ -80,19 +80,19 @@ export default function Login() {
         <h1 className="text-2xl font-black text-slate-800 text-center mb-2">Entrar</h1>
         <p className="text-slate-500 text-center mb-6 text-sm">Bem-vindo de volta ao seu bairro</p>
 
-        {/* Abas Entrar e Cadastrar */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
+        {/* Abas de Autenticação */}
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-6 gap-1">
           <button
             type="button"
-            className="flex-1 py-2.5 text-sm font-bold rounded-xl bg-white text-blue-600 shadow-xs cursor-default"
+            className="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white text-blue-600 shadow-xs cursor-default text-center"
           >
-            Entrar
+            Entrar na minha conta
           </button>
           <Link
             to={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : '/register'}
-            className="flex-1 py-2.5 text-sm font-bold text-center rounded-xl text-slate-500 hover:text-slate-800 transition-colors"
+            className="flex-1 py-2.5 text-xs sm:text-sm font-bold text-center rounded-xl text-slate-500 hover:text-slate-800 transition-colors"
           >
-            Cadastrar
+            Criar uma conta
           </Link>
         </div>
 
@@ -151,7 +151,7 @@ export default function Login() {
             to={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : '/register'} 
             className="text-blue-600 font-bold hover:underline"
           >
-            Cadastrar
+            Criar uma conta
           </Link>
         </p>
       </div>

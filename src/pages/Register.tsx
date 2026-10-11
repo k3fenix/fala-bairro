@@ -105,19 +105,19 @@ export default function Register() {
         <h1 className="text-2xl font-black text-slate-800 text-center mb-2">Criar Conta</h1>
         <p className="text-slate-500 text-center mb-6 text-sm">Junte-se à comunidade do seu bairro</p>
 
-        {/* Abas Entrar e Cadastrar */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
+        {/* Abas de Autenticação */}
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-6 gap-1">
           <Link
             to={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'}
-            className="flex-1 py-2.5 text-sm font-bold text-center rounded-xl text-slate-500 hover:text-slate-800 transition-colors"
+            className="flex-1 py-2.5 text-xs sm:text-sm font-bold text-center rounded-xl text-slate-500 hover:text-slate-800 transition-colors"
           >
-            Entrar
+            Entrar na minha conta
           </Link>
           <button
             type="button"
-            className="flex-1 py-2.5 text-sm font-bold rounded-xl bg-white text-blue-600 shadow-xs cursor-default"
+            className="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white text-blue-600 shadow-xs cursor-default text-center"
           >
-            Cadastrar
+            Criar uma conta
           </button>
         </div>
 
@@ -256,7 +256,7 @@ export default function Register() {
             to={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'} 
             className="text-blue-600 font-bold hover:underline"
           >
-            Entrar
+            Entrar na minha conta
           </Link>
         </p>
       </div>

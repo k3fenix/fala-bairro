@@ -258,19 +258,20 @@ export default function Landing() {
 
           <div className="header-actions">
             <Link 
-              to="/marketplace" 
+              to={currentUser ? "/marketplace" : "/login?redirect=/marketplace"} 
               className="btn-publish-main" 
               style={{ backgroundColor: '#ff6500', color: '#ffffff', textDecoration: 'none' }}
               title="Acessar o Marketplace"
             >
               🛒 <span className="hidden sm:inline">Marketplace</span>
             </Link>
-            <button onClick={() => setShowPublishModal(true)} className="btn-publish-main">
-              + <span className="hidden sm:inline">Publicar</span>
-            </button>
+            {/* Publicar mantido no mural e removido do cabeçalho */}
+            {null}
+            {null}
             <Link 
               to={currentUser ? "/feed" : "/login"} 
-              className="btn-header-profile" 
+              className="btn-publish-main" 
+              style={{ backgroundColor: '#ff6500', color: '#ffffff', textDecoration: 'none' }} 
               title={currentUser ? `Conectado como ${currentUser.name}` : "Entrar"}
             >
               👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar'}</span>
@@ -288,7 +289,7 @@ export default function Landing() {
           <a href="#mural" className="chip">📢 Mural</a>
           <a href="#animais" className="chip">🐶 Animais</a>
           <a href="#guia" className="chip">🏪 Guia Local</a>
-          <Link to="/marketplace" className="chip" style={{ color: '#ea580c', fontWeight: 'bold' }}>🛒 Marketplace</Link>
+          <Link to={currentUser ? "/marketplace" : "/login?redirect=/marketplace"} className="chip" style={{ color: '#ea580c', fontWeight: 'bold' }}>🛒 Marketplace</Link>
         </div>
       </nav>
 
