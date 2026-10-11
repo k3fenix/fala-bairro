@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart, Sparkles } from 'lucide-react';
-import { getAuthUser, UserSession } from '../lib/authHelper';
+import { getAuthUser, getAuthUserSync, UserSession } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
 export default function Marketplace() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user: currentUser, loading: authLoading, logout, refreshUser } = useAuth();
+  const activeUser = currentUser || getAuthUserSync();
   
   const [typeFilter, setTypeFilter] = useState<'all' | 'Venda' | 'Troca' | 'Gratis'>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
@@ -271,7 +272,7 @@ export default function Marketplace() {
   }
 
   const handleProtectedSellClick = () => {
-    if (!currentUser) {
+    if (!activeUser) {
       alert('🔒 Para anunciar no Marketplace do Fala do Bairro, faça login ou cadastre-se com a sua conta de morador!');
       navigate('/login?redirect=/marketplace/anunciar');
       return;
@@ -280,7 +281,7 @@ export default function Marketplace() {
   };
 
   const handleProtectedAction = (path: string) => {
-    if (!currentUser) {
+    if (!activeUser) {
       alert('🔒 É obrigatório estar conectado para acessar esta área! Redirecionando para login...');
       navigate(`/login?redirect=${encodeURIComponent(path)}`);
       return;
@@ -358,24 +359,24 @@ export default function Marketplace() {
             </button>
 
             {/* Profile or Login */}
-            {authLoading ? (
-              <div className="w-28 h-10 bg-slate-100 animate-pulse rounded-xl"></div>
-            ) : currentUser ? (
+            {authLoading && !activeUser ? (
+              <div className="w-24 h-10 bg-slate-100 animate-pulse rounded-xl"></div>
+            ) : activeUser ? (
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-[12px] shadow-sm">
                 <div 
                   className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff7a00] to-[#ff3d00] text-white font-bold flex items-center justify-center text-xs overflow-hidden shrink-0 shadow-sm cursor-pointer"
                   onClick={() => navigate('/feed')}
                   title="Acessar Área do Usuário / Feed"
                 >
-                  {currentUser.avatar ? (
-                    <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                  {activeUser.avatar ? (
+                    <img src={activeUser.avatar} alt={activeUser.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span>{currentUser.name ? currentUser.name.charAt(0).toUpperCase() : '👤'}</span>
+                    <span>{activeUser.name ? activeUser.name.charAt(0).toUpperCase() : '👤'}</span>
                   )}
                 </div>
                 <div className="hidden sm:block text-left leading-tight cursor-pointer" onClick={() => navigate('/feed')}>
-                  <span className="block text-xs font-extrabold text-slate-800 truncate max-w-[110px]">{currentUser.name}</span>
-                  <span className="text-[10px] text-slate-500 font-semibold truncate max-w-[110px] block">{currentUser.neighborhood || 'Morador'}</span>
+                  <span className="block text-xs font-extrabold text-slate-800 truncate max-w-[110px]">{activeUser.name}</span>
+                  <span className="text-[10px] text-slate-500 font-semibold truncate max-w-[110px] block">{activeUser.neighborhood || 'Morador'}</span>
                 </div>
                 <button 
                   onClick={() => handleProtectedAction('/marketplace/meus-anuncios')}
@@ -400,22 +401,13 @@ export default function Marketplace() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <button 
-                  onClick={() => navigate('/login?redirect=/marketplace')} 
-                  className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-3 sm:px-[14px] py-2 sm:py-[11px] rounded-[11px] text-[#333] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap shadow-2xs"
-                  title="Entrar na sua conta"
-                >
-                  👤 Entrar
-                </button>
-                <button 
-                  onClick={() => navigate('/register?redirect=/marketplace')} 
-                  className="border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-600 px-3 sm:px-[14px] py-2 sm:py-[11px] rounded-[11px] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap shadow-2xs"
-                  title="Cadastrar nova conta no bairro"
-                >
-                  ✨ Cadastrar
-                </button>
-              </div>
+              <button 
+                onClick={() => navigate('/login?redirect=/marketplace')} 
+                className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-3.5 sm:px-4 py-2 sm:py-[10px] rounded-[11px] text-[#333] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap shadow-xs"
+                title="Entrar"
+              >
+                👤 Entrar
+              </button>
             )}
 
             {/* BOTÃO + VENDER */}

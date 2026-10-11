@@ -268,11 +268,11 @@ export default function Landing() {
             <button onClick={() => setShowPublishModal(true)} className="btn-publish-main">
               + <span className="hidden sm:inline">Publicar</span>
             </button>
-            {currentUser ? (
-              <Link to="/feed" className="btn-header-profile" title={`Conectado como ${currentUser.name}`}>
-            ) : (
-              <Link to="/login" className="btn-header-profile" title="Entrar">
-            )}
+            <Link 
+              to={currentUser ? "/feed" : "/login"} 
+              className="btn-header-profile" 
+              title={currentUser ? `Conectado como ${currentUser.name}` : "Entrar"}
+            >
               👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar'}</span>
             </Link>
           </div>

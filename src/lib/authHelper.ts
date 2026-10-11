@@ -32,12 +32,17 @@ export function getAuthUserSync(): UserSession | null {
     }
 
     // 3. Chaves legacy do localStorage
-    const isAuth = localStorage.getItem('user_auth') === 'true';
-    const userId = localStorage.getItem('user_id');
-    if (isAuth && userId) {
+    const legacyName = localStorage.getItem('user_name');
+    const legacyId = localStorage.getItem('user_id');
+    const isAuth = localStorage.getItem('user_auth') === 'true' || Boolean(legacyId || (legacyName && legacyName !== 'Anônimo'));
+    if (isAuth && (legacyId || (legacyName && legacyName !== 'Anônimo'))) {
+      const resolvedId = legacyId || 'user_' + (legacyName ? legacyName.toLowerCase().replace(/\s+/g, '_') : 'auth');
+      const resolvedName = (legacyName && legacyName !== 'Anônimo') ? legacyName : 'Morador do Bairro';
+      localStorage.setItem('user_auth', 'true');
+      if (!legacyId) localStorage.setItem('user_id', resolvedId);
       return {
-        id: userId,
-        name: localStorage.getItem('user_name') || 'Morador do Bairro',
+        id: resolvedId,
+        name: resolvedName,
         avatar: localStorage.getItem('user_avatar') || '',
         whatsapp: localStorage.getItem('user_whatsapp') || '',
         neighborhood: localStorage.getItem('user_neighborhood') || 'Mário Covas'

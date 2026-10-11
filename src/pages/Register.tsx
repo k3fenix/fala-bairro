@@ -10,6 +10,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '';
 
   const validateEmail = (email: string) => {
     return /\S+@\S+\.\S+/.test(email);
@@ -102,7 +103,23 @@ export default function Register() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] w-full max-w-md border border-slate-100">
         <h1 className="text-2xl font-black text-slate-800 text-center mb-2">Criar Conta</h1>
-        <p className="text-slate-500 text-center mb-8 text-sm">Junte-se à comunidade do seu bairro</p>
+        <p className="text-slate-500 text-center mb-6 text-sm">Junte-se à comunidade do seu bairro</p>
+
+        {/* Abas Entrar e Cadastrar */}
+        <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
+          <Link
+            to={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'}
+            className="flex-1 py-2.5 text-sm font-bold text-center rounded-xl text-slate-500 hover:text-slate-800 transition-colors"
+          >
+            Entrar
+          </Link>
+          <button
+            type="button"
+            className="flex-1 py-2.5 text-sm font-bold rounded-xl bg-white text-blue-600 shadow-xs cursor-default"
+          >
+            Cadastrar
+          </button>
+        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-xl mb-6 text-center font-medium">
@@ -234,7 +251,13 @@ export default function Register() {
         </form>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          Já tem uma conta? <Link to="/login" className="text-blue-600 font-bold hover:underline">Entrar</Link>
+          Já tem uma conta?{' '}
+          <Link 
+            to={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'} 
+            className="text-blue-600 font-bold hover:underline"
+          >
+            Entrar
+          </Link>
         </p>
       </div>
     </div>
