@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart, Sparkles } from 'lucide-react';
-import { getAuthUser, getAuthUserSync, UserSession } from '../lib/authHelper';
+import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart } from 'lucide-react';
+import { getAuthUserSync } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
 export default function Marketplace() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user: currentUser, loading: authLoading, logout, refreshUser } = useAuth();
+  const { user: currentUser, loading: authLoading, logout } = useAuth();
   const activeUser = currentUser || getAuthUserSync();
   
   const [typeFilter, setTypeFilter] = useState<'all' | 'Venda' | 'Troca' | 'Gratis'>('all');

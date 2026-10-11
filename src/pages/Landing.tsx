@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Landing.css';
-import { getAuthUser, UserSession } from '../lib/authHelper';
+import { UserSession } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
 export default function Landing() {
