@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Landing.css';
 import { getAuthUser, UserSession } from '../lib/authHelper';
+import { useAuth } from '../context/AuthContext';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+  const { user: contextUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(contextUser);
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
@@ -50,6 +52,10 @@ export default function Landing() {
     const user = await getAuthUser();
     setCurrentUser(user);
   };
+
+  useEffect(() => {
+    if (contextUser) setCurrentUser(contextUser);
+  }, [contextUser]);
 
   const defaultNews = [
     {
@@ -461,10 +467,23 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="mural-feed">
+          <div className="mural-grid">
             {publicPosts.map(post => (
-              <div key={post.id} onClick={() => setSelectedPostDetails(post)} className="post-card" style={{ cursor: "pointer" }}>
-                <div className="post-author">
+              <div key={post.id} onClick={() => setSelectedPostDetails(post)} className="mural-card" style={{ cursor: "pointer" }} title="Clique para ver a postagem completa">
+                <div className="mural-card-image-wrap">
+                  {post.image ? (
+                    <img src={post.image} alt={post.author_name} className="mural-card-img" loading="lazy" />
+                  ) : (
+                    <div className="mural-card-no-img">
+                      <span style={{ fontSize: '2.5rem' }}>📢</span>
+                    </div>
+                  )}
+                  <span className={`post-badge-floating ${post.category === 'Aviso' ? 'badge-aviso' : post.category === 'Alerta' ? 'badge-alerta' : 'badge-evento'}`}>
+                    {post.category || 'Mural'}
+                  </span>
+                </div>
+                <div className="mural-card-body">
+                  <div className="mural-card-author">
                   <div className="author-info">
                     <img src={post.author_avatar} alt="" className="author-avatar" style={{ objectFit: 'cover' }} />
                     <div className="author-details">
@@ -472,21 +491,23 @@ export default function Landing() {
                       <span>{post.neighborhood} • {new Date(post.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <span className={`post-badge ${post.category === 'Aviso' ? 'badge-aviso' : post.category === 'Alerta' ? 'badge-alerta' : 'badge-evento'}`}>
-                    {post.category}
-                  </span>
+
+
+
                 </div>
-                {post.image && <img src={post.image} alt="Publicação" style={{ width: '100%', borderRadius: '8px', marginBottom: '12px', objectFit: 'cover', maxHeight: '300px' }} />}
-                <p className="post-text">{post.content}</p>
-                <div className="post-actions">
+
+                <p className="mural-card-text">{post.content}</p>
+                <div className="mural-card-footer">
                   <div className="post-action-group">
                     <button className="btn-action-ghost" onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'likes'); }}>👍 <span>{post.likes || 0} curtidas</span></button>
                     <Link to="/feed" onClick={(e) => e.stopPropagation()} className="btn-action-ghost">💬 {post.comments?.length || 0} comentários</Link>
                   </div>
-                  <div className="post-action-group">
+                  <span className="mural-read-more">Ver postagem ➔</span>
+                  <div style={{ display: 'none' }}>
                     <button className="btn-action-ghost" onClick={(e) => { e.stopPropagation(); shareText(`Publicação de ${post.author_name} no Mural`); }}>📤 Compartilhar</button>
                   </div>
                 </div>
+              </div>
               </div>
             ))}
             
@@ -829,6 +850,14 @@ export default function Landing() {
               {selectedPostDetails.image && (
                 <img src={selectedPostDetails.image} alt="Post" className="w-full rounded-2xl mb-4 max-h-[500px] object-cover" style={{ width: '100%', borderRadius: '16px', maxHeight: '500px', objectFit: 'cover' }} />
               )}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
+                <Link to="/feed" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-md transition">
+                  💬 Abrir Discussão no Feed
+                </Link>
+                <button onClick={() => setSelectedPostDetails(null)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition">
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         </div>

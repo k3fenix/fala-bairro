@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Landing from './pages/Landing';
 import Feed from './pages/Feed';
 import AdminLogin from './pages/AdminLogin';
@@ -23,25 +24,27 @@ function NavigationWrapper() {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-16 md:pb-0">
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/feed" element={<Feed />} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/marketplace/anunciar" element={<MarketplaceNew />} />
-          <Route path="/marketplace/anuncio/:id" element={<MarketplaceAd />} />
-          <Route path="/marketplace/meus-anuncios" element={<MarketplaceMyAds />} />
-          <Route path="/marketplace/favoritos" element={<MarketplaceFavorites />} />
-          {/* Add more routes here */}
-        </Routes>
-        <NavigationWrapper />
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-16 md:pb-0">
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/feed" element={<Feed />} />
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/marketplace/anunciar" element={<MarketplaceNew />} />
+            <Route path="/marketplace/anuncio/:id" element={<MarketplaceAd />} />
+            <Route path="/marketplace/meus-anuncios" element={<MarketplaceMyAds />} />
+            <Route path="/marketplace/favoritos" element={<MarketplaceFavorites />} />
+            {/* Add more routes here */}
+          </Routes>
+          <NavigationWrapper />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

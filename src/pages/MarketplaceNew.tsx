@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, UploadCloud, X, CheckCircle, Repeat, Star } from 'lucide-react';
 import { getAuthUser, UserSession } from '../lib/authHelper';
+import { useAuth } from '../context/AuthContext';
 
 export default function MarketplaceNew() {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+  const { user: contextUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(contextUser);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [success, setSuccess] = useState(false);
@@ -34,7 +36,7 @@ export default function MarketplaceNew() {
 
   useEffect(() => {
     const initAuth = async () => {
-      const user = await getAuthUser();
+      const user = contextUser || (await getAuthUser());
       if (!user) {
         alert('🔒 Atenção: É necessário estar conectado na sua conta para anunciar produtos no Marketplace!');
         navigate('/login');
@@ -49,7 +51,7 @@ export default function MarketplaceNew() {
       fetchCategories();
     };
     initAuth();
-  }, [navigate]);
+  }, [navigate, contextUser]);
 
   const fetchCategories = async () => {
     const { data } = await supabase.from('marketplace_categories').select('*').eq('is_active', true).order('order_index');

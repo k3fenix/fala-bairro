@@ -454,10 +454,134 @@
   margin-top: 4px;
 }
 
-.mural-feed {
+.mural-feed, .mural-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.mural-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mural-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
+}
+
+.mural-card-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.mural-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.mural-card:hover .mural-card-img {
+  transform: scale(1.03);
+}
+
+.mural-card-no-img {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f1f5f9 100%);
+  color: var(--primary);
+}
+
+.post-badge-floating {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+}
+
+.mural-card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.mural-card-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mural-author-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.mural-author-details h4 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+  margin: 0;
+}
+
+.mural-author-details span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.mural-card-text {
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.45;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.mural-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-light);
+  padding-top: 10px;
+  margin-top: auto;
+}
+
+.mural-read-more {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
 }
 
 .post-card {

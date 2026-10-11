@@ -3,11 +3,13 @@ import { supabase } from '../lib/supabase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Store, Search, Repeat } from 'lucide-react';
 import { getAuthUser, UserSession } from '../lib/authHelper';
+import { useAuth } from '../context/AuthContext';
 
 export default function Marketplace() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+  const { user: contextUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(contextUser);
   const [typeFilter, setTypeFilter] = useState<'all' | 'Venda' | 'Troca' | 'Gratis'>('all');
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -19,8 +21,12 @@ export default function Marketplace() {
 
   useEffect(() => {
     checkMarketplaceStatus();
-    loadUser();
-  }, []);
+    if (contextUser) {
+      setCurrentUser(contextUser);
+    } else {
+      loadUser();
+    }
+  }, [contextUser]);
 
   const loadUser = async () => {
     const user = await getAuthUser();
