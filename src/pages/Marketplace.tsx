@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Store, Search, Repeat } from 'lucide-react';
+import { getAuthUser, UserSession } from '../lib/authHelper';
 
 export default function Marketplace() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
   const [typeFilter, setTypeFilter] = useState<'all' | 'Venda' | 'Troca' | 'Gratis'>('all');
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -17,7 +19,13 @@ export default function Marketplace() {
 
   useEffect(() => {
     checkMarketplaceStatus();
+    loadUser();
   }, []);
+
+  const loadUser = async () => {
+    const user = await getAuthUser();
+    setCurrentUser(user);
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -72,7 +80,8 @@ export default function Marketplace() {
             city: 'Campinas',
             whatsapp: item.seller_whatsapp,
             image_url: item.image,
-            image: item.image
+            image: item.image,
+            status: item.status || 'approved'
           });
         }
       });
@@ -109,26 +118,25 @@ export default function Marketplace() {
       matchesType = item.type === 'Grátis' || item.type === 'Gratis' || item.type === 'Grátis/Doação' || Number(item.price) === 0;
     }
 
-    return matchesCategory && matchesSearch && matchesTrade && matchesType;
+    const isNotPaused = item.status !== 'paused' && item.status !== 'Pausado';
+    return matchesCategory && matchesSearch && matchesTrade && matchesType && isNotPaused;
   });
 
-  const handleProtectedSellClick = () => {
-    const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
-    const userAuth = localStorage.getItem('user_auth');
-    if (!userStr && userAuth !== 'true') {
-      alert('🔒 Para vender no Marketplace do Fala do Bairro é obrigatório estar cadastrado e conectado! Por favor, faça seu cadastro ou login.');
-      navigate('/register');
+  const handleProtectedSellClick = async () => {
+    const user = currentUser || (await getAuthUser());
+    if (!user) {
+      alert('🔒 Para vender no Marketplace do Fala do Bairro é necessário estar conectado na sua conta! Por favor, entre ou cadastre-se.');
+      navigate('/login');
       return;
     }
     navigate('/marketplace/anunciar');
   };
 
-  const handleProtectedAction = (path: string) => {
-    const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
-    const userAuth = localStorage.getItem('user_auth');
-    if (!userStr && userAuth !== 'true') {
-      alert('🔒 É obrigatório estar conectado para acessar esta área! Redirecionando para o cadastro...');
-      navigate('/register');
+  const handleProtectedAction = async (path: string) => {
+    const user = currentUser || (await getAuthUser());
+    if (!user) {
+      alert('🔒 É obrigatório estar conectado para acessar esta área! Redirecionando para login...');
+      navigate('/login');
       return;
     }
     navigate(path);
@@ -186,16 +194,39 @@ export default function Marketplace() {
             </button>
           </div>
 
-          <div className="hidden lg:flex gap-[8px]">
+          <div className="hidden lg:flex items-center gap-[8px]">
             <button onClick={() => handleProtectedAction('/marketplace/favoritos')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-semibold text-sm cursor-pointer">
               ❤️ Favoritos
             </button>
             <button onClick={() => handleProtectedAction('/marketplace/meus-anuncios')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-semibold text-sm cursor-pointer">
               📦 Meus Anúncios
             </button>
-            <button onClick={() => navigate('/register')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-bold text-sm cursor-pointer" title="Entrar ou Cadastrar">
-              👤 Entrar / Cadastrar
-            </button>
+            {currentUser ? (
+              <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-[12px] shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff7a00] to-[#ff3d00] text-white font-bold flex items-center justify-center text-xs overflow-hidden shrink-0 shadow-sm">
+                  {currentUser.avatar ? (
+                    <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{currentUser.name ? currentUser.name.charAt(0).toUpperCase() : '👤'}</span>
+                  )}
+                </div>
+                <div className="text-left leading-tight">
+                  <span className="block text-xs font-extrabold text-slate-800">{currentUser.name}</span>
+                  <span className="text-[10px] text-slate-500 font-semibold">{currentUser.neighborhood || 'Morador'}</span>
+                </div>
+                <button 
+                  onClick={() => navigate('/feed')} 
+                  className="ml-2 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  title="Voltar para a área do usuário / Feed"
+                >
+                  Meu Feed ➔
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => navigate('/login')} className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-bold text-sm cursor-pointer" title="Entrar ou Cadastrar">
+                👤 Entrar / Cadastrar
+              </button>
+            )}
           </div>
 
           <button onClick={handleProtectedSellClick} className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold px-[20px] py-[13px] rounded-[12px] order-2 sm:order-none cursor-pointer shadow-md shadow-orange-500/20">
@@ -322,6 +353,15 @@ export default function Marketplace() {
                       />
                     ) : (
                       <div className="text-[50px] opacity-20">📦</div>
+                    )}
+
+                    {/* Selo de Vendido */}
+                    {(item.status === 'sold' || item.status === 'Vendido') && (
+                      <div className="absolute inset-0 bg-black/55 backdrop-blur-[1px] flex items-center justify-center z-10">
+                        <span className="bg-red-600 text-white font-black px-3.5 py-1 rounded-full text-xs shadow-lg uppercase tracking-wider transform -rotate-6 border border-white/40">
+                          🏷️ VENDIDO
+                        </span>
+                      </div>
                     )}
 
                     <div className="absolute top-[10px] left-[10px] flex flex-col gap-1">

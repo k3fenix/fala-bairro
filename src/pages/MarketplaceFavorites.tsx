@@ -2,20 +2,22 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Heart, Search, Star } from 'lucide-react';
+import { getAuthUser, UserSession } from '../lib/authHelper';
 
 export default function MarketplaceFavorites() {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
 
   useEffect(() => {
     checkUserAndFetchFavorites();
   }, []);
 
   const checkUserAndFetchFavorites = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getAuthUser();
     if (!user) {
+      alert('🔒 Faça login para ver seus favoritos.');
       navigate('/login');
       return;
     }

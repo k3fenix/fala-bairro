@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, UploadCloud, X, CheckCircle, Repeat, Star } from 'lucide-react';
+import { getAuthUser, UserSession } from '../lib/authHelper';
 
 export default function MarketplaceNew() {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [success, setSuccess] = useState(false);
@@ -30,14 +32,22 @@ export default function MarketplaceNew() {
   });
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
-    const userAuth = localStorage.getItem('user_auth');
-    if (!userStr && userAuth !== 'true') {
-      alert('🔒 Atenção: É OBRIGATÓRIO fazer Cadastro / Login no Fala do Bairro para anunciar produtos no Marketplace!');
-      navigate('/register');
-      return;
-    }
-    fetchCategories();
+    const initAuth = async () => {
+      const user = await getAuthUser();
+      if (!user) {
+        alert('🔒 Atenção: É necessário estar conectado na sua conta para anunciar produtos no Marketplace!');
+        navigate('/login');
+        return;
+      }
+      setCurrentUser(user);
+      setFormData(prev => ({
+        ...prev,
+        neighborhood: user.neighborhood || prev.neighborhood || 'Mário Covas',
+        whatsapp: user.whatsapp || prev.whatsapp || ''
+      }));
+      fetchCategories();
+    };
+    initAuth();
   }, [navigate]);
 
   const fetchCategories = async () => {
@@ -100,9 +110,8 @@ export default function MarketplaceNew() {
     setLoading(true);
 
     try {
-      const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
-      const currentUser = userStr ? JSON.parse(userStr) : null;
-      const userId = currentUser?.id || null;
+      const user = currentUser || (await getAuthUser());
+      const userId = user?.id || null;
 
       const priceNum = parseFloat(String(formData.price).replace(',', '.'));
       const finalPrice = isNaN(priceNum) ? 0 : priceNum;
@@ -159,7 +168,7 @@ export default function MarketplaceNew() {
         condition: formData.condition,
         category: categories.find(c => c.id.toString() === formData.category_id)?.name || 'Outros',
         neighborhood: formData.neighborhood,
-        seller_name: currentUser?.name || 'Vendedor do Bairro',
+        seller_name: user?.name || 'Vendedor do Bairro',
         seller_whatsapp: formData.whatsapp,
         image: primaryImage,
         status: 'Ativo'
@@ -202,11 +211,38 @@ export default function MarketplaceNew() {
             Voltar
           </button>
           <div className="font-black text-lg sm:text-xl text-slate-900 tracking-tight">Anunciar Produto</div>
-          <div className="w-16"></div>
+          {currentUser ? (
+            <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full text-xs font-bold text-orange-900 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="truncate max-w-[120px]">{currentUser.name}</span>
+            </div>
+          ) : (
+            <div className="w-16"></div>
+          )}
         </div>
       </header>
 
       <main className="max-w-[800px] mx-auto p-4 sm:p-6 mt-2">
+        {currentUser && (
+          <div className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 text-emerald-900 p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white font-black flex items-center justify-center text-sm shadow-sm shrink-0">
+                ✓
+              </div>
+              <div>
+                <p className="font-extrabold text-slate-800 text-sm">
+                  Publicando como: <span className="text-emerald-700">{currentUser.name}</span>
+                </p>
+                <p className="text-xs text-slate-500">
+                  📍 {currentUser.neighborhood || 'Bairro'} • Anúncio publicado diretamente pela sua conta
+                </p>
+              </div>
+            </div>
+            <span className="bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider hidden sm:inline-block">
+              Conta Conectada
+            </span>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* FOTOS DO PRODUTO */}

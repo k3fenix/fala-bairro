@@ -112,8 +112,18 @@ export default function Landing() {
   };
 
   const fetchMarketplaceItems = async () => {
-    const { data } = await supabase.from('marketplace_items').select('*').eq('status', 'Ativo').order('created_at', { ascending: false }).limit(6);
-    if (data) setMarketplaceItems(data);
+    const { data } = await supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false }).limit(6);
+    if (data && data.length > 0) {
+      setMarketplaceItems(data.map(d => ({
+        ...d,
+        type: d.accepts_trade ? 'Troca' : (Number(d.price) === 0 ? 'Grátis' : 'Venda'),
+        seller_whatsapp: d.whatsapp,
+        image: d.image_url || d.image
+      })));
+    } else {
+      const { data: legacy } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false }).limit(6);
+      if (legacy) setMarketplaceItems(legacy);
+    }
   };
 
   const fetchCommercialGuide = async () => {
@@ -588,6 +598,13 @@ export default function Landing() {
                     <img className="market-img" src={item.image} alt={item.title} loading="lazy" />
                   ) : (
                     <div className="market-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📦</div>
+                  )}
+                  {(item.status === 'sold' || item.status === 'Vendido') && (
+                    <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                      <span style={{ backgroundColor: '#dc2626', color: '#fff', fontWeight: 900, padding: '4px 14px', borderRadius: '9999px', fontSize: '0.75rem', transform: 'rotate(-6deg)', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        🏷️ VENDIDO
+                      </span>
+                    </div>
                   )}
                   <span className={`market-type-tag ${item.type === 'Venda' ? 'tag-venda' : item.type === 'Troca' ? 'tag-troca' : 'tag-gratis'}`}>
                     {item.type}

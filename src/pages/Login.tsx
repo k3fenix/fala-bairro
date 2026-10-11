@@ -61,6 +61,14 @@ export default function Login() {
         if (profile.avatar) localStorage.setItem('user_avatar', profile.avatar);
         if (profile.neighborhood) localStorage.setItem('user_neighborhood', profile.neighborhood);
         if (profile.whatsapp) localStorage.setItem('user_whatsapp', profile.whatsapp);
+        localStorage.setItem('user', JSON.stringify({
+          id: data.user.id,
+          name: profile.name,
+          email: data.user.email,
+          avatar: profile.avatar || '',
+          neighborhood: profile.neighborhood || '',
+          whatsapp: profile.whatsapp || ''
+        }));
         navigate('/feed');
       }
     }

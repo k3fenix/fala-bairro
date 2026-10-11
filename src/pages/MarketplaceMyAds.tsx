@@ -2,72 +2,97 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Package, Plus, Trash2, Eye, PauseCircle, PlayCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import { getAuthUser, UserSession } from '../lib/authHelper';
 
 export default function MarketplaceMyAds() {
   const navigate = useNavigate();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ativos');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
 
   useEffect(() => {
     checkUserAndFetchAds();
   }, []);
 
   const checkUserAndFetchAds = async () => {
-    const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
-    if (!userStr) {
+    const user = await getAuthUser();
+    if (!user) {
+      alert('🔒 Por favor, faça login na sua conta para acessar seus anúncios.');
       navigate('/login');
       return;
     }
-    const user = JSON.parse(userStr);
     setCurrentUser(user);
-    fetchAds(user.id);
+    fetchAds(user);
   };
 
-  const fetchAds = async (userId: string) => {
+  const fetchAds = async (user: UserSession) => {
     setLoading(true);
 
     const { data } = await supabase.from('marketplace_listings')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     
-    if (data && data.length > 0) {
-      setAds(data);
-    } else {
-      // Fallback
-      const { data: itemsData } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false });
-      if (itemsData) setAds(itemsData);
+    // Fallback para marketplace_items matching nome ou whatsapp
+    const orCondition = user.whatsapp 
+      ? `seller_name.eq.${user.name},seller_whatsapp.eq.${user.whatsapp}`
+      : `seller_name.eq.${user.name}`;
+
+    const { data: itemsData } = await supabase.from('marketplace_items')
+      .select('*')
+      .or(orCondition)
+      .order('created_at', { ascending: false });
+
+    const combined: any[] = [];
+    const seen = new Set();
+    if (data) {
+      data.forEach(d => { seen.add(d.id); combined.push(d); });
     }
+    if (itemsData) {
+      itemsData.forEach(item => {
+        if (!seen.has(item.id)) {
+          combined.push({
+            ...item,
+            image_url: item.image,
+            status: item.status === 'Vendido' ? 'sold' : (item.status === 'Pausado' ? 'paused' : (item.status || 'approved'))
+          });
+        }
+      });
+    }
+
+    setAds(combined);
     setLoading(false);
   };
 
   const handleStatusChange = async (adId: string, newStatus: string) => {
-    if (!confirm(`Tem certeza que deseja alterar o status do anúncio?`)) return;
+    const isSold = newStatus === 'sold';
+    const msg = isSold 
+      ? 'Deseja marcar este anúncio como VENDIDO? Ele aparecerá com o selo de Vendido no Marketplace.' 
+      : 'Deseja alterar o status do anúncio?';
+    if (!confirm(msg)) return;
     
-    const { error } = await supabase.from('marketplace_listings')
+    await supabase.from('marketplace_listings')
       .update({ status: newStatus })
       .eq('id', adId);
 
-    if (!error) {
-      fetchAds(currentUser.id);
-    } else {
-      alert("Erro ao alterar status do anúncio.");
+    await supabase.from('marketplace_items')
+      .update({ status: isSold ? 'Vendido' : (newStatus === 'paused' ? 'Pausado' : 'Ativo') })
+      .eq('id', adId);
+
+    if (currentUser) {
+      fetchAds(currentUser);
     }
   };
 
   const handleDelete = async (adId: string) => {
     if (!confirm("Tem certeza que deseja excluir permanentemente este anúncio?")) return;
     
-    const { error } = await supabase.from('marketplace_listings')
-      .delete()
-      .eq('id', adId);
+    await supabase.from('marketplace_listings').delete().eq('id', adId);
+    await supabase.from('marketplace_items').delete().eq('id', adId);
 
-    if (!error) {
-      fetchAds(currentUser.id);
-    } else {
-      alert("Erro ao excluir anúncio.");
+    if (currentUser) {
+      fetchAds(currentUser);
     }
   };
 
@@ -187,6 +212,12 @@ export default function MarketplaceMyAds() {
                       {ad.status !== 'sold' && (
                         <button onClick={() => handleStatusChange(ad.id, 'sold')} className="flex items-center gap-1.5 text-sm font-bold text-slate-700 hover:text-blue-600 bg-slate-100 px-3 py-2 rounded-xl transition-colors cursor-pointer">
                           <CheckCircle className="w-4 h-4" /> Marcar como Vendido
+                        </button>
+                      )}
+
+                      {ad.status === 'sold' && (
+                        <button onClick={() => handleStatusChange(ad.id, 'approved')} className="flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl transition-colors cursor-pointer">
+                          <PlayCircle className="w-4 h-4" /> Reativar Venda
                         </button>
                       )}
                       

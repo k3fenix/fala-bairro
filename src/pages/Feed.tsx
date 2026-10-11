@@ -157,6 +157,17 @@ export default function Feed() {
         setUserAvatar(profile.avatar);
         setEditName(profile.name);
         setEditAvatar(profile.avatar);
+        localStorage.setItem('user', JSON.stringify({
+          id: user.id,
+          name: profile.name,
+          email: user.email,
+          avatar: profile.avatar || '',
+          whatsapp: profile.whatsapp || '',
+          neighborhood: profile.neighborhood || ''
+        }));
+        localStorage.setItem('user_auth', 'true');
+        localStorage.setItem('user_id', user.id);
+        localStorage.setItem('user_name', profile.name);
       }
     }
     

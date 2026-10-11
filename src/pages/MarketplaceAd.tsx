@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Heart, Share2, MessageCircle, AlertTriangle, User, MapPin, Repeat } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, MessageCircle, AlertTriangle, User, MapPin, Repeat, CheckCircle, PlayCircle } from 'lucide-react';
+import { getAuthUser, UserSession } from '../lib/authHelper';
 
 export default function MarketplaceAd() {
   const { id } = useParams();
@@ -12,7 +13,7 @@ export default function MarketplaceAd() {
   const [loading, setLoading] = useState(true);
   const [seller, setSeller] = useState<any>(null);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
 
   useEffect(() => {
     fetchAd();
@@ -20,11 +21,25 @@ export default function MarketplaceAd() {
   }, [id]);
 
   const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getAuthUser();
     if (user) {
       setCurrentUser(user);
       checkFavorite(user.id);
     }
+  };
+
+  const handleMarkAsSold = async () => {
+    if (!confirm('Deseja marcar este anúncio como VENDIDO?')) return;
+    await supabase.from('marketplace_listings').update({ status: 'sold' }).eq('id', id);
+    await supabase.from('marketplace_items').update({ status: 'Vendido' }).eq('id', id);
+    fetchAd();
+  };
+
+  const handleReactivate = async () => {
+    if (!confirm('Deseja reativar este anúncio no Marketplace?')) return;
+    await supabase.from('marketplace_listings').update({ status: 'approved' }).eq('id', id);
+    await supabase.from('marketplace_items').update({ status: 'Ativo' }).eq('id', id);
+    fetchAd();
   };
 
   const fetchAd = async () => {
@@ -142,6 +157,44 @@ export default function MarketplaceAd() {
       </header>
 
       <main className="max-w-[1050px] mx-auto p-4 sm:p-6 mt-4">
+        {/* Banner de Vendido */}
+        {(ad.status === 'sold' || ad.status === 'Vendido') && (
+          <div className="mb-4 bg-red-600 text-white font-black p-4 rounded-2xl flex items-center justify-between shadow-lg">
+            <span className="flex items-center gap-2 text-sm sm:text-base">
+              🏷️ <span>ATENÇÃO: ESTE PRODUTO JÁ FOI VENDIDO!</span>
+            </span>
+            <span className="text-xs bg-red-700/80 px-3 py-1 rounded-full uppercase tracking-wider">
+              Finalizado
+            </span>
+          </div>
+        )}
+
+        {/* Toolbar do Proprietário do Anúncio */}
+        {currentUser && (currentUser.id === ad.user_id || currentUser.name === ad.seller_name) && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
+            <span className="text-xs sm:text-sm font-extrabold text-amber-900 flex items-center gap-2">
+              ⚙️ <span>Você é o anunciante deste produto:</span>
+            </span>
+            <div className="flex items-center gap-2">
+              {ad.status !== 'sold' && ad.status !== 'Vendido' ? (
+                <button 
+                  onClick={handleMarkAsSold} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                >
+                  <CheckCircle className="w-4 h-4" /> Marcar como Vendido
+                </button>
+              ) : (
+                <button 
+                  onClick={handleReactivate} 
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                >
+                  <PlayCircle className="w-4 h-4" /> Reativar Anúncio
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row">
           
           {/* LADO ESQUERDO: FOTOS E GALERIA */}
@@ -256,14 +309,18 @@ export default function MarketplaceAd() {
                 </div>
               </div>
 
-              {ad.whatsapp && (
+              {ad.status === 'sold' || ad.status === 'Vendido' ? (
+                <div className="w-full bg-slate-100 border border-slate-200 text-slate-500 font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 text-base shadow-inner">
+                  🔒 Este anúncio foi finalizado (Produto Vendido)
+                </div>
+              ) : ad.whatsapp ? (
                 <button 
                   onClick={openWhatsApp} 
                   className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-green-500/20 text-lg cursor-pointer"
                 >
                   💬 Negociar no WhatsApp
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
