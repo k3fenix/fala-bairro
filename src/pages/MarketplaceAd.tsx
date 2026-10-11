@@ -80,7 +80,10 @@ export default function MarketplaceAd() {
           whatsapp: itemData.seller_whatsapp,
           image_url: itemData.image,
           image: itemData.image,
-          seller_name: itemData.seller_name
+          seller_name: itemData.seller_name,
+          status: itemData.status || 'Ativo',
+          type: itemData.type,
+          category: itemData.category || 'Geral'
         };
         setAd(converted);
         if (itemData.image) setGalleryImages([itemData.image]);

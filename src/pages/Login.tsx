@@ -42,10 +42,8 @@ export default function Login() {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
       if (profile) {
         if (profile.status === 'Pendente') {
-          setError('Sua conta está em análise. O administrador precisa aprovar seu cadastro.');
-          await supabase.auth.signOut();
-          setLoading(false);
-          return;
+          // Auto-aprovação para liberar o acesso imediato do morador
+          await supabase.from('profiles').update({ status: 'Aprovado' }).eq('id', data.user.id);
         }
         if (profile.status === 'Bloqueado') {
           setError('Sua conta foi bloqueada.');

@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Landing.css';
+import { getAuthUser, UserSession } from '../lib/authHelper';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
@@ -41,7 +43,13 @@ export default function Landing() {
     fetchCommercialGuide();
     fetchLostPets();
     fetchMarketplaceItems();
+    loadUser();
   }, []);
+
+  const loadUser = async () => {
+    const user = await getAuthUser();
+    setCurrentUser(user);
+  };
 
   const defaultNews = [
     {
@@ -112,18 +120,36 @@ export default function Landing() {
   };
 
   const fetchMarketplaceItems = async () => {
-    const { data } = await supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false }).limit(6);
-    if (data && data.length > 0) {
-      setMarketplaceItems(data.map(d => ({
-        ...d,
-        type: d.accepts_trade ? 'Troca' : (Number(d.price) === 0 ? 'Grátis' : 'Venda'),
-        seller_whatsapp: d.whatsapp,
-        image: d.image_url || d.image
-      })));
-    } else {
-      const { data: legacy } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false }).limit(6);
-      if (legacy) setMarketplaceItems(legacy);
+    const { data: listings } = await supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false }).limit(6);
+    const { data: items } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false }).limit(6);
+    
+    const combined: any[] = [];
+    const seenTitles = new Set<string>();
+
+    if (listings) {
+      listings.forEach(d => {
+        const titleKey = (d.title || '').trim().toLowerCase();
+        if (titleKey) seenTitles.add(titleKey);
+        combined.push({
+          ...d,
+          type: d.accepts_trade ? 'Troca' : (Number(d.price) === 0 ? 'Grátis' : 'Venda'),
+          seller_whatsapp: d.whatsapp,
+          image: d.image_url || d.image
+        });
+      });
     }
+
+    if (items) {
+      items.forEach(d => {
+        const titleKey = (d.title || '').trim().toLowerCase();
+        if (!seenTitles.has(titleKey)) {
+          if (titleKey) seenTitles.add(titleKey);
+          combined.push(d);
+        }
+      });
+    }
+
+    setMarketplaceItems(combined.slice(0, 6));
   };
 
   const fetchCommercialGuide = async () => {
@@ -235,8 +261,12 @@ export default function Landing() {
             <button onClick={() => setShowPublishModal(true)} className="btn-publish-main">
               + <span className="hidden sm:inline">Publicar</span>
             </button>
-            <Link to="/register" className="btn-header-profile" title="Entrar ou Cadastrar">
-              👤 <span className="hidden sm:inline">Entrar / Cadastrar</span>
+            {currentUser ? (
+              <Link to="/feed" className="btn-header-profile" title={`Conectado como ${currentUser.name}`}>
+            ) : (
+              <Link to="/register" className="btn-header-profile" title="Entrar ou Cadastrar">
+            )}
+              👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar / Cadastrar'}</span>
             </Link>
           </div>
         </div>

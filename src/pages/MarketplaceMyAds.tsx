@@ -34,15 +34,20 @@ export default function MarketplaceMyAds() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     
-    // Fallback para marketplace_items matching nome ou whatsapp
-    const orCondition = user.whatsapp 
-      ? `seller_name.eq.${user.name},seller_whatsapp.eq.${user.whatsapp}`
-      : `seller_name.eq.${user.name}`;
-
-    const { data: itemsData } = await supabase.from('marketplace_items')
-      .select('*')
-      .or(orCondition)
-      .order('created_at', { ascending: false });
+    // Fallback seguro para marketplace_items matching nome ou whatsapp sem erro de sintaxe PostgREST
+    let itemsData: any[] = [];
+    try {
+      const { data: allItems } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false });
+      if (allItems) {
+        const userCleanPhone = (user.whatsapp || '').replace(/\D/g, '');
+        itemsData = allItems.filter(item => {
+          const matchName = Boolean(item.seller_name && user.name && item.seller_name.trim().toLowerCase() === user.name.trim().toLowerCase());
+          const itemPhone = (item.seller_whatsapp || '').replace(/\D/g, '');
+          const matchPhone = Boolean(userCleanPhone && itemPhone && (itemPhone === userCleanPhone || itemPhone.endsWith(userCleanPhone) || userCleanPhone.endsWith(itemPhone)));
+          return matchName || matchPhone;
+        });
+      }
+    } catch (e) {}
 
     const combined: any[] = [];
     const seen = new Set();

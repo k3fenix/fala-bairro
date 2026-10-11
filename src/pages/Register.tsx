@@ -64,7 +64,7 @@ export default function Register() {
           whatsapp: formData.whatsapp,
           neighborhood: formData.neighborhood,
           address: formData.address,
-          status: 'Pendente'
+          status: 'Aprovado'
         }
       ]);
 
@@ -74,11 +74,28 @@ export default function Register() {
         return;
       }
 
-      // Desloga o usuário recém-criado para não deixar a sessão ativa no navegador
-      await supabase.auth.signOut();
+      // Manter a sessão ativa e gravar dados unificados no localStorage
+      localStorage.removeItem('admin_auth');
+      localStorage.setItem('user_auth', 'true');
+      localStorage.setItem('user_id', authData.user.id);
+      localStorage.setItem('user_name', formData.name.trim());
+      localStorage.setItem('user_avatar', avatar);
+      localStorage.setItem('user_neighborhood', formData.neighborhood);
+      localStorage.setItem('user_whatsapp', formData.whatsapp);
+      localStorage.setItem('user', JSON.stringify({
+        id: authData.user.id,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        avatar: avatar,
+        neighborhood: formData.neighborhood,
+        whatsapp: formData.whatsapp
+      }));
 
-      setSuccess('Cadastro recebido! Seu acesso está pendente de aprovação pelo Administrador do bairro.');
+      setSuccess('🎉 Conta criada com sucesso! Conectando ao Fala do Bairro...');
       setFormData({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
+      setTimeout(() => {
+        navigate('/marketplace');
+      }, 1200);
     }
     setLoading(false);
   };

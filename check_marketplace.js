@@ -6,10 +6,17 @@ const supabase = createClient(
 );
 
 async function check() {
-  console.log('Testing Marketplace Select...');
-  const { data, error } = await supabase.from('marketplace_items').select('*').limit(1);
-  console.log("Error:", error);
-  console.log("Data:", data);
+  console.log('--- Checking marketplace_items ---');
+  const { data: items, error: itemsError } = await supabase.from('marketplace_items').select('*');
+  console.log("Items Error:", itemsError);
+  console.log("Items Count:", items ? items.length : 0);
+  console.log("Items:", items);
+
+  console.log('--- Checking marketplace_listings ---');
+  const { data: listings, error: listingsError } = await supabase.from('marketplace_listings').select('*');
+  console.log("Listings Error:", listingsError);
+  console.log("Listings Count:", listings ? listings.length : 0);
+  console.log("Listings:", listings);
 }
 
 check();

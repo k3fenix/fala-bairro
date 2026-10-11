@@ -18,6 +18,7 @@ export default function MarketplaceNew() {
   const [formData, setFormData] = useState({
     title: '',
     category_id: '',
+    ad_type: 'Venda', // 'Venda', 'Troca', 'Gratis'
     price: '',
     condition: 'Usado',
     accepts_trade: 'nao', // 'sim' ou 'nao'
@@ -113,69 +114,97 @@ export default function MarketplaceNew() {
       const user = currentUser || (await getAuthUser());
       const userId = user?.id || null;
 
+      const isGratis = formData.ad_type === 'Gratis';
+      const isTroca = formData.ad_type === 'Troca' || formData.accepts_trade === 'sim';
+
       const priceNum = parseFloat(String(formData.price).replace(',', '.'));
-      const finalPrice = isNaN(priceNum) ? 0 : priceNum;
-      const acceptsTradeBool = formData.accepts_trade === 'sim';
+      const finalPrice = isGratis ? 0 : (isNaN(priceNum) ? 0 : priceNum);
+      const acceptsTradeBool = isTroca;
+
+      const effectiveType = isGratis ? 'Grátis' : (formData.ad_type === 'Troca' ? 'Troca' : 'Venda');
 
       // Seleciona a imagem principal
       const primaryImage = imagePreviews[primaryIndex] || imagePreviews[0] || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80';
 
-      // 1. Inserir em marketplace_listings
-      const { data: newListing, error: listingError } = await supabase.from('marketplace_listings').insert({
-        user_id: userId,
-        title: formData.title,
-        category_id: formData.category_id ? parseInt(formData.category_id) : null,
+      const selectedCategoryObj = categories.find(c => c.id.toString() === formData.category_id);
+      const categoryName = selectedCategoryObj?.name || 'Outros';
+
+      let itemsSaved = false;
+      let listingsSaved = false;
+
+      // 1. Inserir com total segurança em marketplace_items (tabela universal)
+      const baseItemPayload = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         price: finalPrice,
+        type: effectiveType,
         condition: formData.condition,
-        accepts_trade: acceptsTradeBool,
-        description: formData.description,
-        brand: formData.brand,
-        model: formData.model,
-        state: formData.state,
-        city: formData.city,
-        neighborhood: formData.neighborhood,
-        zip_code: formData.zip_code,
-        whatsapp: formData.whatsapp,
-        image_url: primaryImage,
-        image: primaryImage,
-        status: 'approved' // Auto aprovação ativada
-      }).select().single();
-
-      if (listingError) {
-        console.warn("Aviso ao salvar em marketplace_listings:", listingError.message);
-      }
-
-      const listingId = newListing?.id || null;
-
-      // 2. Salvar galeria em marketplace_listing_images se listingId existir
-      if (listingId && imagePreviews.length > 0) {
-        const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
-          listing_id: listingId,
-          image_url: imgUrl,
-          is_primary: idx === primaryIndex,
-          order_index: idx
-        }));
-
-        await supabase.from('marketplace_listing_images').insert(imagesPayload);
-      }
-
-      // 3. Fallback de compatibilidade retroativa em marketplace_items
-      await supabase.from('marketplace_items').insert({
-        title: formData.title,
-        description: formData.description,
-        price: finalPrice,
-        type: acceptsTradeBool ? 'Troca' : 'Venda',
-        condition: formData.condition,
-        category: categories.find(c => c.id.toString() === formData.category_id)?.name || 'Outros',
-        neighborhood: formData.neighborhood,
+        neighborhood: formData.neighborhood.trim(),
         seller_name: user?.name || 'Vendedor do Bairro',
-        seller_whatsapp: formData.whatsapp,
+        seller_whatsapp: formData.whatsapp.trim(),
         image: primaryImage,
         status: 'Ativo'
-      }).select();
+      };
+
+      try {
+        const { error: catErr } = await supabase.from('marketplace_items').insert({
+          ...baseItemPayload,
+          category: categoryName
+        });
+        if (!catErr) {
+          itemsSaved = true;
+        } else {
+          console.warn("Tentando sem coluna category em marketplace_items:", catErr.message);
+          const { error: fallbackErr } = await supabase.from('marketplace_items').insert(baseItemPayload);
+          if (!fallbackErr) itemsSaved = true;
+        }
+      } catch (errItems) {
+        console.warn("Erro ao salvar em marketplace_items:", errItems);
+      }
+
+      // 2. Inserir também em marketplace_listings (schema v2)
+      try {
+        const listingPayload: any = {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          price: finalPrice,
+          condition: formData.condition,
+          category_id: formData.category_id ? parseInt(formData.category_id) : null,
+          state: formData.state || 'SP',
+          city: formData.city || 'Campinas',
+          neighborhood: formData.neighborhood.trim(),
+          whatsapp: formData.whatsapp.trim(),
+          status: 'approved'
+        };
+        if (userId) {
+          listingPayload.user_id = userId;
+        }
+
+        const { data: newListing, error: listingError } = await supabase.from('marketplace_listings').insert(listingPayload).select().single();
+        if (!listingError && newListing?.id) {
+          listingsSaved = true;
+          if (imagePreviews.length > 0) {
+            const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
+              listing_id: newListing.id,
+              image_url: imgUrl,
+              is_primary: idx === primaryIndex,
+              order_index: idx
+            }));
+            await supabase.from('marketplace_listing_images').insert(imagesPayload);
+          }
+        } else if (listingError) {
+          console.warn("Aviso ao salvar em marketplace_listings:", listingError.message);
+        }
+      } catch (errListings) {
+        console.warn("Erro ao salvar em marketplace_listings:", errListings);
+      }
+
+      if (!itemsSaved && !listingsSaved) {
+        throw new Error('Falha na comunicação com o banco de dados. Verifique sua conexão e tente novamente.');
+      }
 
       setSuccess(true);
-      setTimeout(() => navigate('/marketplace'), 2000);
+      setTimeout(() => navigate('/marketplace'), 1500);
 
     } catch (err: any) {
       alert('Erro ao publicar anúncio: ' + (err.message || 'Tente novamente.'));
@@ -344,55 +373,99 @@ export default function MarketplaceNew() {
                   <option value="Usado">👌 Usado em bom estado</option>
                   <option value="Seminovo">🌟 Seminovo (pouco uso)</option>
                   <option value="Recondicionado">🛠️ Recondicionado / Revisado</option>
-                </select>
-              </div>
-            </div>
-
-            {/* ACEITA TROCAS (OPÇÃO INDEPENDENTE DA CONDIÇÃO) */}
-            <div className="p-4 bg-orange-50/60 border border-orange-200 rounded-2xl">
-              <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <Repeat className="w-4 h-4 text-[#ff6500]" />
-                Aceita Troca por Outros Produtos? *
+                          {/* MODALIDADE DO ANÚNCIO: VENDA / TROCA / DOAÇÃO */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <label className="block text-sm font-bold text-slate-800">
+                O que você deseja fazer com este item? *
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
-                  <input 
-                    type="radio" 
-                    name="accepts_trade" 
-                    value="sim" 
-                    checked={formData.accepts_trade === 'sim'} 
-                    onChange={handleChange}
-                    className="w-4 h-4 accent-[#ff6500]" 
-                  />
-                  <span>Sim, aceito trocas</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
-                  <input 
-                    type="radio" 
-                    name="accepts_trade" 
-                    value="nao" 
-                    checked={formData.accepts_trade === 'nao'} 
-                    onChange={handleChange}
-                    className="w-4 h-4 accent-[#ff6500]" 
-                  />
-                  <span>Não, somente venda</span>
-                </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, ad_type: 'Venda' }))}
+                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${formData.ad_type === 'Venda' ? 'bg-[#ff6500] text-white border-[#ff6500] shadow-md shadow-orange-500/20' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
+                >
+                  <span className="text-lg">🏷️</span>
+                  <span>Vender</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, ad_type: 'Troca', accepts_trade: 'sim' }))}
+                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${formData.ad_type === 'Troca' ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
+                >
+                  <span className="text-lg">🔄</span>
+                  <span>Trocar</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, ad_type: 'Gratis', price: '0' }))}
+                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${formData.ad_type === 'Gratis' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-500/20' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
+                >
+                  <span className="text-lg">🎁</span>
+                  <span>Doar (Grátis)</span>
+                </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Preço de Venda (R$) *</label>
-              <input 
-                required 
-                type="number" 
-                step="0.01" 
-                name="price" 
-                value={formData.price} 
-                onChange={handleChange} 
-                placeholder="0.00" 
-                className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white text-xl font-bold text-slate-900 transition-colors" 
-              />
-            </div>
+            {/* OPÇÃO DE TROCA SE FOR VENDA */}
+            {formData.ad_type === 'Venda' && (
+              <div className="p-4 bg-orange-50/60 border border-orange-200 rounded-2xl">
+                <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                  <Repeat className="w-4 h-4 text-[#ff6500]" />
+                  Além da venda, você também aceita proposta de troca?
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 text-sm">
+                    <input 
+                      type="radio" 
+                      name="accepts_trade" 
+                      value="sim" 
+                      checked={formData.accepts_trade === 'sim'} 
+                      onChange={handleChange} 
+                      className="w-4 h-4 accent-[#ff6500]" 
+                    />
+                    <span>Sim, aceito analisar trocas</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 text-sm">
+                    <input 
+                      type="radio" 
+                      name="accepts_trade" 
+                      value="nao" 
+                      checked={formData.accepts_trade === 'nao'} 
+                      onChange={handleChange} 
+                      className="w-4 h-4 accent-[#ff6500]" 
+                    />
+                    <span>Não, somente venda</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* PREÇO OU AVISO DE GRATUIDADE / TROCA */}
+            {formData.ad_type === 'Gratis' ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 flex items-center gap-3">
+                <span className="text-2xl">🎁</span>
+                <div>
+                  <strong className="block text-sm font-bold">Anúncio Gratuito / Doação</strong>
+                  <span className="text-xs text-emerald-700">Este item será exibido sem custo na aba "Grátis / Doação" para quem precisar no bairro.</span>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">
+                  {formData.ad_type === 'Troca' ? 'Valor Estimado para Troca (R$) - Opcional' : 'Preço de Venda (R$) *'}
+                </label>
+                <input 
+                  required={formData.ad_type === 'Venda'} 
+                  type="number" 
+                  step="0.01" 
+                  name="price" 
+                  value={formData.price} 
+                  onChange={handleChange} 
+                  placeholder="0.00" 
+                  className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white text-xl font-bold text-slate-900 transition-colors" 
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Descrição do Anúncio *</label>
