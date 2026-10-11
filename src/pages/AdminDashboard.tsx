@@ -78,6 +78,8 @@ function TabButton({ icon, label, active, onClick }: any) {
 function CommercialTab() {
   const [items, setItems] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
+  const [formImage, setFormImage] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     fetchItems();
@@ -103,8 +105,8 @@ function CommercialTab() {
       category: formData.get('category'),
       description: formData.get('description'),
       whatsapp: formData.get('whatsapp'),
-      neighborhood: formData.get('neighborhood'),
-      image: formData.get('image'),
+      neighborhood: formData.get('neighborhood') || 'Jardim Mário Covas',
+      image: formImage || formData.get('image') || null,
       rating: Number(formData.get('rating') || 5),
       is_verified: formData.get('is_verified') === 'on',
     };
@@ -115,16 +117,58 @@ function CommercialTab() {
       await supabase.from('commercial_guide').insert([item]);
     }
     setEditing(null);
+    setFormImage('');
     fetchItems();
   };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const filteredItems = items.filter(item => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      (item.name || '').toLowerCase().includes(term) ||
+      (item.category || '').toLowerCase().includes(term) ||
+      (item.neighborhood || '').toLowerCase().includes(term) ||
+      (item.description || '').toLowerCase().includes(term)
+    );
+  });
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-800">Guia Comercial</h2>
-        <button onClick={() => setEditing({})} className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800">🏪 Guia Comercial e Serviços Locais</h2>
+          <p className="text-sm text-slate-500 mt-1">Gerencie as empresas parceiras e prestadores de serviços do bairro</p>
+        </div>
+        <button onClick={() => { setEditing({}); setFormImage(''); }} className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/20 cursor-pointer transition-all">
           <Plus className="w-5 h-5" /> Adicionar Comércio
         </button>
+      </div>
+
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex gap-3 items-center">
+        <span className="text-slate-400 text-lg">🔍</span>
+        <input 
+          type="text" 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar comércio por nome, categoria, serviço ou bairro..."
+          className="w-full text-sm font-medium outline-none bg-transparent text-slate-800"
+        />
+        {searchTerm && (
+          <button type="button" onClick={() => setSearchTerm('')} className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer">
+            Limpar
+          </button>
+        )}
       </div>
 
       {editing && (
@@ -138,8 +182,8 @@ function CommercialTab() {
             <input name="category" defaultValue={editing.category} required className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-bold text-slate-700 mb-1">Descrição</label>
-            <textarea name="description" defaultValue={editing.description} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 h-20"></textarea>
+            <label className="block text-sm font-bold text-slate-700 mb-1">📝 Funções, Serviços Prestados e Especificações *</label>
+            <textarea name="description" defaultValue={editing.description} rows={4} placeholder="Ex: Conserto de celulares e computadores, troca de telas, manutenção de notebooks, baterias e capinhas. Orçamento rápido sem compromisso!" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-800 focus:bg-white focus:border-blue-500 outline-none leading-relaxed text-sm"></textarea>
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">WhatsApp (apenas números)</label>
@@ -147,7 +191,8 @@ function CommercialTab() {
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">URL da Imagem/Logo (Opcional)</label>
-            <input name="image" defaultValue={editing.image} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2" />
+            <input type="file" accept="image/*" onChange={handleImageFileChange} className="text-xs text-slate-600 mb-2 block file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white cursor-pointer" />
+            <input name="image" value={formImage || editing.image || ''} onChange={(e) => setFormImage(e.target.value)} placeholder="Ou cole o link direto da imagem" className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-xs" />
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">Bairro</label>
@@ -171,16 +216,73 @@ function CommercialTab() {
       )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map(item => (
-          <div key={item.id} className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm relative">
-            <h3 className="font-bold text-slate-800 text-lg">{item.name}</h3>
-            <p className="text-sm font-bold text-emerald-600 mb-2">{item.category}</p>
-            <p className="text-sm text-slate-600 mb-4">{item.whatsapp}</p>
-            <div className="flex gap-2 justify-end mt-4">
+        {filteredItems.map(item => (
+          <div key={item.id} className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col group">
+            {/* Foto no Topo */}
+            <div className="h-44 w-full bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden flex items-center justify-center">
+              {item.image ? (
+                <img 
+                  src={item.image} 
+                  alt={item.name} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              ) : null}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-white/80 p-4 -z-0">
+                <span className="text-4xl mb-1">🏪</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-white/90">{item.name}</span>
+              </div>
+
+              <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10">
+                <span className="bg-blue-600/90 backdrop-blur-md text-white text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow">
+                  {item.category}
+                </span>
+                {item.is_verified && (
+                  <span className="bg-emerald-500/95 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
+                    ✓ Verificado
+                  </span>
+                )}
+              </div>
+              <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-amber-400 text-xs font-bold px-2.5 py-1 rounded-full shadow z-10">
+                ⭐ {item.rating || '5.0'}
+              </div>
+            </div>
+
+            <div className="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-xl leading-tight mb-1">{item.name}</h3>
+                <p className="text-xs font-bold text-blue-600 mb-2 uppercase tracking-wide">{item.category}</p>
+                {item.description && (
+                  <p className="text-xs text-slate-600 line-clamp-3 mb-3 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    {item.description}
+                  </p>
+                )}
+                {item.address && (
+                  <p className="text-xs text-slate-500 mb-3 flex items-center gap-1">
+                    📍 {item.address}
+                  </p>
+                )}
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
+                <a 
+                  href={`https://wa.me/55${item.whatsapp?.replace(/\D/g, '')}`} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-full shadow-sm transition"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  {item.whatsapp}
+                </a>
+                <div className="flex gap-1.5">
               <button onClick={() => setEditing(item)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><Edit className="w-4 h-4" /></button>
               <button onClick={() => handleDelete(item.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><Trash2 className="w-4 h-4" /></button>
             </div>
-          </div>
+                </div>
+              </div>
+            </div>
+{/* end card */}
         ))}
       </div>
     </div>

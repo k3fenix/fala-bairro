@@ -12,6 +12,7 @@ export default function Landing() {
   
   const [selectedPetDetails, setSelectedPetDetails] = useState<any>(null);
   const [selectedBusinessDetails, setSelectedBusinessDetails] = useState<any>(null);
+  const [expandedBusinessImage, setExpandedBusinessImage] = useState<string | null>(null);
   const [selectedPostDetails, setSelectedPostDetails] = useState<any>(null);
   const [selectedNewsDetails, setSelectedNewsDetails] = useState<any>(null);
   const [isNewsFullScreen, setIsNewsFullScreen] = useState(false);
@@ -495,10 +496,22 @@ export default function Landing() {
         {/* ==========================================================================
             SEÇÃO 5: GUIA LOCAL & COMÉRCIO DO BAIRRO
             ========================================================================== */}
-        <section id="guia" style={{ marginTop: '36px' }}>
-          <div className="section-header">
-            <h2 className="section-title">🏪 Encontre no seu Bairro</h2>
-            <Link to="/feed" className="section-link">Cadastrar empresa ➔</Link>
+        {/* ==========================================================================
+            DIVISOR: ANIMAIS -> EMPRESÁRIOS LOCAIS
+            ========================================================================== */}
+        <div className="section-divider-bar">
+          <span className="section-divider-badge">🏪 COMÉRCIO & EMPRESÁRIOS LOCAIS</span>
+        </div>
+
+        <section id="guia" style={{ marginTop: '20px' }}>
+          <div className="business-header-banner">
+            <div className="banner-content">
+            <div>
+                <h2>🏪 EMPRESÁRIOS LOCAIS & GUIA COMERCIAL</h2>
+                <p>"Fortaleça o comércio da sua comunidade! Encontre comércios, serviços e profissionais da sua cidade e bairro."</p>
+            </div>
+            <Link to="/feed" className="btn-banner-action">+ CADASTRAR EMPRESA</Link>
+          </div>
           </div>
 
           <div className="guia-search-box">
@@ -512,7 +525,15 @@ export default function Landing() {
             {commercialGuide.map(business => (
               <div key={business.id} onClick={() => setSelectedBusinessDetails(business)} className="business-card" style={{ cursor: "pointer" }}>
                 {business.image ? (
-                  <img className="business-thumb" src={business.image} alt={business.name} loading="lazy" />
+                  <img 
+                    className="business-thumb" 
+                    src={business.image} 
+                    alt={business.name} 
+                    loading="lazy" 
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
                 ) : (
                   <div className="business-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏪</div>
                 )}
@@ -520,7 +541,9 @@ export default function Landing() {
                   <span className="business-category">{business.category}</span>
                   <h4>{business.name}</h4>
                   <p className="business-address" style={{ fontSize: '11px' }}>{business.description?.substring(0, 40)}...</p>
-                  <button className="btn-business-cta" onClick={(e) => { e.stopPropagation(); openWhatsApp(business.whatsapp, `Olá ${business.name}, vi o anúncio no Fala do Bairro!`); }}>📱 WhatsApp</button>
+                  <button className="btn-business-cta" onClick={(e) => { e.stopPropagation(); openWhatsApp(business.whatsapp, `Olá ${business.name}, vi o anúncio no Fala do Bairro!`); }}>
+                    <span>💬</span> WhatsApp
+                  </button>
                 </div>
               </div>
             ))}
@@ -530,10 +553,24 @@ export default function Landing() {
         {/* ==========================================================================
             SEÇÃO 6: VENDAS & TROCAS
             ========================================================================== */}
-        <section id="vendas" style={{ marginTop: '36px' }}>
-          <div className="section-header">
-            <h2 className="section-title">🛒 Fala do Bairro Marketplace</h2>
-            <Link to="/marketplace" className="section-link" style={{ backgroundColor: '#ff6500', color: '#ffffff', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold' }}>Acessar Área do Marketplace ➔</Link>
+        {/* ==========================================================================
+            DIVISOR: EMPRESAS -> MARKETPLACE
+            ========================================================================== */}
+        <div className="section-divider-bar">
+          <span className="section-divider-badge">🛒 CLASSIFICADOS, COMPRA & TROCA</span>
+        </div>
+
+        <section id="vendas" style={{ marginTop: '20px' }}>
+          <div className="market-header-banner">
+            <div className="banner-content">
+              <div>
+                <h2>🛒 FALA DO BAIRRO MARKETPLACE</h2>
+                <p>"Compre, venda, troque ou doe itens direto com seus vizinhos com rapidez e segurança."</p>
+              </div>
+              <Link to="/marketplace" className="btn-banner-action">
+                ACESSAR ÁREA DO MARKETPLACE ➔
+              </Link>
+            </div>
           </div>
 
           <div className="market-filter-bar">
@@ -661,10 +698,17 @@ export default function Landing() {
       {/* Business Details Modal */}
       {selectedBusinessDetails && (
         <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedBusinessDetails(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 120, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '28rem', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '36rem', maxHeight: '90vh', overflowY: 'auto' }}>
             {selectedBusinessDetails.image && (
-              <div className="w-full h-64 bg-slate-100" style={{ width: '100%', height: '16rem', backgroundColor: '#f1f5f9' }}>
-                <img src={selectedBusinessDetails.image} alt="Business" className="w-full h-full object-cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div 
+                className="w-full h-72 bg-slate-900 relative cursor-pointer group overflow-hidden flex items-center justify-center"
+                onClick={() => setExpandedBusinessImage(selectedBusinessDetails.image)}
+                title="Clique para ver foto / panfleto em tela cheia"
+              >
+                <img src={selectedBusinessDetails.image} alt={selectedBusinessDetails.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+                <div className="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 font-bold shadow">
+                  🔍 Ampliar Foto / Panfleto
+                </div>
               </div>
             )}
             <div className="p-6" style={{ padding: '24px' }}>
@@ -687,6 +731,31 @@ export default function Landing() {
                 </a>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Foto / Panfleto em Tela Cheia */}
+      {expandedBusinessImage && (
+        <div 
+          className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4" 
+          onClick={() => setExpandedBusinessImage(null)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div className="relative max-w-5xl max-h-[96vh] flex flex-col items-center" onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={() => setExpandedBusinessImage(null)} 
+              className="absolute -top-12 right-0 bg-white/20 hover:bg-white/40 text-white rounded-full px-4 py-2 font-extrabold text-sm transition flex items-center gap-1.5"
+              style={{ cursor: 'pointer', border: 'none' }}
+              title="Fechar"
+            >
+              ✕ Fechar Foto / Panfleto
+            </button>
+            <img 
+              src={expandedBusinessImage} 
+              alt="Panfleto Expandido" 
+              className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" 
+            />
           </div>
         </div>
       )}

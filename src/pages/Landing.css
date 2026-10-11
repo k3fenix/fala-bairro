@@ -680,23 +680,33 @@
 }
 
 .business-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 16px;
   display: flex;
-  gap: 12px;
-  box-shadow: var(--shadow-sm);
+  gap: 14px;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.35);
   position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #ffffff;
+}
+
+.business-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px -5px rgba(2, 132, 199, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .business-thumb {
-  width: 70px;
-  height: 70px;
-  border-radius: var(--radius-sm);
-  background: #e2e8f0;
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  background: #ffffff;
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .business-details {
@@ -707,33 +717,53 @@
 
 .business-category {
   font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--accent);
+  font-weight: 800;
+  color: #e0f2fe;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  display: inline-block;
+  align-self: flex-start;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
 }
 
 .business-details h4 {
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 900;
   line-height: 1.2;
+  color: #ffffff !important;
+  margin: 0;
 }
 
 .business-address {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  margin: 4px 0 8px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 4px 0 10px;
+  line-height: 1.4;
 }
 
 .btn-business-cta {
   align-self: flex-start;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--primary);
-  background: var(--primary-light);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 800;
+  background: #22c55e !important;
+  color: #ffffff !important;
   border: none;
+  padding: 6px 14px;
+  border-radius: 9999px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-business-cta:hover {
+  background: #16a34a !important;
+  transform: scale(1.05);
 }
 
 /* 8. VENDAS & TROCAS */
@@ -942,4 +972,156 @@
   from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* ==========================================================================
+   DIVISORES E BANNERS DE SEÇÃO DIFERENCIADOS (EMPRESAS & MARKETPLACE)
+   ========================================================================== */
+.section-divider-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 44px 0 28px;
+  position: relative;
+}
+
+.section-divider-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #cbd5e1 30%, #94a3b8 50%, #cbd5e1 70%, transparent 100%);
+}
+
+.section-divider-badge {
+  position: relative;
+  z-index: 2;
+  background: #f8fafc;
+  padding: 4px 18px;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.business-header-banner {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
+  color: #ffffff;
+  border-radius: 24px;
+  padding: 22px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 14px 30px -8px rgba(2, 132, 199, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.business-header-banner .banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.business-header-banner h2 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.business-header-banner p {
+  font-size: 0.92rem;
+  opacity: 0.95;
+  margin: 6px 0 0 0;
+  color: #e0f2fe;
+}
+
+.business-header-banner .btn-banner-action {
+  background: #ffffff;
+  color: #0369a1;
+  font-weight: 800;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.business-header-banner .btn-banner-action:hover {
+  background: #f0f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.market-header-banner {
+  background: linear-gradient(135deg, #ff6500 0%, #ea580c 50%, #c2410c 100%);
+  color: #ffffff;
+  border-radius: 24px;
+  padding: 22px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 14px 30px -8px rgba(234, 88, 12, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.market-header-banner .banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.market-header-banner h2 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.market-header-banner p {
+  font-size: 0.92rem;
+  opacity: 0.95;
+  margin: 6px 0 0 0;
+  color: #ffedd5;
+}
+
+.market-header-banner .btn-banner-action {
+  background: #ffffff;
+  color: #ea580c;
+  font-weight: 800;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.market-header-banner .btn-banner-action:hover {
+  background: #fff7ed;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
 
