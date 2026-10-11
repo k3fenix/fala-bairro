@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Store, Search, Repeat } from 'lucide-react';
 
 export default function Marketplace() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [typeFilter, setTypeFilter] = useState<'all' | 'Venda' | 'Troca' | 'Gratis'>('all');
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [listings, setListings] = useState<any[]>([]);
@@ -16,6 +18,14 @@ export default function Marketplace() {
   useEffect(() => {
     checkMarketplaceStatus();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tipo = params.get('tipo');
+    if (tipo === 'Venda' || tipo === 'Troca' || tipo === 'Gratis') {
+      setTypeFilter(tipo);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (isEnabled) {
@@ -88,9 +98,18 @@ export default function Marketplace() {
       item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.neighborhood?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesTrade = !tradeOnlyFilter || item.accepts_trade === true;
+    const matchesTrade = !tradeOnlyFilter || item.accepts_trade === true || item.type === 'Troca';
 
-    return matchesCategory && matchesSearch && matchesTrade;
+    let matchesType = true;
+    if (typeFilter === 'Venda') {
+      matchesType = !item.accepts_trade && item.type !== 'Troca' && item.type !== 'Trocas' && Number(item.price) > 0;
+    } else if (typeFilter === 'Troca') {
+      matchesType = item.accepts_trade === true || item.type === 'Troca' || item.type === 'Trocas';
+    } else if (typeFilter === 'Gratis') {
+      matchesType = item.type === 'Grátis' || item.type === 'Gratis' || item.type === 'Grátis/Doação' || Number(item.price) === 0;
+    }
+
+    return matchesCategory && matchesSearch && matchesTrade && matchesType;
   });
 
   const handleProtectedSellClick = () => {
@@ -145,6 +164,13 @@ export default function Marketplace() {
               <strong className="block text-[20px] text-[#202636] leading-none mb-[2px]">FALA DO BAIRRO</strong>
               <span className="block text-[#ff6500] text-[12px] font-bold uppercase tracking-wider">MARKETPLACE</span>
             </div>
+            <button 
+              onClick={(e) => { e.stopPropagation(); navigate('/'); }}
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer ml-1"
+              title="Voltar para a página principal do Fala do Bairro"
+            >
+              ⬅️ Portal Principal
+            </button>
           </div>
 
           <div className="flex-1 relative order-3 sm:order-none w-full sm:w-auto mt-2 sm:mt-0">
@@ -197,6 +223,33 @@ export default function Marketplace() {
       </section>
 
       <main className="max-w-[1250px] mx-auto p-[30px_20px]">
+        {/* TABS DE TIPO: TODOS / VENDAS / TROCAS / GRÁTIS */}
+        <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
+          <button 
+            onClick={() => setTypeFilter('all')} 
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold cursor-pointer transition-all ${typeFilter === 'all' ? 'bg-[#ff6500] text-white shadow-lg shadow-orange-500/25 scale-105' : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'}`}
+          >
+            🌟 TODOS
+          </button>
+          <button 
+            onClick={() => setTypeFilter('Venda')} 
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold cursor-pointer transition-all ${typeFilter === 'Venda' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 scale-105' : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'}`}
+          >
+            🏷️ VENDAS
+          </button>
+          <button 
+            onClick={() => setTypeFilter('Troca')} 
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold cursor-pointer transition-all ${typeFilter === 'Troca' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25 scale-105' : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'}`}
+          >
+            🔄 TROCAS
+          </button>
+          <button 
+            onClick={() => setTypeFilter('Gratis')} 
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold cursor-pointer transition-all ${typeFilter === 'Gratis' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 scale-105' : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'}`}
+          >
+            🎁 GRÁTIS / DOAÇÃO
+          </button>
+        </div>
         {/* CATEGORIAS */}
         <div className="mb-[32px]">
           <div className="flex justify-between items-center mb-[14px]">

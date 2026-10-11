@@ -1113,9 +1113,14 @@ function MonetizationTab() {
 
 function MarketplaceAdminTab() {
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     fetchSettings();
+    fetchItems();
   }, []);
 
   const fetchSettings = async () => {
@@ -1123,6 +1128,84 @@ function MarketplaceAdminTab() {
     if (data) {
       setIsEnabled(data.value === 'true');
     }
+  };
+
+  const fetchItems = async () => {
+    setLoading(true);
+    const { data: listingsData } = await supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false });
+    const { data: itemsData } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false });
+
+    const combined: any[] = [];
+    const seen = new Set();
+
+    if (listingsData) {
+      listingsData.forEach(l => {
+        seen.add(l.id || l.title);
+        combined.push({
+          id: l.id,
+          title: l.title,
+          description: l.description,
+          price: l.price,
+          condition: l.condition || 'Usado',
+          accepts_trade: l.accepts_trade === true,
+          type: l.accepts_trade ? 'Troca' : 'Venda',
+          neighborhood: l.neighborhood || 'Bairro Local',
+          whatsapp: l.whatsapp,
+          seller_name: 'Usuário Cadastrado',
+          image: l.image_url || l.image,
+          status: l.status === 'sold' ? 'Vendido' : (l.status === 'paused' ? 'Pausado' : 'Ativo'),
+          created_at: l.created_at,
+          table: 'marketplace_listings'
+        });
+      });
+    }
+
+    if (itemsData) {
+      itemsData.forEach(i => {
+        if (!seen.has(i.id || i.title)) {
+          combined.push({
+            id: i.id,
+            title: i.title,
+            description: i.description,
+            price: i.price,
+            condition: i.condition || 'Usado',
+            accepts_trade: i.type === 'Troca',
+            type: i.type,
+            neighborhood: i.neighborhood || 'Bairro Local',
+            whatsapp: i.seller_whatsapp,
+            seller_name: i.seller_name || 'Morador',
+            image: i.image,
+            status: i.status || 'Ativo',
+            created_at: i.created_at,
+            table: 'marketplace_items'
+          });
+        }
+      });
+    }
+
+    setItems(combined);
+    setLoading(false);
+  };
+
+  const handleDeleteItem = async (item: any) => {
+    if (confirm(`Excluir permanentemente o anúncio "${item.title}"?`)) {
+      if (item.table === 'marketplace_listings') {
+        await supabase.from('marketplace_listings').delete().eq('id', item.id);
+      }
+      await supabase.from('marketplace_items').delete().eq('id', item.id);
+      await supabase.from('marketplace_items').delete().eq('title', item.title);
+      alert('Anúncio excluído com sucesso!');
+      fetchItems();
+    }
+  };
+
+  const handleToggleStatus = async (item: any) => {
+    const nextStatus = item.status === 'Vendido' ? 'Ativo' : 'Vendido';
+    if (item.table === 'marketplace_listings') {
+      await supabase.from('marketplace_listings').update({ status: nextStatus === 'Ativo' ? 'approved' : 'sold' }).eq('id', item.id);
+    }
+    await supabase.from('marketplace_items').update({ status: nextStatus }).eq('id', item.id);
+    fetchItems();
   };
 
   const toggleMarketplace = async () => {
@@ -1161,7 +1244,138 @@ function MarketplaceAdminTab() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* RESUMO E ESTATÍSTICAS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Anúncios</p>
+          <p className="text-2xl font-black text-slate-800">{items.length}</p>
+        </div>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">🏷️ Vendas</p>
+          <p className="text-2xl font-black text-blue-600">{items.filter(i => !i.accepts_trade && i.type !== 'Troca').length}</p>
+        </div>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">🔄 Trocas</p>
+          <p className="text-2xl font-black text-purple-600">{items.filter(i => i.accepts_trade || i.type === 'Troca').length}</p>
+        </div>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">🟢 Ativos</p>
+          <p className="text-2xl font-black text-emerald-600">{items.filter(i => i.status !== 'Vendido').length}</p>
+        </div>
+      </div>
+
+      {/* BARRA DE BUSCA E FILTROS */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col sm:flex-row gap-3 justify-between items-center">
+        <div className="w-full sm:w-80">
+          <input 
+            type="text" 
+            placeholder="Buscar por título ou vendedor..." 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500"
+          />
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <select 
+            value={statusFilter} 
+            onChange={e => setStatusFilter(e.target.value)}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 outline-none"
+          >
+            <option value="all">Todos os Status</option>
+            <option value="Ativo">Apenas Ativos</option>
+            <option value="Vendido">Apenas Vendidos</option>
+          </select>
+          <button 
+            onClick={fetchItems} 
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+          >
+            🔄 Atualizar
+          </button>
+        </div>
+      </div>
+
+      {/* LISTAGEM DOS PRODUTOS GERENCIADOS PELO ADMIN */}
+      {loading ? (
+        <div className="text-center py-12 text-slate-500 font-bold">Carregando anúncios do Marketplace...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {items
+            .filter(item => {
+              const matchesSearch = !search.trim() || 
+                item.title?.toLowerCase().includes(search.toLowerCase()) || 
+                item.seller_name?.toLowerCase().includes(search.toLowerCase()) ||
+                item.neighborhood?.toLowerCase().includes(search.toLowerCase());
+              const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+              return matchesSearch && matchesStatus;
+            })
+            .map(item => (
+              <div key={item.id || item.title} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center border border-slate-100">
+                    {item.image ? (
+                      <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl">📦</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${item.accepts_trade || item.type === 'Troca' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {item.accepts_trade || item.type === 'Troca' ? '🔄 Troca' : '🏷️ Venda'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.status === 'Vendido' ? 'bg-slate-200 text-slate-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-slate-800 text-sm truncate" title={item.title}>{item.title}</h4>
+                    <p className="text-emerald-600 font-black text-sm mt-0.5">
+                      {item.accepts_trade || item.type === 'Troca' ? 'Para Troca' : Number(item.price) > 0 ? `R$ ${Number(item.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Grátis'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1 truncate">
+                      📍 {item.neighborhood} • 👤 {item.seller_name}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  {item.whatsapp && (
+                    <a 
+                      href={`https://wa.me/55${String(item.whatsapp).replace(/\D/g, '')}`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="text-xs text-emerald-600 font-bold hover:underline"
+                    >
+                      💬 WhatsApp
+                    </a>
+                  )}
+                  <div className="flex items-center gap-1.5 ml-auto">
+                    <button 
+                      onClick={() => handleToggleStatus(item)}
+                      className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer ${item.status === 'Vendido' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                    >
+                      {item.status === 'Vendido' ? 'Reativar' : 'Marcar Vendido'}
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteItem(item)}
+                      className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors cursor-pointer"
+                      title="Excluir Anúncio"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {items.length === 0 && !loading && (
+        <div className="bg-white border border-slate-200 p-8 rounded-2xl text-center text-slate-500 mb-6">
+          Nenhum anúncio cadastrado no Marketplace ainda.
+        </div>
+      )}
+
+      <div style={{ display: 'none' }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl flex flex-col items-center justify-center min-h-[200px] text-center">
           <Store className="w-12 h-12 text-slate-300 mb-3" />
           <h3 className="font-bold text-slate-800 mb-2">Fase 2 em construção...</h3>

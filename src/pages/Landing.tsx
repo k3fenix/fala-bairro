@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Landing.css';
 
 export default function Landing() {
+  const navigate = useNavigate();
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
@@ -16,16 +17,77 @@ export default function Landing() {
   const [isNewsFullScreen, setIsNewsFullScreen] = useState(false);
   const [selectedMarketDetails, setSelectedMarketDetails] = useState<any>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [newsList, setNewsList] = useState<any[]>([]);
 
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    fetchNews();
     fetchPublicPosts();
     fetchCommercialGuide();
     fetchLostPets();
     fetchMarketplaceItems();
   }, []);
+
+  const defaultNews = [
+    {
+      id: '1',
+      title: "Obras de recapeamento na Avenida Central começam nesta segunda-feira",
+      summary: "Trânsito terá desvio temporário pela Rua das Flores durante toda a semana. Moradores devem ficar atentos às linhas de ônibus.",
+      category: "Infraestrutura",
+      neighborhood: "Mário Covas",
+      image: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80",
+      date: "Hoje às 09:30",
+      description: "A prefeitura regional iniciou nesta segunda-feira as obras de recapeamento asfáltico e sinalização na Avenida Central do bairro Mário Covas.\n\nO tráfego sofrerá intervenções parciais entre os cruzamentos com a Rua das Flores e Avenida dos Pioneiros. Agentes comunitários de trânsito estão no local orientando motoristas e pedestres.\n\nA previsão de conclusão dos serviços é de até 5 dias úteis, garantindo mais segurança e qualidade no trânsito para todos os moradores da nossa comunidade."
+    },
+    {
+      id: '2',
+      title: "Posto de Saúde do bairro terá mutirão de vacinação no próximo sábado",
+      summary: "Atendimento das 8h às 17h para atualização da caderneta de crianças, jovens e idosos. Leve documento com foto.",
+      category: "Saúde",
+      neighborhood: "Mário Covas",
+      image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80",
+      date: "Ontem",
+      description: "A Unidade Básica de Saúde (UBS) do bairro Mário Covas realizará um mutirão especial de imunização neste sábado.\n\nEstarão disponíveis doses de vacinas contra a gripe (Influenza), Covid-19, tétano e todas as vacinas de rotina para bebês, crianças, adultos e idosos. O atendimento será contínuo das 08h às 17h.\n\nMoradores devem levar documento oficial com foto e a carteira de vacinação para conferência e atualização."
+    },
+    {
+      id: '3',
+      title: "Feira de produtores e artesanato local atrai mais de 400 famílias na praça",
+      summary: "Evento valoriza feirantes do bairro e movimenta a economia local com opções gastronômicas e música ao vivo.",
+      category: "Cultura",
+      neighborhood: "Praça da Paz",
+      image: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&w=600&q=80",
+      date: "Há 2 dias",
+      description: "A Praça da Paz recebeu neste fim de semana mais uma animada edição da Feira de Produtores e Artesãos Locais, reunindo centenas de vizinhos.\n\nCom barracas de hortaliças frescas, queijos artesanais, lanches, além de brinquedos infláveis e apresentações culturais, o evento movimentou os empreendedores da região.\n\nA próxima edição já está confirmada para o próximo mês. Prestigie e compre de quem produz no seu bairro!"
+    }
+  ];
+
+  const fetchNews = async () => {
+    try {
+      const { data } = await supabase.from('settings').select('*').eq('key', 'landing_news_list').maybeSingle();
+      if (data && data.value) {
+        const parsed = JSON.parse(data.value);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const formatted = parsed.map((item: any, idx: number) => ({
+            id: item.id || String(idx),
+            title: item.title,
+            summary: item.description ? (item.description.length > 130 ? item.description.substring(0, 130) + '...' : item.description) : item.title,
+            category: item.label || 'Notícia',
+            neighborhood: 'Mário Covas',
+            image: item.image || defaultNews[idx % defaultNews.length].image,
+            date: 'Publicado recentemente',
+            description: item.description || item.title
+          }));
+          setNewsList(formatted);
+          return;
+        }
+      }
+    } catch (e) {
+      console.log('Usando notícias padrão:', e);
+    }
+    setNewsList(defaultNews);
+  };
 
   const fetchLostPets = async () => {
     const { data } = await supabase.from('lost_pets').select('*').order('created_at', { ascending: false });
@@ -132,7 +194,7 @@ export default function Landing() {
           <a href="#mural" className="chip">📢 Mural</a>
           <a href="#animais" className="chip">🐶 Animais</a>
           <a href="#guia" className="chip">🏪 Guia Local</a>
-          <a href="#vendas" className="chip">🛒 Marketplace</a>
+          <Link to="/marketplace" className="chip" style={{ color: '#ea580c', fontWeight: 'bold' }}>🛒 Marketplace</Link>
         </div>
       </nav>
 
@@ -164,11 +226,45 @@ export default function Landing() {
             ========================================================================== */}
         <section id="noticias">
           <div className="section-header">
-            <h2 className="section-title">📰 Notícias do Bairro</h2>
+            <div>
+              <h2 className="section-title">📰 Notícias do Bairro</h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Clique em qualquer notícia para ler os detalhes e a matéria completa</p>
+            </div>
             <Link to="/feed" className="section-link">Ver todas ➔</Link>
           </div>
 
           <div className="news-grid">
+            {newsList.map((item) => (
+              <article 
+                key={item.id} 
+                className="news-card" 
+                style={{ cursor: "pointer" }} 
+                onClick={() => setSelectedNewsDetails(item)}
+                title="Clique para ler a notícia completa"
+              >
+                {item.image && (
+                  <img className="news-image" src={item.image} alt={item.title} loading="lazy" />
+                )}
+                <div className="news-body">
+                  <div className="news-meta">
+                    <span className="news-category">{item.category}</span>
+                    <span className="news-neighborhood">• {item.neighborhood}</span>
+                  </div>
+                  <h3 className="news-title">{item.title}</h3>
+                  <p className="news-summary">{item.summary}</p>
+                  <div className="news-footer" style={{ marginTop: 'auto', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{item.date}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 'bold' }}>📖 Ler mais</span>
+                      <button className="share-btn-inline" onClick={(e) => { e.stopPropagation(); shareText(item.title); }}>📤</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div style={{ display: 'none' }}>
             <article className="news-card" style={{ cursor: "pointer" }} onClick={() => setSelectedNewsDetails({ title: "Obras de recapeamento na Avenida Central começam nesta segunda-feira", summary: "Trânsito terá desvio temporário pela Rua das Flores durante toda a semana. Moradores devem ficar atentos às linhas de ônibus.", category: "Infraestrutura", neighborhood: "Mário Covas", image: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80", date: "Hoje às 09:30" })}>
               <img className="news-image" src="https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80" alt="Obras" loading="lazy" />
               <div className="news-body">
@@ -348,14 +444,14 @@ export default function Landing() {
         <section id="vendas" style={{ marginTop: '36px' }}>
           <div className="section-header">
             <h2 className="section-title">🛒 Fala do Bairro Marketplace</h2>
-            <Link to="/marketplace" className="section-link">Explorar Marketplace ➔</Link>
+            <Link to="/marketplace" className="section-link" style={{ backgroundColor: '#ff6500', color: '#ffffff', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold' }}>Acessar Área do Marketplace ➔</Link>
           </div>
 
           <div className="market-filter-bar">
-            <button className="market-filter-btn active">TODOS</button>
-            <button className="market-filter-btn">🏷️ VENDAS</button>
-            <button className="market-filter-btn">🔄 TROCAS</button>
-            <button className="market-filter-btn">🎁 GRÁTIS / DOAÇÃO</button>
+            <Link to="/marketplace" className="market-filter-btn active">TODOS</Link>
+            <Link to="/marketplace?tipo=Venda" className="market-filter-btn">🏷️ VENDAS</Link>
+            <Link to="/marketplace?tipo=Troca" className="market-filter-btn">🔄 TROCAS</Link>
+            <Link to="/marketplace?tipo=Gratis" className="market-filter-btn">🎁 GRÁTIS / DOAÇÃO</Link>
           </div>
 
           <div className="market-grid">
@@ -641,7 +737,11 @@ export default function Landing() {
                 </div>
 
                 {/* Rich Body Paragraphs */}
-                <div className="article-body space-y-6 text-slate-700 text-lg leading-relaxed" style={{ fontSize: '1.125rem', color: '#334155', lineHeight: '1.8' }}>
+                <div className="article-body space-y-6 text-slate-700 text-lg leading-relaxed" style={{ fontSize: '1.125rem', color: '#334155', lineHeight: '1.8', whiteSpace: 'pre-line' }}>
+                  {selectedNewsDetails.description ? (
+                    <p style={{ marginBottom: '16px' }}>{selectedNewsDetails.description}</p>
+                  ) : (
+                    <>
                   <p>
                     Acompanhe os detalhes atualizados e novidades importantes enviadas diretamente pela comunidade e equipes locais do bairro. Moradores e comerciantes do <strong>{selectedNewsDetails.neighborhood || 'bairro'}</strong> contam com atualizações em tempo real no portal Fala Bairro.
                   </p>
@@ -649,6 +749,8 @@ export default function Landing() {
                   <p>
                     Fique atento aos prazos e programações indicadas. Para dúvidas ou orientações adicionais, você pode compartilhar este boletim com vizinhos e grupos locais do seu bairro.
                   </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Action Footer */}
@@ -741,6 +843,17 @@ export default function Landing() {
                   Negociar no WhatsApp
                 </a>
               )}
+
+              <button 
+                onClick={() => {
+                  setSelectedMarketDetails(null);
+                  navigate('/marketplace');
+                }} 
+                className="mt-3 flex items-center justify-center gap-2 bg-[#ff6500] hover:bg-[#e95600] text-white w-full py-3 rounded-xl font-bold transition-colors cursor-pointer"
+                style={{ display: 'flex', marginTop: '12px', backgroundColor: '#ff6500', color: 'white', textAlign: 'center', padding: '12px', borderRadius: '12px', fontWeight: 'bold', border: 'none', width: '100%', cursor: 'pointer', justifyContent: 'center' }}
+              >
+                🛒 Explorar Todo o Marketplace
+              </button>
             </div>
           </div>
         </div>

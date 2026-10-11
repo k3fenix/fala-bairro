@@ -497,7 +497,13 @@ export default function Feed() {
           {['Mural', 'Notícias', 'Área Pet', 'Guia Local', 'Vendas & Trocas'].map((filter) => (
             <button 
               key={filter}
-              onClick={() => setActiveFilter(filter)}
+              onClick={() => {
+                if (filter === 'Vendas & Trocas') {
+                  navigate('/marketplace');
+                } else {
+                  setActiveFilter(filter);
+                }
+              }}
               className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${activeFilter === filter ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               {filter}
