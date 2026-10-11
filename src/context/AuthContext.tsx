@@ -61,6 +61,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Ouvir mudanças de autenticação no Supabase
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
+        // Imediatamente atualizar usuário síncrono com dados da sessão
+        const meta = session.user.user_metadata || {};
+        const immediateUser: UserSession = {
+          id: session.user.id,
+          email: session.user.email,
+          name: meta.name || meta.full_name || session.user.email?.split('@')[0] || 'Morador do Bairro',
+          avatar: meta.avatar_url || meta.avatar || '',
+          neighborhood: meta.neighborhood || localStorage.getItem('user_neighborhood') || 'Mário Covas',
+          whatsapp: meta.whatsapp || localStorage.getItem('user_whatsapp') || ''
+        };
+        setUser(prev => prev || immediateUser);
+        setLoading(false);
         await refreshUser();
       } else if (!getAuthUserSync()) {
         setUser(null);

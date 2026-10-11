@@ -90,7 +90,9 @@ export default function Register() {
       setSuccess('🎉 Conta criada com sucesso! Conectando ao Fala do Bairro...');
       setFormData({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
       setTimeout(() => {
-        navigate('/marketplace');
+        const params = new URLSearchParams(window.location.search);
+        const target = params.get('redirect') || '/marketplace';
+        navigate(target);
       }, 1200);
     }
     setLoading(false);

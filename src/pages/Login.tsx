@@ -63,7 +63,9 @@ export default function Login() {
           whatsapp: profile.whatsapp || ''
         };
         setAuthUser(userObj);
-        navigate('/feed');
+        const params = new URLSearchParams(window.location.search);
+        const target = params.get('redirect') || '/feed';
+        navigate(target);
       }
     }
 

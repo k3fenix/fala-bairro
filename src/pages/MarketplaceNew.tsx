@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, UploadCloud, X, CheckCircle, Repeat, Star } from 'lucide-react';
 import { getAuthUser, UserSession } from '../lib/authHelper';
+import { compressImage } from '../lib/imageUtils';
 import { useAuth } from '../context/AuthContext';
 
 export default function MarketplaceNew() {
@@ -63,13 +64,17 @@ export default function MarketplaceNew() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
+  const fileToBase64 = async (file: File): Promise<string> => {
+    try {
+      return await compressImage(file, 900, 900, 0.82);
+    } catch (_) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+      });
+    }
   };
 
   const handleImageChange = async (e: any) => {
@@ -176,8 +181,7 @@ export default function MarketplaceNew() {
           city: formData.city || 'Campinas',
           neighborhood: formData.neighborhood.trim(),
           whatsapp: formData.whatsapp.trim(),
-          seller_name: user?.name || 'Morador do Bairro',
-          status: 'active'
+          status: 'approved'
         };
         if (userId) {
           listingPayload.user_id = userId;
@@ -196,7 +200,22 @@ export default function MarketplaceNew() {
             await supabase.from('marketplace_listing_images').insert(imagesPayload);
           }
         } else if (listingError) {
-          console.warn("Aviso ao salvar em marketplace_listings:", listingError.message);
+          console.warn("Aviso ao salvar em marketplace_listings com user_id:", listingError.message);
+          // Tentar novamente sem user_id caso seja restrição de foreign key
+          delete listingPayload.user_id;
+          const { data: retryListing, error: retryErr } = await supabase.from('marketplace_listings').insert(listingPayload).select().single();
+          if (!retryErr && retryListing?.id) {
+            listingsSaved = true;
+            if (imagePreviews.length > 0) {
+              const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
+                listing_id: retryListing.id,
+                image_url: imgUrl,
+                is_primary: idx === primaryIndex,
+                order_index: idx
+              }));
+              await supabase.from('marketplace_listing_images').insert(imagesPayload);
+            }
+          }
         }
       } catch (errListings) {
         console.warn("Erro ao salvar em marketplace_listings:", errListings);

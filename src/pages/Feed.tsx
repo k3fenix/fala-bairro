@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase';
 import { Trash2, Send } from 'lucide-react';
 import FeedHeader from '../components/FeedHeader';
 import PostCreator from '../components/PostCreator';
+import { setAuthUser } from '../lib/authHelper';
+import { compressImage } from '../lib/imageUtils';
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -167,6 +169,14 @@ export default function Feed() {
           whatsapp: profile.whatsapp || '',
           neighborhood: profile.neighborhood || ''
         }));
+        setAuthUser({
+          id: user.id,
+          name: profile.name,
+          email: user.email,
+          avatar: profile.avatar || '',
+          whatsapp: profile.whatsapp || '',
+          neighborhood: profile.neighborhood || ''
+        });
         localStorage.setItem('user_auth', 'true');
         localStorage.setItem('user_id', user.id);
         localStorage.setItem('user_name', profile.name);
@@ -271,9 +281,14 @@ export default function Feed() {
     }
   };
 
-  const handleBusinessImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBusinessImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      try {
+        const compressed = await compressImage(file, 1000, 1000, 0.82);
+        setBusinessImage(compressed);
+        return;
+      } catch (_) {}
       const reader = new FileReader();
       reader.onloadend = () => {
         setBusinessImage(reader.result as string);
@@ -282,9 +297,14 @@ export default function Feed() {
     }
   };
 
-  const handlePetImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePetImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      try {
+        const compressed = await compressImage(file, 1000, 1000, 0.82);
+        setPetImage(compressed);
+        return;
+      } catch (_) {}
       const reader = new FileReader();
       reader.onloadend = () => {
         setPetImage(reader.result as string);
@@ -358,7 +378,7 @@ export default function Feed() {
       return;
     }
     const item = {
-      seller_name: userName,
+      seller_name: userName || 'Morador do Bairro',
       seller_whatsapp: marketWhatsapp,
       title: marketTitle,
       description: marketDesc,
@@ -370,6 +390,20 @@ export default function Feed() {
       status: 'Ativo'
     };
     const { error } = await supabase.from('marketplace_items').insert([item]);
+    try {
+      await supabase.from('marketplace_listings').insert([{
+        title: marketTitle,
+        description: marketDesc,
+        price: marketPrice ? parseFloat(marketPrice) : 0,
+        condition: marketCondition,
+        state: 'SP',
+        city: 'Campinas',
+        neighborhood: selectedNeighborhood,
+        whatsapp: marketWhatsapp,
+        seller_name: userName || 'Morador do Bairro',
+        status: 'active'
+      }]);
+    } catch (_) {}
     if (!error) {
       alert('Anúncio publicado com sucesso!');
       setShowMarketModal(false);
@@ -901,11 +935,16 @@ export default function Feed() {
                     <span className="text-xs font-medium">Logotipo da Empresa</span>
                   </div>
                 )}
-                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <label className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/20 hover:bg-black/40 transition-colors">
                   <Camera className="w-6 h-6 text-white" />
                   <input type="file" accept="image/*" className="hidden" onChange={handleBusinessImageUpload} />
                 </label>
               </div>
+              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs rounded-xl cursor-pointer border border-amber-200 shadow-xs transition-colors mt-1">
+                <Camera className="w-3.5 h-3.5" />
+                <span>{businessImage ? 'Trocar Foto / Logo' : '📷 Escolher Foto da Empresa'}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleBusinessImageUpload} />
+              </label>
             </div>
 
             <div className="mb-4">
@@ -1427,7 +1466,14 @@ export default function Feed() {
           <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             {selectedBusinessDetails.image && (
               <div className="w-full h-64 bg-slate-100">
-                <img src={selectedBusinessDetails.image} alt="Business" className="w-full h-full object-cover" />
+                <img 
+                  src={selectedBusinessDetails.image} 
+                  alt={selectedBusinessDetails.name || 'Empresa'} 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => {
+                    (e.target as HTMLElement).parentElement!.style.display = 'none';
+                  }}
+                />
               </div>
             )}
             <div className="p-6">

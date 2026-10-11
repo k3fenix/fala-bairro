@@ -19,7 +19,7 @@ export default function MarketplaceMyAds() {
     const user = await getAuthUser();
     if (!user) {
       alert('🔒 Por favor, faça login na sua conta para acessar seus anúncios.');
-      navigate('/login');
+      navigate('/login?redirect=/marketplace/meus-anuncios');
       return;
     }
     setCurrentUser(user);

@@ -31,6 +31,7 @@ export default function Marketplace() {
 
   useEffect(() => {
     checkMarketplaceStatus();
+    loadMarketplaceData();
   }, []);
 
   // Revalidar anúncios ao trocar parâmetros de busca ou após publicar novo anúncio
@@ -40,10 +41,8 @@ export default function Marketplace() {
     if (tipo === 'Venda' || tipo === 'Troca' || tipo === 'Gratis') {
       setTypeFilter(tipo);
     }
-    if (isEnabled) {
-      loadMarketplaceData();
-    }
-  }, [location.search, isEnabled]);
+    loadMarketplaceData();
+  }, [location.search]);
 
   const loadMarketplaceData = async () => {
     setLoading(true);
@@ -274,7 +273,7 @@ export default function Marketplace() {
   const handleProtectedSellClick = () => {
     if (!currentUser) {
       alert('🔒 Para anunciar no Marketplace do Fala do Bairro, faça login ou cadastre-se com a sua conta de morador!');
-      navigate('/login');
+      navigate('/login?redirect=/marketplace/anunciar');
       return;
     }
     navigate('/marketplace/anunciar');
@@ -283,7 +282,7 @@ export default function Marketplace() {
   const handleProtectedAction = (path: string) => {
     if (!currentUser) {
       alert('🔒 É obrigatório estar conectado para acessar esta área! Redirecionando para login...');
-      navigate('/login');
+      navigate(`/login?redirect=${encodeURIComponent(path)}`);
       return;
     }
     navigate(path);
@@ -401,13 +400,22 @@ export default function Marketplace() {
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={() => navigate('/login')} 
-                className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[14px] py-[11px] rounded-[11px] text-[#333] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap"
-                title="Entrar ou Cadastrar"
-              >
-                👤 Entrar / Cadastrar
-              </button>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button 
+                  onClick={() => navigate('/login?redirect=/marketplace')} 
+                  className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-3 sm:px-[14px] py-2 sm:py-[11px] rounded-[11px] text-[#333] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap shadow-2xs"
+                  title="Entrar na sua conta"
+                >
+                  👤 Entrar
+                </button>
+                <button 
+                  onClick={() => navigate('/register?redirect=/marketplace')} 
+                  className="border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-600 px-3 sm:px-[14px] py-2 sm:py-[11px] rounded-[11px] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap shadow-2xs"
+                  title="Cadastrar nova conta no bairro"
+                >
+                  ✨ Cadastrar
+                </button>
+              </div>
             )}
 
             {/* BOTÃO + VENDER */}

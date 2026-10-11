@@ -43,6 +43,37 @@ export function getAuthUserSync(): UserSession | null {
         neighborhood: localStorage.getItem('user_neighborhood') || 'Mário Covas'
       };
     }
+
+    // 4. Extração síncrona imediata da sessão do Supabase no localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const itemStr = localStorage.getItem(key);
+        if (itemStr) {
+          try {
+            const parsed = JSON.parse(itemStr);
+            const sbUser = parsed?.user;
+            if (sbUser && sbUser.id) {
+              const meta = sbUser.user_metadata || {};
+              const sessionUser: UserSession = {
+                id: sbUser.id,
+                email: sbUser.email,
+                name: meta.name || meta.full_name || sbUser.email?.split('@')[0] || 'Morador do Bairro',
+                avatar: meta.avatar_url || meta.avatar || '',
+                neighborhood: meta.neighborhood || 'Mário Covas',
+                whatsapp: meta.whatsapp || ''
+              };
+              // Persistir nas chaves locais para sincronia rápida
+              localStorage.setItem('user', JSON.stringify(sessionUser));
+              localStorage.setItem('user_auth', 'true');
+              localStorage.setItem('user_id', sessionUser.id);
+              localStorage.setItem('user_name', sessionUser.name);
+              return sessionUser;
+            }
+          } catch (_) {}
+        }
+      }
+    }
   } catch (e) {
     console.warn('Erro ao ler getAuthUserSync:', e);
   }

@@ -18,7 +18,7 @@ export default function MarketplaceFavorites() {
     const user = await getAuthUser();
     if (!user) {
       alert('🔒 Faça login para ver seus favoritos.');
-      navigate('/login');
+      navigate('/login?redirect=/marketplace/favoritos');
       return;
     }
     setCurrentUser(user);

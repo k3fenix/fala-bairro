@@ -38,6 +38,7 @@ export default function Landing() {
 
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
+  const [businessSearchTerm, setBusinessSearchTerm] = useState<string>('');
 
   useEffect(() => {
     fetchNews();
@@ -159,7 +160,7 @@ export default function Landing() {
   };
 
   const fetchCommercialGuide = async () => {
-    const { data } = await supabase.from('commercial_guide').select('*').limit(6);
+    const { data } = await supabase.from('commercial_guide').select('*').order('created_at', { ascending: false }).limit(24);
     if (data) setCommercialGuide(data);
   };
 
@@ -270,9 +271,9 @@ export default function Landing() {
             {currentUser ? (
               <Link to="/feed" className="btn-header-profile" title={`Conectado como ${currentUser.name}`}>
             ) : (
-              <Link to="/register" className="btn-header-profile" title="Entrar ou Cadastrar">
+              <Link to="/login" className="btn-header-profile" title="Entrar">
             )}
-              👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar / Cadastrar'}</span>
+              👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar'}</span>
             </Link>
           </div>
         </div>
@@ -467,12 +468,12 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="mural-grid">
+          <div className="animals-grid">
             {publicPosts.map(post => (
-              <div key={post.id} onClick={() => setSelectedPostDetails(post)} className="mural-card" style={{ cursor: "pointer" }} title="Clique para ver a postagem completa">
-                <div className="mural-card-image-wrap">
+              <div key={post.id} onClick={() => setSelectedPostDetails(post)} className="animal-card" style={{ cursor: "pointer" }} title="Clique para ver a postagem completa">
+                <div className="animal-image-wrap">
                   {post.image ? (
-                    <img src={post.image} alt={post.author_name} className="mural-card-img" loading="lazy" />
+                    <img src={post.image} alt={post.author_name} className="animal-img" loading="lazy" />
                   ) : (
                     <div className="mural-card-no-img">
                       <span style={{ fontSize: '2.5rem' }}>📢</span>
@@ -577,13 +578,30 @@ export default function Landing() {
 
           <div className="guia-search-box">
             <div className="guia-search-input-wrap">
-              <input type="text" placeholder="🔎 O que você procura? Padaria, mecânico..." aria-label="Buscar comércio local" />
+              <input 
+                type="text" 
+                value={businessSearchTerm}
+                onChange={(e) => setBusinessSearchTerm(e.target.value)}
+                placeholder="🔎 O que você procura? Padaria, mecânico, lanchonete..." 
+                aria-label="Buscar comércio local" 
+              />
               <button type="button">Buscar</button>
             </div>
           </div>
 
           <div className="business-grid">
-            {commercialGuide.map(business => (
+            {commercialGuide
+              .filter(b => {
+                if (!businessSearchTerm.trim()) return true;
+                const t = businessSearchTerm.toLowerCase();
+                return (
+                  (b.name || '').toLowerCase().includes(t) ||
+                  (b.category || '').toLowerCase().includes(t) ||
+                  (b.description || '').toLowerCase().includes(t) ||
+                  (b.neighborhood || '').toLowerCase().includes(t)
+                );
+              })
+              .map(business => (
               <div key={business.id} onClick={() => setSelectedBusinessDetails(business)} className="business-card" style={{ cursor: "pointer" }}>
                 {business.image ? (
                   <img 
@@ -592,11 +610,11 @@ export default function Landing() {
                     alt={business.name} 
                     loading="lazy" 
                     onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80';
                     }}
                   />
                 ) : (
-                  <div className="business-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏪</div>
+                  <div className="business-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', background: 'rgba(255, 255, 255, 0.2)' }}>🏪</div>
                 )}
                 <div className="business-details">
                   <span className="business-category">{business.category}</span>
@@ -773,7 +791,14 @@ export default function Landing() {
                 onClick={() => setExpandedBusinessImage(selectedBusinessDetails.image)}
                 title="Clique para ver foto / panfleto em tela cheia"
               >
-                <img src={selectedBusinessDetails.image} alt={selectedBusinessDetails.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+                <img 
+                  src={selectedBusinessDetails.image} 
+                  alt={selectedBusinessDetails.name} 
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform" 
+                  onError={(e) => {
+                    (e.target as HTMLElement).parentElement!.style.display = 'none';
+                  }}
+                />
                 <div className="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 font-bold shadow">
                   🔍 Ampliar Foto / Panfleto
                 </div>
@@ -1083,10 +1108,21 @@ export default function Landing() {
               <button 
                 onClick={() => {
                   setSelectedMarketDetails(null);
+                  navigate(`/marketplace/anuncio/${selectedMarketDetails.id}`);
+                }} 
+                className="mt-3 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white w-full py-3 rounded-xl font-bold transition-colors cursor-pointer"
+                style={{ display: 'flex', marginTop: '12px', backgroundColor: '#0f172a', color: 'white', textAlign: 'center', padding: '12px', borderRadius: '12px', fontWeight: 'bold', border: 'none', width: '100%', cursor: 'pointer', justifyContent: 'center' }}
+              >
+                🔍 Ver no Marketplace
+              </button>
+
+              <button 
+                onClick={() => {
+                  setSelectedMarketDetails(null);
                   navigate('/marketplace');
                 }} 
-                className="mt-3 flex items-center justify-center gap-2 bg-[#ff6500] hover:bg-[#e95600] text-white w-full py-3 rounded-xl font-bold transition-colors cursor-pointer"
-                style={{ display: 'flex', marginTop: '12px', backgroundColor: '#ff6500', color: 'white', textAlign: 'center', padding: '12px', borderRadius: '12px', fontWeight: 'bold', border: 'none', width: '100%', cursor: 'pointer', justifyContent: 'center' }}
+                className="mt-2 flex items-center justify-center gap-2 bg-[#ff6500] hover:bg-[#e95600] text-white w-full py-3 rounded-xl font-bold transition-colors cursor-pointer"
+                style={{ display: 'flex', marginTop: '8px', backgroundColor: '#ff6500', color: 'white', textAlign: 'center', padding: '12px', borderRadius: '12px', fontWeight: 'bold', border: 'none', width: '100%', cursor: 'pointer', justifyContent: 'center' }}
               >
                 🛒 Explorar Todo o Marketplace
               </button>
