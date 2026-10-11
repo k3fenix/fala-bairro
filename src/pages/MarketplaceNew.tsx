@@ -375,9 +375,28 @@ export default function MarketplaceNew() {
           <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">Localização e Contato</h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Bairro *</label>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Cidade *</label>
+                <select 
+                  required 
+                  name="city" 
+                  value={formData.city} 
+                  onChange={handleChange} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white font-semibold cursor-pointer"
+                >
+                  <option value="Campinas">Campinas - SP</option>
+                  <option value="Santa Bárbara d'Oeste">Santa Bárbara d'Oeste - SP</option>
+                  <option value="Americana">Americana - SP</option>
+                  <option value="Sumaré">Sumaré - SP</option>
+                  <option value="Nova Odessa">Nova Odessa - SP</option>
+                  <option value="Hortolândia">Hortolândia - SP</option>
+                  <option value="Piracicaba">Piracicaba - SP</option>
+                  <option value="Limeira">Limeira - SP</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Bairro / Região *</label>
                 <input 
                   required 
                   name="neighborhood" 
@@ -394,7 +413,7 @@ export default function MarketplaceNew() {
                   name="whatsapp" 
                   value={formData.whatsapp} 
                   onChange={handleChange} 
-                  placeholder="(67) 99999-9999" 
+                  placeholder="(19) 99999-9999" 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white font-bold" 
                 />
               </div>

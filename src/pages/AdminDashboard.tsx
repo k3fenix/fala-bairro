@@ -780,7 +780,7 @@ function LandingConfigTab() {
 
   const handleAddNews = () => {
     if (newsList.length >= 10) return alert('Máximo de 10 notícias atingido.');
-    setNewsList([...newsList, { id: Date.now().toString(), title: '', image: '', label: 'Notícia' }]);
+    setNewsList([...newsList, { id: Date.now().toString(), title: '', image: '', label: 'Notícia', city: 'Campinas - SP' }]);
   };
 
   const handleRemoveNews = (id: string) => {
@@ -923,6 +923,54 @@ function LandingConfigTab() {
                       onChange={(e) => handleUpdateNews(news.id, 'label', e.target.value)}
                       className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-medium text-sm"
                     />
+                  </div>
+                  <div className="sm:col-span-2 bg-blue-50/60 p-3 rounded-xl border border-blue-200">
+                    <label className="block text-sm font-bold text-blue-900 mb-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        📍 Cidade da Notícia
+                      </span>
+                      <span className="text-xs font-normal text-slate-500">
+                        (ex: Santa Bárbara d'Oeste, Campinas, Americana...)
+                      </span>
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input 
+                        type="text" 
+                        list={`cities-list-${news.id}`}
+                        value={news.city || ''}
+                        onChange={(e) => handleUpdateNews(news.id, 'city', e.target.value)}
+                        className="flex-1 bg-white border border-slate-300 focus:border-blue-500 rounded-lg px-3 py-2 font-bold text-sm text-slate-800 outline-none"
+                        placeholder="Digite ou escolha a cidade: Santa Bárbara d'Oeste, Campinas..."
+                      />
+                      <datalist id={`cities-list-${news.id}`}>
+                        <option value="Santa Bárbara d'Oeste - SP" />
+                        <option value="Campinas - SP" />
+                        <option value="Americana - SP" />
+                        <option value="Sumaré - SP" />
+                        <option value="Hortolândia - SP" />
+                        <option value="Nova Odessa - SP" />
+                        <option value="Limeira - SP" />
+                        <option value="Piracicaba - SP" />
+                        <option value="Paulínia - SP" />
+                        <option value="São Paulo - SP" />
+                      </datalist>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateNews(news.id, 'city', "Santa Bárbara d'Oeste - SP")}
+                          className="px-3 py-1.5 bg-white hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg border border-blue-300 transition-colors shadow-sm cursor-pointer"
+                        >
+                          📍 Santa Bárbara
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateNews(news.id, 'city', "Campinas - SP")}
+                          className="px-3 py-1.5 bg-white hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg border border-blue-300 transition-colors shadow-sm cursor-pointer"
+                        >
+                          📍 Campinas
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-semibold text-slate-700 mb-1">URL da Imagem {index > 0 && <span className="text-slate-400 font-normal">(Opcional)</span>}</label>

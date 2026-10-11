@@ -54,7 +54,20 @@ export default function Feed() {
   const [editName, setEditName] = useState(userName);
   const [editAvatar, setEditAvatar] = useState(userAvatar);
 
-  const baseNeighborhoods = ['Vila Rica', 'Centro', 'Jardim Botânico', 'Bela Vista', 'Nova Esperança'];
+  const FEED_CITIES = [
+    "Santa Bárbara d'Oeste - SP",
+    "Campinas - SP",
+    "Americana - SP",
+    "Sumaré - SP",
+    "Nova Odessa - SP",
+    "Hortolândia - SP",
+    "Piracicaba - SP",
+    "Limeira - SP"
+  ];
+  const [postCity, setPostCity] = useState<string>(() => localStorage.getItem('user_city') || "Campinas - SP");
+  const [postNeighborhood, setPostNeighborhood] = useState<string>(() => localStorage.getItem('user_neighborhood') || "Mário Covas");
+
+  const baseNeighborhoods = ['Todos os Bairros', 'Mário Covas', 'Vila Rica', 'Centro', 'Jardim Botânico', 'Bela Vista', 'Nova Esperança'];
   const [allNeighborhoods, setAllNeighborhoods] = useState<string[]>(baseNeighborhoods);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(localStorage.getItem('user_neighborhood') || 'Vila Rica');
   const [allPets, setAllPets] = useState<any[]>([]);
@@ -386,7 +399,7 @@ export default function Feed() {
           author_avatar: userAvatar,
           handle: `@${userName.toLowerCase().replace(/\s+/g, '')}`,
           category: postCategory,
-          neighborhood: selectedNeighborhood,
+          neighborhood: `${postNeighborhood.trim() || 'Geral'} • ${postCity}`,
           content: postContent,
           image: imgUrl,
           is_pending: true,
@@ -395,6 +408,8 @@ export default function Feed() {
       ]);
       
       if (!error) {
+        localStorage.setItem('user_city', postCity);
+        localStorage.setItem('user_neighborhood', postNeighborhood);
         alert(`Sua publicação foi enviada para análise e já aparece para você como 'Ainda não aprovado'.`);
         setPostContent('');
         setSelectedMedia(null);
@@ -417,7 +432,9 @@ export default function Feed() {
   let filteredPosts = posts.filter((p: any) => p.is_approved || p.author_id === currentUserId);
 
   if (activeFilter === 'Mural') {
-    filteredPosts = filteredPosts.filter((p: any) => p.neighborhood === selectedNeighborhood);
+    if (selectedNeighborhood && selectedNeighborhood !== 'Todos os Bairros') {
+      filteredPosts = filteredPosts.filter((p: any) => (p.neighborhood || '').toLowerCase().includes(selectedNeighborhood.toLowerCase()));
+    }
   } else if (activeFilter === 'Notícias') {
     filteredPosts = filteredPosts.filter((p: any) => ['Informação', 'Aviso', 'Alerta'].includes(p.category));
   }
@@ -937,6 +954,36 @@ export default function Feed() {
                   </button>
                 </div>
               )}
+
+              {/* Escolha da Cidade e Região/Bairro do Post */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" /> Sua Cidade *
+                  </label>
+                  <select 
+                    value={postCity}
+                    onChange={(e) => setPostCity(e.target.value)}
+                    className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500 cursor-pointer"
+                  >
+                    {FEED_CITIES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    🏡 Bairro / Região *
+                  </label>
+                  <input 
+                    type="text"
+                    value={postNeighborhood}
+                    onChange={(e) => setPostNeighborhood(e.target.value)}
+                    placeholder="Ex: Mário Covas, Vila Rica, Centro..."
+                    className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                 <div className="flex items-center gap-3 w-full sm:w-auto">

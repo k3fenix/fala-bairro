@@ -17,6 +17,18 @@ export default function Landing() {
   const [isNewsFullScreen, setIsNewsFullScreen] = useState(false);
   const [selectedMarketDetails, setSelectedMarketDetails] = useState<any>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const AVAILABLE_CITIES = [
+    'Todas as Cidades',
+    "Santa Bárbara d'Oeste - SP",
+    "Campinas - SP",
+    "Americana - SP",
+    "Sumaré - SP",
+    "Nova Odessa - SP",
+    "Hortolândia - SP",
+    "Piracicaba - SP",
+    "Limeira - SP"
+  ];
+  const [selectedCity, setSelectedCity] = useState<string>(() => localStorage.getItem('user_city') || 'Todas as Cidades');
   const [newsList, setNewsList] = useState<any[]>([]);
 
   const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
@@ -74,7 +86,8 @@ export default function Landing() {
             title: item.title,
             summary: item.description ? (item.description.length > 130 ? item.description.substring(0, 130) + '...' : item.description) : item.title,
             category: item.label || 'Notícia',
-            neighborhood: 'Mário Covas',
+            city: item.city || 'Campinas - SP',
+            neighborhood: item.city || 'Campinas - SP',
             image: item.image || defaultNews[idx % defaultNews.length].image,
             date: 'Publicado recentemente',
             description: item.description || item.title
@@ -142,6 +155,13 @@ export default function Landing() {
     window.open(`https://wa.me/55${phone.replace(/\D/g, '')}?text=${text}`, '_blank');
   };
 
+  const filteredNews = newsList.filter(item => {
+    if (!selectedCity || selectedCity === 'Todas as Cidades') return true;
+    const target = selectedCity.toLowerCase().replace(' - sp', '').trim();
+    const itemLocation = `${item.city || ''} ${item.neighborhood || ''}`.toLowerCase();
+    return itemLocation.includes(target);
+  });
+
   return (
     <div className="landing-container">
       {/* ==========================================================================
@@ -158,7 +178,33 @@ export default function Landing() {
           </Link>
 
           <div className="location-badge" title="Bairro Selecionado">
-            📍 <span id="currentNeighborhood">Bairro Mário Covas</span> ▾
+            <span>📍</span>
+            <select 
+              id="currentNeighborhood"
+              value={selectedCity} 
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedCity(val);
+                localStorage.setItem('user_city', val);
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: '#0369a1',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                cursor: 'pointer'
+              }}
+              aria-label="Escolher cidade para ver notícias"
+            >
+              {AVAILABLE_CITIES.map(c => (
+                <option key={c} value={c} style={{ color: '#1e293b', fontWeight: 600 }}>
+                  {c === 'Todas as Cidades' ? '🌟 ' + c : '📍 ' + c}
+                </option>
+              ))}
+            </select>
+            <span style={{ fontSize: '0.7rem', color: '#0284c7' }}>▾</span>
           </div>
 
           <div className="header-search">
@@ -227,14 +273,43 @@ export default function Landing() {
         <section id="noticias">
           <div className="section-header">
             <div>
-              <h2 className="section-title">📰 Notícias do Bairro</h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Clique em qualquer notícia para ler os detalhes e a matéria completa</p>
+              <h2 className="section-title">📰 Notícias da Cidade e Região</h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>{selectedCity === 'Todas as Cidades' ? 'Exibindo notícias de todas as cidades da região' : `Notícias selecionadas para: ${selectedCity}`}</p>
             </div>
             <Link to="/feed" className="section-link">Ver todas ➔</Link>
           </div>
 
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', margin: '10px 0 16px 0' }} className="no-scrollbar">
+            {AVAILABLE_CITIES.map(city => (
+              <button
+                key={city}
+                type="button"
+                onClick={() => {
+                  setSelectedCity(city);
+                  localStorage.setItem('user_city', city);
+                }}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  background: selectedCity === city ? '#0284c7' : '#f1f5f9',
+                  color: selectedCity === city ? '#ffffff' : '#475569',
+                  boxShadow: selectedCity === city ? '0 2px 8px rgba(2,132,199,0.3)' : 'none'
+                }}
+              >
+                {city === 'Todas as Cidades' ? '🌟 Todas as Cidades' : '📍 ' + city.replace(' - SP', '')}
+              </button>
+            ))}
+          </div>
+
           <div className="news-grid">
-            {newsList.map((item) => (
+            {filteredNews.length > 0 ? (
+              filteredNews.map((item) => (
               <article 
                 key={item.id} 
                 className="news-card" 
@@ -248,7 +323,7 @@ export default function Landing() {
                 <div className="news-body">
                   <div className="news-meta">
                     <span className="news-category">{item.category}</span>
-                    <span className="news-neighborhood">• {item.neighborhood}</span>
+                    <span className="news-neighborhood" style={{ color: '#0284c7', fontWeight: 700 }}>• 📍 {item.city || item.neighborhood}</span>
                   </div>
                   <h3 className="news-title">{item.title}</h3>
                   <p className="news-summary">{item.summary}</p>
@@ -261,7 +336,21 @@ export default function Landing() {
                   </div>
                 </div>
               </article>
-            ))}
+            ))
+            ) : (
+              <div style={{ textAlign: 'center', padding: '36px 16px', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1', gridColumn: '1 / -1' }}>
+                <p style={{ fontSize: '1rem', color: '#64748b', fontWeight: 600, margin: '0 0 12px 0' }}>
+                  Nenhuma notícia recente cadastrada para <strong>{selectedCity}</strong> no momento.
+                </p>
+                <button 
+                  type="button"
+                  onClick={() => { setSelectedCity('Todas as Cidades'); localStorage.setItem('user_city', 'Todas as Cidades'); }}
+                  style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  🌟 Ver notícias de todas as cidades
+                </button>
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'none' }}>
@@ -704,6 +793,8 @@ export default function Landing() {
                 {/* Meta details bar */}
                 <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100 text-slate-500 text-sm" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px', marginBottom: '24px', fontSize: '0.875rem', color: '#64748b' }}>
                   <div className="flex items-center gap-3" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="font-semibold text-sky-700" style={{ fontWeight: '700', color: '#0369a1' }}>📍 {selectedNewsDetails.city || selectedNewsDetails.neighborhood || 'Região'}</span>
+                    <span>•</span>
                     <span className="font-semibold text-slate-700" style={{ fontWeight: '600', color: '#334155' }}>🗓️ {selectedNewsDetails.date || 'Hoje'}</span>
                     <span>•</span>
                     <span>⏱️ 2 min de leitura</span>
