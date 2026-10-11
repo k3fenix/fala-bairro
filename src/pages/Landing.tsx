@@ -265,9 +265,9 @@ export default function Landing() {
             >
               🛒 <span className="hidden sm:inline">Marketplace</span>
             </Link>
-            {/* Publicar mantido no mural e removido do cabeçalho */}
-            {null}
-            {null}
+
+
+
             <Link 
               to={currentUser ? "/feed" : "/login"} 
               className="btn-publish-main" 
