@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { setAuthUser } from '../lib/authHelper';
 
 export default function Register() {
-  // navigate is no longer used for auto-login
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -74,22 +75,17 @@ export default function Register() {
         return;
       }
 
-      // Manter a sessão ativa e gravar dados unificados no localStorage
+      // Manter a sessão ativa e gravar dados unificados
       localStorage.removeItem('admin_auth');
-      localStorage.setItem('user_auth', 'true');
-      localStorage.setItem('user_id', authData.user.id);
-      localStorage.setItem('user_name', formData.name.trim());
-      localStorage.setItem('user_avatar', avatar);
-      localStorage.setItem('user_neighborhood', formData.neighborhood);
-      localStorage.setItem('user_whatsapp', formData.whatsapp);
-      localStorage.setItem('user', JSON.stringify({
+      const userObj = {
         id: authData.user.id,
         name: formData.name.trim(),
         email: formData.email.trim(),
         avatar: avatar,
         neighborhood: formData.neighborhood,
         whatsapp: formData.whatsapp
-      }));
+      };
+      setAuthUser(userObj);
 
       setSuccess('🎉 Conta criada com sucesso! Conectando ao Fala do Bairro...');
       setFormData({ name: '', email: '', password: '', confirmPassword: '', neighborhood: '', address: '', whatsapp: '' });

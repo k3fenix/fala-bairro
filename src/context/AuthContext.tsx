@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { getAuthUser, UserSession } from '../lib/authHelper';
+import { getAuthUser, getAuthUserSync, clearAuthSession, UserSession } from '../lib/authHelper';
 
 interface AuthContextType {
   user: UserSession | null;
@@ -17,8 +17,10 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserSession | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  // Inicialização síncrona: se já existe sessão no cache, disponibiliza imediatamente (0ms)
+  const initialUser = getAuthUserSync();
+  const [user, setUser] = useState<UserSession | null>(initialUser);
+  const [loading, setLoading] = useState<boolean>(!initialUser);
 
   const refreshUser = async (): Promise<UserSession | null> => {
     try {
@@ -34,14 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    localStorage.removeItem('user_auth');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_avatar');
-    localStorage.removeItem('user_neighborhood');
-    localStorage.removeItem('user_whatsapp');
-    localStorage.removeItem('user');
-    localStorage.removeItem('impersonatedUser');
+    clearAuthSession();
     try {
       await supabase.auth.signOut();
     } catch (e) {}
@@ -49,26 +44,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Revalidação assíncrona em segundo plano
     refreshUser();
+
+    // Ouvir evento imediato da mesma janela (disparado por setAuthUser / clearAuthSession)
+    const handleLocalAuthChange = (e: any) => {
+      if (e.detail !== undefined) {
+        setUser(e.detail);
+        setLoading(false);
+      } else {
+        refreshUser();
+      }
+    };
+    window.addEventListener('auth_state_changed', handleLocalAuthChange);
 
     // Ouvir mudanças de autenticação no Supabase
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         await refreshUser();
-      } else {
-        await refreshUser();
+      } else if (!getAuthUserSync()) {
+        setUser(null);
       }
     });
 
-    // Ouvir alterações de localStorage para sincronizar abas e rotas
+    // Ouvir alterações de localStorage para sincronizar abas distintas
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'user' || e.key === 'user_auth' || e.key === 'impersonatedUser') {
+        const syncU = getAuthUserSync();
+        setUser(syncU);
         refreshUser();
       }
     };
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
+      window.removeEventListener('auth_state_changed', handleLocalAuthChange);
       authListener?.subscription.unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -82,3 +92,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useAuth = () => useContext(AuthContext);
+

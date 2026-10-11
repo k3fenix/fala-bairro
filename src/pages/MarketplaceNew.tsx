@@ -176,7 +176,8 @@ export default function MarketplaceNew() {
           city: formData.city || 'Campinas',
           neighborhood: formData.neighborhood.trim(),
           whatsapp: formData.whatsapp.trim(),
-          status: 'approved'
+          seller_name: user?.name || 'Morador do Bairro',
+          status: 'active'
         };
         if (userId) {
           listingPayload.user_id = userId;
@@ -206,13 +207,14 @@ export default function MarketplaceNew() {
       }
 
       setSuccess(true);
-      setTimeout(() => navigate('/marketplace'), 1500);
+      setTimeout(() => navigate(`/marketplace?refresh=${Date.now()}`), 1200);
 
     } catch (err: any) {
       alert('Erro ao publicar anúncio: ' + (err.message || 'Tente novamente.'));
     } finally {
       setLoading(false);
     }
+
   };
 
   if (success) {

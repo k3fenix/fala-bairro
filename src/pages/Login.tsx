@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { setAuthUser } from '../lib/authHelper';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -53,23 +54,19 @@ export default function Login() {
         }
 
         localStorage.removeItem('admin_auth');
-        localStorage.setItem('user_auth', 'true');
-        localStorage.setItem('user_id', data.user.id);
-        localStorage.setItem('user_name', profile.name);
-        if (profile.avatar) localStorage.setItem('user_avatar', profile.avatar);
-        if (profile.neighborhood) localStorage.setItem('user_neighborhood', profile.neighborhood);
-        if (profile.whatsapp) localStorage.setItem('user_whatsapp', profile.whatsapp);
-        localStorage.setItem('user', JSON.stringify({
+        const userObj = {
           id: data.user.id,
           name: profile.name,
           email: data.user.email,
           avatar: profile.avatar || '',
           neighborhood: profile.neighborhood || '',
           whatsapp: profile.whatsapp || ''
-        }));
+        };
+        setAuthUser(userObj);
         navigate('/feed');
       }
     }
+
     setLoading(false);
   };
 

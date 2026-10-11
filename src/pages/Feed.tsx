@@ -3,6 +3,8 @@ import { MapPin, Image as ImageIcon, ChevronDown, Heart, ThumbsUp, ThumbsDown, M
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Trash2, Send } from 'lucide-react';
+import FeedHeader from '../components/FeedHeader';
+import PostCreator from '../components/PostCreator';
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -489,7 +491,24 @@ export default function Feed() {
           <button onClick={handleLogout} className="ml-2 bg-black/20 hover:bg-black/40 px-3 py-1 rounded-full transition-colors">Sair / Voltar</button>
         </div>
       )}
-      <div className={`bg-white sticky ${!!localStorage.getItem('impersonatedUser') ? 'top-[72px]' : 'top-10'} z-40 shadow-sm px-4 pt-4 pb-3`}>
+      <FeedHeader
+        userName={userName}
+        userAvatar={userAvatar}
+        selectedNeighborhood={selectedNeighborhood}
+        setSelectedNeighborhood={setSelectedNeighborhood}
+        allNeighborhoods={allNeighborhoods}
+        activeFilter={activeFilter}
+        setActiveFilter={setActiveFilter}
+        handleLogout={handleLogout}
+        handleCopyInvite={handleCopyInvite}
+        setShowPetsModal={setShowPetsModal}
+        setShowBusinessModal={setShowBusinessModal}
+        setShowProfile={setShowProfile}
+        globalAnnouncement={globalAnnouncement}
+      />
+      {false && (
+        <>
+        <div className={`bg-white sticky ${!!localStorage.getItem('impersonatedUser') ? 'top-[72px]' : 'top-10'} z-40 shadow-sm px-4 pt-4 pb-3`}>
         <div className="flex justify-between items-center mb-3">
           <div className="relative flex items-center bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
             <MapPin className="w-4 h-4 text-blue-600 absolute left-3 pointer-events-none" />
@@ -565,6 +584,8 @@ export default function Feed() {
             </div>
           </div>
         </div>
+      )}
+      </>
       )}
 
       {showProfile && (
@@ -942,6 +963,25 @@ export default function Feed() {
       </div>
 
       {['Mural', 'Notícias'].includes(activeFilter) && (
+        <PostCreator
+          userAvatar={userAvatar}
+          userName={userName}
+          postContent={postContent}
+          setPostContent={setPostContent}
+          selectedMedia={selectedMedia}
+          setSelectedMedia={setSelectedMedia}
+          postCity={postCity}
+          setPostCity={setPostCity}
+          postNeighborhood={postNeighborhood}
+          setPostNeighborhood={setPostNeighborhood}
+          postCategory={postCategory}
+          setPostCategory={setPostCategory}
+          FEED_CITIES={FEED_CITIES}
+          handlePublish={handlePublish}
+        />
+      )}
+
+      {false && ['Mural', 'Notícias'].includes(activeFilter) && (
         <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-100">
           <div className="flex gap-3">
             <div className="w-10 h-10 bg-slate-200 rounded-full overflow-hidden shrink-0">
@@ -1213,7 +1253,7 @@ export default function Feed() {
 
             <div className="flex justify-between items-center mb-2 mt-8">
               <h3 className="text-xl font-bold text-slate-800">Produtos e serviços</h3>
-              <button onClick={() => setShowMarketModal(true)} className="bg-[#ff6500] hover:bg-[#e95600] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2">
+              <button onClick={() => navigate('/marketplace/anunciar')} className="bg-[#ff6500] hover:bg-[#e95600] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
                 + Vender
               </button>
             </div>
