@@ -410,13 +410,13 @@ export default function Marketplace() {
               </button>
             )}
 
-            {/* BOTÃO + VENDER */}
-            <button 
+
+
               onClick={handleProtectedSellClick} 
               className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold px-[16px] sm:px-[20px] py-[11px] sm:py-[13px] rounded-[12px] cursor-pointer shadow-md shadow-orange-500/20 whitespace-nowrap text-xs sm:text-sm"
-            >
-              + Vender
-            </button>
+
+              + Publicar anúncio
+
           </div>
         </div>
       </header>

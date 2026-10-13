@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { setAuthUser } from '../lib/authHelper';
+import { setAuthUser, getAuthUserSync } from '../lib/authHelper';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -11,6 +11,14 @@ export default function Register() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '';
+
+  useEffect(() => {
+    const user = getAuthUserSync();
+    if (user) {
+      const target = redirectUrl || '/feed';
+      navigate(target, { replace: true });
+    }
+  }, []);
 
   const validateEmail = (email: string) => {
     return /\S+@\S+\.\S+/.test(email);
@@ -103,23 +111,7 @@ export default function Register() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] w-full max-w-md border border-slate-100">
         <h1 className="text-2xl font-black text-slate-800 text-center mb-2">Criar Conta</h1>
-        <p className="text-slate-500 text-center mb-6 text-sm">Junte-se à comunidade do seu bairro</p>
-
-        {/* Abas de Autenticação */}
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-6 gap-1">
-          <Link
-            to={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'}
-            className="flex-1 py-2.5 text-xs sm:text-sm font-bold text-center rounded-xl text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            Entrar na minha conta
-          </Link>
-          <button
-            type="button"
-            className="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white text-blue-600 shadow-xs cursor-default text-center"
-          >
-            Criar uma conta
-          </button>
-        </div>
+        <p className="text-slate-500 text-center mb-6 text-sm">Cadastre-se para participar do Fala do Bairro</p>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-xl mb-6 text-center font-medium">
@@ -244,9 +236,9 @@ export default function Register() {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 px-4 rounded-xl transition-colors mt-6 shadow-md shadow-blue-200"
+            className="w-full bg-[#ff6500] hover:bg-[#e95600] disabled:bg-orange-300 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all mt-6 shadow-md shadow-orange-500/20 cursor-pointer"
           >
-            {loading ? 'CADASTRANDO...' : 'CADASTRAR'}
+            {loading ? 'CADASTRANDO...' : 'Cadastrar'}
           </button>
         </form>
 
@@ -254,9 +246,9 @@ export default function Register() {
           Já tem uma conta?{' '}
           <Link 
             to={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'} 
-            className="text-blue-600 font-bold hover:underline"
+            className="text-[#ff6500] font-bold hover:underline"
           >
-            Entrar na minha conta
+            Entrar
           </Link>
         </p>
       </div>

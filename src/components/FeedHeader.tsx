@@ -143,7 +143,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                   key={tab.id}
                   onClick={() => {
                     if (tab.id === 'Vendas & Trocas') {
-                      navigate('/marketplace');
+                      navigate(currentUser ? '/marketplace' : '/login?redirect=/marketplace');
                     } else {
                       setActiveFilter(tab.id);
                     }

@@ -289,7 +289,7 @@ export default function Landing() {
           <a href="#mural" className="chip">📢 Mural</a>
           <a href="#animais" className="chip">🐶 Animais</a>
           <a href="#guia" className="chip">🏪 Guia Local</a>
-          <Link to={currentUser ? "/marketplace" : "/login?redirect=/marketplace"} className="chip" style={{ color: '#ea580c', fontWeight: 'bold' }}>🛒 Marketplace</Link>
+          <Link to={currentUser ? "/marketplace" : "/login?redirect=/marketplace"} className="chip" style={{ color: '#ea580c', fontWeight: 'bold' }}>🛍️ Vendas & Trocas</Link>
         </div>
       </nav>
 
@@ -303,14 +303,29 @@ export default function Landing() {
             {lostPets.slice(0, 1).map(pet => (
               <div key={pet.id} className="alert-card-urgent">
                 <div className="alert-card-content">
-                  <div className="alert-badge-icon">🐶</div>
+                  {pet.image ? (
+                    <img
+                      src={pet.image}
+                      alt={pet.pet_name}
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                        border: '2px solid #ef4444'
+                      }}
+                    />
+                  ) : (
+                    <div className="alert-badge-icon">🐶</div>
+                  )}
                   <div className="alert-card-text">
                     <strong>ALERTA URGENTE DO BAIRRO</strong>
                     <p>{pet.pet_name} desapareceu</p>
                     <span>{pet.species} • Visto por último: {pet.last_seen_location}</span>
                   </div>
                 </div>
-                <Link to="/feed" className="btn-alert-action">VER ALERTA</Link>
+                <button type="button" onClick={() => setSelectedPetDetails(pet)} className="btn-alert-action">VER ALERTA</button>
               </div>
             ))}
           </section>

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { setAuthUser } from '../lib/authHelper';
+import { setAuthUser, getAuthUserSync } from '../lib/authHelper';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,6 +12,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '';
+
+  useEffect(() => {
+    const user = getAuthUserSync();
+    if (user) {
+      const target = redirectUrl || '/feed';
+      navigate(target, { replace: true });
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,23 +86,7 @@ export default function Login() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] w-full max-w-md border border-slate-100">
         <h1 className="text-2xl font-black text-slate-800 text-center mb-2">Entrar</h1>
-        <p className="text-slate-500 text-center mb-6 text-sm">Bem-vindo de volta ao seu bairro</p>
-
-        {/* Abas de Autenticação */}
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-6 gap-1">
-          <button
-            type="button"
-            className="flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white text-blue-600 shadow-xs cursor-default text-center"
-          >
-            Entrar na minha conta
-          </button>
-          <Link
-            to={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : '/register'}
-            className="flex-1 py-2.5 text-xs sm:text-sm font-bold text-center rounded-xl text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            Criar uma conta
-          </Link>
-        </div>
+        <p className="text-slate-500 text-center mb-6 text-sm">Digite seu e-mail e senha para acessar o Fala do Bairro</p>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-xl mb-6 text-center font-medium">
@@ -139,19 +131,19 @@ export default function Login() {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 px-4 rounded-xl transition-colors mt-6 shadow-md shadow-blue-200"
+            className="w-full bg-[#ff6500] hover:bg-[#e95600] disabled:bg-orange-300 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all mt-6 shadow-md shadow-orange-500/20 cursor-pointer"
           >
-            {loading ? 'ENTRANDO...' : 'ENTRAR'}
+            {loading ? 'ENTRANDO...' : 'Entrar'}
           </button>
         </form>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          Ainda não tem conta?{' '}
+          Não tem uma conta?{' '}
           <Link 
             to={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : '/register'} 
-            className="text-blue-600 font-bold hover:underline"
+            className="text-[#ff6500] font-bold hover:underline"
           >
-            Criar uma conta
+            Cadastre-se
           </Link>
         </p>
       </div>
