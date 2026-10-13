@@ -266,7 +266,7 @@ export default function Landing() {
               className="btn-header-auth" 
               title={currentUser ? `Conectado como ${currentUser.name}` : "Entrar"}
             >
-              👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar / Cadastrar'}</span>
+              👤 <span>{currentUser ? currentUser.name : 'Entrar / Cadastrar'}</span>
             </Link>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart } from 'lucide-react';
+import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart, Sparkles, X, UserCheck } from 'lucide-react';
 import { getAuthUserSync } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +11,8 @@ export default function Marketplace() {
   const { user: currentUser, loading: authLoading, logout } = useAuth();
   const activeUser = currentUser || getAuthUserSync();
   
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authRedirectTarget, setAuthRedirectTarget] = useState<string>('/marketplace');
   const [typeFilter, setTypeFilter] = useState<'all' | 'Venda' | 'Troca' | 'Gratis'>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
@@ -273,8 +275,8 @@ export default function Marketplace() {
 
   const handleProtectedSellClick = () => {
     if (!activeUser) {
-      alert('🔒 Para anunciar no Marketplace do Fala do Bairro, faça login ou cadastre-se com a sua conta de morador!');
-      navigate('/login?redirect=/marketplace/anunciar');
+      setAuthRedirectTarget('/marketplace/anunciar');
+      setShowAuthModal(true);
       return;
     }
     navigate('/marketplace/anunciar');
@@ -282,8 +284,8 @@ export default function Marketplace() {
 
   const handleProtectedAction = (path: string) => {
     if (!activeUser) {
-      alert('🔒 É obrigatório estar conectado para acessar esta área! Redirecionando para login...');
-      navigate(`/login?redirect=${encodeURIComponent(path)}`);
+      setAuthRedirectTarget(path);
+      setShowAuthModal(true);
       return;
     }
     navigate(path);
@@ -402,21 +404,23 @@ export default function Marketplace() {
               </div>
             ) : (
               <button 
-                onClick={() => navigate('/login?redirect=/marketplace')} 
+                onClick={() => {
+                  setAuthRedirectTarget('/marketplace');
+                  setShowAuthModal(true);
+                }} 
                 className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-3.5 sm:px-4 py-2 sm:py-[10px] rounded-[11px] text-[#333] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap shadow-xs"
-                title="Entrar"
+                title="Entrar com a conta Fala do Bairro"
               >
                 👤 Entrar
               </button>
             )}
 
-
-
+            <button 
               onClick={handleProtectedSellClick} 
               className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold px-[16px] sm:px-[20px] py-[11px] sm:py-[13px] rounded-[12px] cursor-pointer shadow-md shadow-orange-500/20 whitespace-nowrap text-xs sm:text-sm"
-
+            >
               + Publicar anúncio
-
+            </button>
           </div>
         </div>
       </header>
@@ -635,23 +639,64 @@ export default function Marketplace() {
         )}
       </main>
 
-      {/* FOOTER */}
-      <footer className="mt-[60px] bg-[#20242e] text-white p-[40px_20px]">
-        <div className="max-w-[1250px] mx-auto flex flex-col md:flex-row justify-between gap-[30px]">
-          <div>
-            <strong className="text-lg">FALA DO BAIRRO MARKETPLACE</strong>
-            <p className="text-[#aeb2bc] text-[13px] mt-[8px]">Compre, venda e troque com facilidade com moradores da sua região.</p>
-          </div>
-          <div>
-            <strong>Dicas de Segurança</strong>
-            <p className="text-[#aeb2bc] text-[13px] mt-[8px]">Prefira marcar encontros em locais públicos e movimentados.<br/>Não faça pagamentos antecipados.</p>
-          </div>
-          <div>
-            <strong>Fala do Bairro</strong>
-            <p className="text-[#aeb2bc] text-[13px] mt-[8px]">Comunidade • Notícias • Marketplace</p>
+      {/* MODAL DE INTEGRAÇÃO DE CONTA FALA DO BAIRRO */}
+      {showAuthModal && (
+        <div 
+          className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl border border-slate-100 relative animate-in fade-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+              title="Fechar"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ff6500] to-[#0284c7] flex items-center justify-center text-white text-3xl shadow-lg shadow-orange-500/20 mb-5 mx-auto">
+              🤝
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-2">
+              Conta Fala do Bairro
+            </h3>
+            
+            <p className="text-slate-600 text-center text-sm mb-6 leading-relaxed">
+              O Marketplace é 100% integrado ao portal comunitário! Você já possui cadastro ou conta no <strong>Fala do Bairro</strong>?
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  navigate(`/login?redirect=${encodeURIComponent(authRedirectTarget)}`);
+                }}
+                className="w-full bg-[#0284c7] hover:bg-[#0369a1] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base"
+              >
+                <span>✅ Sim, já tenho conta (Entrar direto)</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  navigate(`/register?redirect=${encodeURIComponent(authRedirectTarget)}`);
+                }}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base"
+              >
+                <span>📝 Não, quero me cadastrar agora</span>
+              </button>
+            </div>
+
+            <p className="text-center text-xs text-slate-400 mt-5">
+              Utilize o mesmo e-mail e senha em todo o portal Fala do Bairro e Marketplace.
+            </p>
           </div>
         </div>
-      </footer>
+      )}
     </div>
   );
 }

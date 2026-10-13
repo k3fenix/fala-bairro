@@ -396,7 +396,11 @@ export default function MarketplaceNew() {
                   <option value="Usado">👌 Usado em bom estado</option>
                   <option value="Seminovo">🌟 Seminovo (pouco uso)</option>
                   <option value="Recondicionado">🛠️ Recondicionado / Revisado</option>
-                          {/* MODALIDADE DO ANÚNCIO: VENDA / TROCA / DOAÇÃO */}
+                </select>
+              </div>
+            </div>
+
+            {/* MODALIDADE DO ANÚNCIO: VENDA / TROCA / DOAÇÃO */}
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
               <label className="block text-sm font-bold text-slate-800">
                 O que você deseja fazer com este item? *
