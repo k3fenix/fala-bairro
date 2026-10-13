@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { getAuthUser, getAuthUserSync, clearAuthSession, UserSession } from '../lib/authHelper';
+import { getAuthUser, getAuthUserSync, clearAuthSession, type UserSession } from '../lib/authHelper';
 
 interface AuthContextType {
   user: UserSession | null;

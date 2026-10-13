@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { Heart, Search, Star } from 'lucide-react';
-import { getAuthUser, UserSession } from '../lib/authHelper';
+import { getAuthUser, type UserSession } from '../lib/authHelper';
 
 export default function MarketplaceFavorites() {
   const navigate = useNavigate();

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { ArrowLeft, Heart, Share2, MessageCircle, AlertTriangle, User, MapPin, Repeat, CheckCircle, PlayCircle } from 'lucide-react';
-import { getAuthUser, UserSession } from '../lib/authHelper';
+import { getAuthUser, type UserSession } from '../lib/authHelper';
 
 export default function MarketplaceAd() {
   const { id } = useParams();

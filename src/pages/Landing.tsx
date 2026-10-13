@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Landing.css';
-import { UserSession } from '../lib/authHelper';
+import { type UserSession, getAuthUser } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
 export default function Landing() {
@@ -19,8 +19,7 @@ export default function Landing() {
   const [expandedBusinessImage, setExpandedBusinessImage] = useState<string | null>(null);
   const [selectedPostDetails, setSelectedPostDetails] = useState<any>(null);
   const [selectedNewsDetails, setSelectedNewsDetails] = useState<any>(null);
-  const [isNewsFullScreen, setIsNewsFullScreen] = useState(false);
-  const [selectedMarketDetails, setSelectedMarketDetails] = useState<any>(null);
+
   const [showPublishModal, setShowPublishModal] = useState(false);
   const AVAILABLE_CITIES = [
     'Todas as Cidades',
@@ -36,7 +35,6 @@ export default function Landing() {
   const [selectedCity, setSelectedCity] = useState<string>(() => localStorage.getItem('user_city') || 'Todas as Cidades');
   const [newsList, setNewsList] = useState<any[]>([]);
 
-  const [marketplaceItems, setMarketplaceItems] = useState<any[]>([]);
   const [sessionVotes, setSessionVotes] = useState<Record<string, boolean>>({});
   const [businessSearchTerm, setBusinessSearchTerm] = useState<string>('');
 
@@ -45,7 +43,6 @@ export default function Landing() {
     fetchPublicPosts();
     fetchCommercialGuide();
     fetchLostPets();
-    fetchMarketplaceItems();
     loadUser();
   }, []);
 
@@ -126,7 +123,7 @@ export default function Landing() {
     }
   };
 
-  const fetchMarketplaceItems = async () => {
+  const fetchMarketplaceItems = async () => {
     const { data: listings } = await supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false }).limit(6);
     const { data: items } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false }).limit(6);
     
@@ -155,9 +152,8 @@ export default function Landing() {
         }
       });
     }
-
-    setMarketplaceItems(combined.slice(0, 6));
   };
+
 
   const fetchCommercialGuide = async () => {
     const { data } = await supabase.from('commercial_guide').select('*').order('created_at', { ascending: false }).limit(24);
@@ -261,6 +257,16 @@ export default function Landing() {
 
 
 
+            <a 
+              href={import.meta.env.VITE_MARKETPLACE_URL || "/marketplace"} 
+              className="btn-header-marketplace"
+              title="Acessar Fala do Bairro Marketplace"
+              target={import.meta.env.VITE_MARKETPLACE_URL ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+            >
+              🛒 <span>MARKETPLACE</span>
+            </a>
+
             <Link 
               to={currentUser ? "/feed" : "/login"} 
               className="btn-header-auth" 
@@ -281,7 +287,7 @@ export default function Landing() {
           <a href="#mural" className="chip">📢 Mural</a>
           <a href="#animais" className="chip">🐶 Animais</a>
           <a href="#guia" className="chip">🏪 Guia Local</a>
-          <Link to={currentUser ? "/marketplace" : "/login?redirect=/marketplace"} className="chip" style={{ color: '#ea580c', fontWeight: 'bold' }}>🛍️ Vendas & Trocas</Link>
+
         </div>
       </nav>
 
@@ -636,83 +642,34 @@ export default function Landing() {
             ))}
           </div>
         </section>
+
 
-        {/* ==========================================================================
-            SEÇÃO 6: VENDAS & TROCAS
-            ========================================================================== */}
-        {/* ==========================================================================
-            DIVISOR: EMPRESAS -> MARKETPLACE
-            ========================================================================== */}
-        <div className="section-divider-bar">
-          <span className="section-divider-badge">🛒 CLASSIFICADOS, COMPRA & TROCA</span>
-        </div>
 
-        <section id="vendas" style={{ marginTop: '20px' }}>
-          <div className="market-header-banner">
-            <div className="banner-content">
-              <div>
-                <h2>🛒 FALA DO BAIRRO MARKETPLACE</h2>
-                <p>"Compre, venda, troque ou doe itens direto com seus vizinhos com rapidez e segurança."</p>
-              </div>
-              <Link to="/marketplace" className="btn-banner-action">
-                ACESSAR ÁREA DO MARKETPLACE ➔
-              </Link>
-            </div>
-          </div>
 
-          <div className="market-filter-bar">
-            <Link to="/marketplace" className="market-filter-btn active">TODOS</Link>
-            <Link to="/marketplace?tipo=Venda" className="market-filter-btn">🏷️ VENDAS</Link>
-            <Link to="/marketplace?tipo=Troca" className="market-filter-btn">🔄 TROCAS</Link>
-            <Link to="/marketplace?tipo=Gratis" className="market-filter-btn">🎁 GRÁTIS / DOAÇÃO</Link>
-          </div>
 
-          <div className="market-grid">
-            {marketplaceItems.map(item => (
-              <div key={item.id} onClick={() => setSelectedMarketDetails(item)} className="market-card" style={{ cursor: "pointer" }}>
-                <div className="market-img-wrap">
-                  {item.image ? (
-                    <img className="market-img" src={item.image} alt={item.title} loading="lazy" />
-                  ) : (
-                    <div className="market-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📦</div>
-                  )}
-                  {(item.status === 'sold' || item.status === 'Vendido') && (
-                    <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                      <span style={{ backgroundColor: '#dc2626', color: '#fff', fontWeight: 900, padding: '4px 14px', borderRadius: '9999px', fontSize: '0.75rem', transform: 'rotate(-6deg)', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        🏷️ VENDIDO
-                      </span>
-                    </div>
-                  )}
-                  <span className={`market-type-tag ${item.type === 'Venda' ? 'tag-venda' : item.type === 'Troca' ? 'tag-troca' : 'tag-gratis'}`}>
-                    {item.type}
-                  </span>
-                </div>
-                <div className="market-info">
-                  <div className="market-price">
-                    {item.type === 'Troca' || item.type === 'Trocas' ? (
-                      <span style={{ color: '#9333ea', fontWeight: '800', fontSize: '0.88rem' }}>🔄 Para Troca</span>
-                    ) : item.type === 'Grátis' || item.type === 'Grátis/Doação' ? (
-                      <span style={{ color: '#16a34a', fontWeight: '800', fontSize: '0.88rem' }}>🎁 Grátis</span>
-                    ) : (
-                      `R$ ${item.price}`
-                    )}
-                  </div>
-                  <div className="market-title">{item.title}</div>
-                  <div className="market-meta">
-                    <span>{item.neighborhood}</span>
-                    <button onClick={(e) => { e.stopPropagation(); openWhatsApp(item.seller_whatsapp, `Olá, vi o anúncio: ${item.title} no Fala do Bairro!`); }} style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", fontWeight: "bold" }}>Contatar</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {marketplaceItems.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '40px', gridColumn: '1 / -1', background: 'var(--surface)', borderRadius: 'var(--radius)' }}>
-                <p>Nenhum anúncio disponível no momento.</p>
-              </div>
-            )}
-          </div>
-        </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       </main>
 
@@ -732,8 +689,7 @@ export default function Landing() {
                 <li><a href="#noticias">Notícias Locais</a></li>
                 <li><a href="#mural">Mural da Comunidade</a></li>
                 <li><a href="#animais">Animais Perdidos</a></li>
-                <li><a href="#guia">Guia de Empresas</a></li>
-                <li><a href="#vendas">Vendas e Trocas</a></li>
+                <li><a href="#guia">Guia de Empresas</a></li>
               </ul>
             </div>
             <div className="footer-links">
@@ -1051,93 +1007,6 @@ export default function Landing() {
         </div>
       )}
 
-      {/* Marketplace Details Modal */}
-      {selectedMarketDetails && (
-        <div className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedMarketDetails(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 120, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '24px', width: '100%', maxWidth: '28rem', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', position: 'sticky', top: 0, backgroundColor: 'white' }}>
-              <h2 className="font-bold text-lg" style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: 0 }}>Detalhes do Anúncio</h2>
-              <button onClick={() => setSelectedMarketDetails(null)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200" style={{ padding: '8px', borderRadius: '9999px', backgroundColor: '#f1f5f9', border: 'none', cursor: 'pointer' }}>
-                X
-              </button>
-            </div>
-            {selectedMarketDetails.image && (
-              <div className="w-full h-64 bg-slate-900 relative overflow-hidden flex items-center justify-center">
-                <img src={selectedMarketDetails.image} alt="" className="absolute inset-0 w-full h-full object-cover blur-lg opacity-40 scale-110" />
-                <img src={selectedMarketDetails.image} alt={selectedMarketDetails.title} className="relative z-10 max-h-full max-w-full object-contain p-2 drop-shadow-xl" />
-                <div className="absolute top-3 left-3 z-20">
-                  <span className={`px-3 py-1.5 rounded-xl font-extrabold text-xs uppercase shadow-md backdrop-blur-md ${selectedMarketDetails.type === 'Troca' || selectedMarketDetails.type === 'Trocas' ? 'bg-purple-600/95 text-white' : selectedMarketDetails.type === 'Grátis' || selectedMarketDetails.type === 'Grátis/Doação' ? 'bg-emerald-600/95 text-white' : 'bg-blue-600/95 text-white'}`}>
-                    {selectedMarketDetails.type === 'Troca' || selectedMarketDetails.type === 'Trocas' ? '🔄 TROCA' : selectedMarketDetails.type}
-                  </span>
-                </div>
-              </div>
-            )}
-            <div className="p-6" style={{ padding: '24px' }}>
-              <div className="flex gap-2 mb-2" style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md" style={{ fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', color: '#ea580c', backgroundColor: '#fff7ed' }}>
-                  {selectedMarketDetails.category || 'Geral'}
-                </span>
-              </div>
-              <h1 className="text-2xl font-bold text-slate-800 mb-2" style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '8px' }}>{selectedMarketDetails.title}</h1>
-              
-              <div className="mb-4">
-                {selectedMarketDetails.type === 'Troca' || selectedMarketDetails.type === 'Trocas' ? (
-                  <div className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 border border-purple-200 px-4 py-2 rounded-2xl font-black text-base shadow-sm">
-                    <span className="text-lg">🔄</span>
-                    <span>Disponível para Troca</span>
-                  </div>
-                ) : selectedMarketDetails.type === 'Grátis' || selectedMarketDetails.type === 'Grátis/Doação' ? (
-                  <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-2xl font-black text-base shadow-sm">
-                    <span className="text-lg">🎁</span>
-                    <span>Doação / Grátis</span>
-                  </div>
-                ) : (
-                  <div className="text-2xl sm:text-3xl font-black text-emerald-600" style={{ fontSize: '1.75rem', fontWeight: '900', color: '#16a34a', marginBottom: '16px' }}>
-                    {Number(selectedMarketDetails.price) > 0 ? `R$ ${Number(selectedMarketDetails.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Sob Consulta'}
-                  </div>
-                )}
-              </div>
-              
-              <div className="bg-slate-50 p-4 rounded-xl mb-6" style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-                <p className="text-slate-700 whitespace-pre-wrap" style={{ color: '#334155' }}>{selectedMarketDetails.description}</p>
-              </div>
-
-              <div className="text-sm text-slate-500 mb-6" style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '24px' }}>
-                <p><strong>📍 Local:</strong> {selectedMarketDetails.neighborhood}</p>
-                <p><strong>👤 Anunciante:</strong> {selectedMarketDetails.seller_name}</p>
-              </div>
-
-              {selectedMarketDetails.seller_whatsapp && (
-                <a href={"https://wa.me/" + String(selectedMarketDetails.seller_whatsapp).replace(/\D/g, '')} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-green-500 text-white w-full py-3 rounded-xl font-bold hover:bg-green-600 transition-colors" style={{ display: 'block', backgroundColor: '#22c55e', color: 'white', textAlign: 'center', padding: '12px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none' }}>
-                  Negociar no WhatsApp
-                </a>
-              )}
-
-              <button 
-                onClick={() => {
-                  setSelectedMarketDetails(null);
-                  navigate(`/marketplace/anuncio/${selectedMarketDetails.id}`);
-                }} 
-                className="mt-3 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white w-full py-3 rounded-xl font-bold transition-colors cursor-pointer"
-                style={{ display: 'flex', marginTop: '12px', backgroundColor: '#0f172a', color: 'white', textAlign: 'center', padding: '12px', borderRadius: '12px', fontWeight: 'bold', border: 'none', width: '100%', cursor: 'pointer', justifyContent: 'center' }}
-              >
-                🔍 Ver no Marketplace
-              </button>
-
-              <button 
-                onClick={() => {
-                  setSelectedMarketDetails(null);
-                  navigate('/marketplace');
-                }} 
-                className="mt-2 flex items-center justify-center gap-2 bg-[#ff6500] hover:bg-[#e95600] text-white w-full py-3 rounded-xl font-bold transition-colors cursor-pointer"
-                style={{ display: 'flex', marginTop: '8px', backgroundColor: '#ff6500', color: 'white', textAlign: 'center', padding: '12px', borderRadius: '12px', fontWeight: 'bold', border: 'none', width: '100%', cursor: 'pointer', justifyContent: 'center' }}
-              >
-                🛒 Explorar Todo o Marketplace
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ==========================================================================
           MODAL DE PUBLICAÇÃO
@@ -1175,21 +1044,14 @@ export default function Landing() {
               <button 
                 onClick={() => {
                   setShowPublishModal(false);
-                  const userStr = localStorage.getItem('user') || localStorage.getItem('impersonatedUser');
-                  const userAuth = localStorage.getItem('user_auth');
-                  if (!userStr && userAuth !== 'true') {
-                    alert('🔒 Para anunciar no Marketplace do Fala do Bairro é obrigatório estar cadastrado e conectado! Por favor, faça login ou crie sua conta.');
-                    navigate('/register');
-                    return;
-                  }
-                  navigate('/marketplace/anunciar');
+                  window.location.href = '/marketplace';
                 }}
                 className="w-full text-left flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group cursor-pointer"
               >
                 <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🛍️</div>
                 <div>
-                  <h4 className="font-bold text-slate-800">Venda / Marketplace</h4>
-                  <p className="text-xs text-slate-500">Anuncie produtos e serviços no bairro</p>
+                  <h4 className="font-bold text-slate-800">Marketplace Independente</h4>
+                  <p className="text-xs text-slate-500">Acesse a plataforma de compras e vendas</p>
                 </div>
               </button>
 

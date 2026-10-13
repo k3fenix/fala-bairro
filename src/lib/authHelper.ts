@@ -9,6 +9,10 @@ export interface UserSession {
   neighborhood?: string;
 }
 
+// Exported as a value as well to avoid bundler mismatches if imported without 'type'
+export const UserSession = {};
+export type { UserSession as UserSessionType };
+
 /**
  * Retorna o usuário logado atualmente de forma SÍNCRONA (0ms) a partir do cache local.
  * Essencial para evitar qualquer "flicker" ou atraso ao navegar entre o portal e o marketplace.

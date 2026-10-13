@@ -41,8 +41,7 @@ export default function AdminDashboard() {
           <TabButton icon={<Users />} label="Gerenciar Usuários" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
           <TabButton icon={<Store />} label="Guia Comercial" active={activeTab === 'commercial'} onClick={() => setActiveTab('commercial')} />
           <TabButton icon={<AlertTriangle />} label="Pets Perdidos" active={activeTab === 'pets'} onClick={() => setActiveTab('pets')} />
-          <TabButton icon={<Megaphone />} label="Mural de Avisos" active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} />
-          <TabButton icon={<Store />} label="Marketplace V2" active={activeTab === 'marketplace'} onClick={() => setActiveTab('marketplace')} />
+          <TabButton icon={<Megaphone />} label="Mural de Avisos" active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} />
           <TabButton icon={<LayoutDashboard />} label="Capa do Site" active={activeTab === 'landing'} onClick={() => setActiveTab('landing')} />
           <TabButton icon={<Wallet />} label="Monetização" active={activeTab === 'monetization'} onClick={() => setActiveTab('monetization')} />
           <TabButton icon={<Trash2 />} label="Exclusões de Conta" active={activeTab === 'deletions'} onClick={() => setActiveTab('deletions')} />
@@ -55,8 +54,7 @@ export default function AdminDashboard() {
           {activeTab === 'commercial' && <CommercialTab />}
           {activeTab === 'pets' && <PetsTab />}
           {activeTab === 'announcements' && <AnnouncementsTab />}
-          {activeTab === 'landing' && <LandingConfigTab />}
-          {activeTab === 'marketplace' && <MarketplaceAdminTab />}
+          {activeTab === 'landing' && <LandingConfigTab />}
           {activeTab === 'monetization' && <MonetizationTab />}
           {activeTab === 'deletions' && <DeletionsTab />}
           {activeTab === 'security' && <AdminSecurityTab />}

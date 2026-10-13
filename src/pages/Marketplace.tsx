@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart, Sparkles, X, UserCheck } from 'lucide-react';
 import { getAuthUserSync } from '../lib/authHelper';
@@ -359,6 +359,13 @@ export default function Marketplace() {
             >
               <Package className="w-3.5 h-3.5 text-orange-500" /> Meus Anúncios
             </button>
+            <button 
+              onClick={() => navigate('/marketplace/admin')} 
+              className="hidden xl:inline-flex items-center gap-1.5 border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[12px] py-[10px] rounded-[11px] text-slate-600 font-semibold text-xs cursor-pointer"
+              title="Painel de Moderação e Administração do Marketplace"
+            >
+              🛡️ Admin
+            </button>
 
             {/* Profile or Login */}
             {authLoading && !activeUser ? (
@@ -662,11 +669,11 @@ export default function Marketplace() {
             </div>
 
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-2">
-              Conta Fala do Bairro
+              Acesso ao Marketplace
             </h3>
             
             <p className="text-slate-600 text-center text-sm mb-6 leading-relaxed">
-              O Marketplace é 100% integrado ao portal comunitário! Você já possui cadastro ou conta no <strong>Fala do Bairro</strong>?
+              O Marketplace possui autenticação e painel de anúncios próprios. Você pode utilizar seu mesmo e-mail habitual para entrar ou criar sua conta de anunciante.
             </p>
 
             <div className="space-y-3">
@@ -675,9 +682,9 @@ export default function Marketplace() {
                   setShowAuthModal(false);
                   navigate(`/login?redirect=${encodeURIComponent(authRedirectTarget)}`);
                 }}
-                className="w-full bg-[#0284c7] hover:bg-[#0369a1] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base"
+                className="w-full bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base"
               >
-                <span>✅ Sim, já tenho conta (Entrar direto)</span>
+                <span>🔑 Entrar no Marketplace</span>
               </button>
 
               <button
@@ -687,12 +694,12 @@ export default function Marketplace() {
                 }}
                 className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-sm sm:text-base"
               >
-                <span>📝 Não, quero me cadastrar agora</span>
+                <span>📝 Criar Conta no Marketplace</span>
               </button>
             </div>
 
             <p className="text-center text-xs text-slate-400 mt-5">
-              Utilize o mesmo e-mail e senha em todo o portal Fala do Bairro e Marketplace.
+              Contas e sessões independentes. O mesmo e-mail pode ser utilizado com segurança.
             </p>
           </div>
         </div>

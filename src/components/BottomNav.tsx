@@ -27,10 +27,7 @@ export default function BottomNav() {
         <Megaphone className="w-5 h-5 mb-1" />
         <span className="text-[10px] font-medium leading-none">Mural</span>
       </Link>
-      <Link to="/marketplace" className={`flex flex-col items-center ${location.pathname === '/marketplace' ? 'text-blue-600' : 'text-slate-400'}`}>
-        <ShoppingBag className="w-5 h-5 mb-1" />
-        <span className="text-[10px] font-medium leading-none text-center">Mercado</span>
-      </Link>
+
       <Link to="/guide" className={`flex flex-col items-center ${location.pathname === '/guide' ? 'text-blue-600' : 'text-slate-400'}`}>
         <Store className="w-5 h-5 mb-1" />
         <span className="text-[10px] font-medium leading-none text-center">Guia<br/>Local</span>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { ArrowLeft, UploadCloud, X, CheckCircle, Repeat, Star } from 'lucide-react';
-import { getAuthUser, UserSession } from '../lib/authHelper';
+import { getAuthUser, type UserSession } from '../lib/authHelper';
 import { compressImage } from '../lib/imageUtils';
 import { useAuth } from '../context/AuthContext';
 

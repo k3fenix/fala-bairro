@@ -198,6 +198,30 @@
   background: var(--accent-dark);
 }
 
+.btn-header-marketplace {
+  background: linear-gradient(135deg, #ff7a00 0%, #ff5100 100%);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 101, 0, 0.3);
+}
+
+.btn-header-marketplace:hover {
+  background: linear-gradient(135deg, #ff6500 0%, #e04400 100%);
+  box-shadow: 0 4px 12px rgba(255, 101, 0, 0.45);
+  transform: translateY(-1px);
+}
+
 .btn-header-auth {
   background: var(--primary);
   color: #fff;

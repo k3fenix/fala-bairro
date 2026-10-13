@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { Package, Plus, Trash2, Eye, PauseCircle, PlayCircle, CheckCircle, ArrowLeft } from 'lucide-react';
-import { getAuthUser, UserSession } from '../lib/authHelper';
+import { getAuthUser, type UserSession } from '../lib/authHelper';
 
 export default function MarketplaceMyAds() {
   const navigate = useNavigate();
