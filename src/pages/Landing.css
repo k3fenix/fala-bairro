@@ -198,6 +198,28 @@
   background: var(--accent-dark);
 }
 
+.btn-header-auth {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+}
+
+.btn-header-auth:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+
 /* Sub-navegação em chips */
 .subnav-chips {
   background: #fff;

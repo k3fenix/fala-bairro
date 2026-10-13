@@ -257,24 +257,16 @@ export default function Landing() {
           </div>
 
           <div className="header-actions">
-            <Link 
-              to={currentUser ? "/marketplace" : "/login?redirect=/marketplace"} 
-              className="btn-publish-main" 
-              style={{ backgroundColor: '#ff6500', color: '#ffffff', textDecoration: 'none' }}
-              title="Acessar o Marketplace"
-            >
-              🛒 <span className="hidden sm:inline">Marketplace</span>
-            </Link>
+
 
 
 
             <Link 
               to={currentUser ? "/feed" : "/login"} 
-              className="btn-publish-main" 
-              style={{ backgroundColor: '#ff6500', color: '#ffffff', textDecoration: 'none' }} 
+              className="btn-header-auth" 
               title={currentUser ? `Conectado como ${currentUser.name}` : "Entrar"}
             >
-              👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar'}</span>
+              👤 <span className="hidden sm:inline">{currentUser ? currentUser.name : 'Entrar / Cadastrar'}</span>
             </Link>
           </div>
         </div>
