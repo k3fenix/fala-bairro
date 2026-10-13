@@ -476,9 +476,9 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="animals-grid">
+          <div className="mural-grid">
             {publicPosts.map(post => (
-              <div key={post.id} onClick={() => setSelectedPostDetails(post)} className="animal-card" style={{ cursor: "pointer" }} title="Clique para ver a postagem completa">
+              <div key={post.id} onClick={() => setSelectedPostDetails(post)} className="mural-card-compact" title="Clique para ver a postagem completa">
                 <div className="animal-image-wrap">
                   {post.image ? (
                     <img src={post.image} alt={post.author_name} className="animal-img" loading="lazy" />
@@ -491,7 +491,7 @@ export default function Landing() {
                     {post.category || 'Mural'}
                   </span>
                 </div>
-                <div className="mural-card-body">
+                <div className="mural-compact-body">
                   <div className="mural-card-author">
                   <div className="author-info">
                     <img src={post.author_avatar} alt="" className="author-avatar" style={{ objectFit: 'cover' }} />
@@ -505,13 +505,13 @@ export default function Landing() {
 
                 </div>
 
-                <p className="mural-card-text">{post.content}</p>
+                <p className="mural-compact-text">{post.content}</p>
                 <div className="mural-card-footer">
                   <div className="post-action-group">
                     <button className="btn-action-ghost" onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'likes'); }}>👍 <span>{post.likes || 0} curtidas</span></button>
                     <Link to="/feed" onClick={(e) => e.stopPropagation()} className="btn-action-ghost">💬 {post.comments?.length || 0} comentários</Link>
                   </div>
-                  <span className="mural-read-more">Ver postagem ➔</span>
+                  <span className="mural-read-more" style={{ fontWeight: 800, color: 'var(--primary)' }}>🔍 Ver postagem ➔</span>
                   <div style={{ display: 'none' }}>
                     <button className="btn-action-ghost" onClick={(e) => { e.stopPropagation(); shareText(`Publicação de ${post.author_name} no Mural`); }}>📤 Compartilhar</button>
                   </div>
