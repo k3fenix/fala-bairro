@@ -136,58 +136,36 @@ export default function MarketplaceNew() {
       const selectedCategoryObj = categories.find(c => c.id.toString() === formData.category_id);
       const categoryName = selectedCategoryObj?.name || 'Outros';
 
-      let itemsSaved = false;
       let listingsSaved = false;
+      let lastErrorMessage = '';
 
-      // 1. Inserir com total segurança em marketplace_items (tabela universal)
-      const baseItemPayload = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        price: finalPrice,
-        type: effectiveType,
-        condition: formData.condition,
-        neighborhood: formData.neighborhood.trim(),
-        seller_name: user?.name || 'Vendedor do Bairro',
-        seller_whatsapp: formData.whatsapp.trim(),
-        image: primaryImage,
-        status: 'Ativo'
-      };
-
-      try {
-        const { error: catErr } = await supabase.from('marketplace_items').insert({
-          ...baseItemPayload,
-          category: categoryName
-        });
-        if (!catErr) {
-          itemsSaved = true;
-        } else {
-          console.warn("Tentando sem coluna category em marketplace_items:", catErr.message);
-          const { error: fallbackErr } = await supabase.from('marketplace_items').insert(baseItemPayload);
-          if (!fallbackErr) itemsSaved = true;
-        }
-      } catch (errItems) {
-        console.warn("Erro ao salvar em marketplace_items:", errItems);
-      }
-
-      // 2. Inserir também em marketplace_listings (schema v2)
+      // Inserir em marketplace_listings (tabela oficial da plataforma independente)
       try {
         const listingPayload: any = {
           title: formData.title.trim(),
           description: formData.description.trim(),
           price: finalPrice,
+          type: effectiveType,
           condition: formData.condition,
           category_id: formData.category_id ? parseInt(formData.category_id) : null,
           state: formData.state || 'SP',
           city: formData.city || 'Campinas',
           neighborhood: formData.neighborhood.trim(),
+          seller_name: user?.name || 'Vendedor do Bairro',
           whatsapp: formData.whatsapp.trim(),
           status: 'approved'
         };
+
         if (userId) {
           listingPayload.user_id = userId;
         }
 
-        const { data: newListing, error: listingError } = await supabase.from('marketplace_listings').insert(listingPayload).select().single();
+        const { data: newListing, error: listingError } = await supabase
+          .from('marketplace_listings')
+          .insert(listingPayload)
+          .select()
+          .single();
+
         if (!listingError && newListing?.id) {
           listingsSaved = true;
           if (imagePreviews.length > 0) {
@@ -200,29 +178,41 @@ export default function MarketplaceNew() {
             await supabase.from('marketplace_listing_images').insert(imagesPayload);
           }
         } else if (listingError) {
-          console.warn("Aviso ao salvar em marketplace_listings com user_id:", listingError.message);
-          // Tentar novamente sem user_id caso seja restrição de foreign key
-          delete listingPayload.user_id;
-          const { data: retryListing, error: retryErr } = await supabase.from('marketplace_listings').insert(listingPayload).select().single();
-          if (!retryErr && retryListing?.id) {
-            listingsSaved = true;
-            if (imagePreviews.length > 0) {
-              const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
-                listing_id: retryListing.id,
-                image_url: imgUrl,
-                is_primary: idx === primaryIndex,
-                order_index: idx
-              }));
-              await supabase.from('marketplace_listing_images').insert(imagesPayload);
+          console.warn("Aviso ao salvar marketplace_listings:", listingError);
+          lastErrorMessage = listingError.message || listingError.details || JSON.stringify(listingError);
+          
+          // Se falhou com user_id (ex: profile ainda não sincronizado no novo banco), tenta sem user_id
+          if (listingPayload.user_id) {
+            delete listingPayload.user_id;
+            const { data: retryListing, error: retryErr } = await supabase
+              .from('marketplace_listings')
+              .insert(listingPayload)
+              .select()
+              .single();
+
+            if (!retryErr && retryListing?.id) {
+              listingsSaved = true;
+              if (imagePreviews.length > 0) {
+                const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
+                  listing_id: retryListing.id,
+                  image_url: imgUrl,
+                  is_primary: idx === primaryIndex,
+                  order_index: idx
+                }));
+                await supabase.from('marketplace_listing_images').insert(imagesPayload);
+              }
+            } else if (retryErr) {
+              lastErrorMessage = retryErr.message || retryErr.details || lastErrorMessage;
             }
           }
         }
-      } catch (errListings) {
-        console.warn("Erro ao salvar em marketplace_listings:", errListings);
+      } catch (errListings: any) {
+        console.error("Erro na requisição marketplace_listings:", errListings);
+        lastErrorMessage = errListings.message || String(errListings);
       }
 
-      if (!itemsSaved && !listingsSaved) {
-        throw new Error('Falha na comunicação com o banco de dados. Verifique sua conexão e tente novamente.');
+      if (!listingsSaved) {
+        throw new Error(lastErrorMessage || 'Falha na comunicação com o banco de dados. Verifique as permissões ou sua conexão.');
       }
 
       setSuccess(true);
@@ -233,7 +223,6 @@ export default function MarketplaceNew() {
     } finally {
       setLoading(false);
     }
-
   };
 
   if (success) {
