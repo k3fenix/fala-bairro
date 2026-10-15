@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus, Wallet, Lock, KeyRound, ShoppingBag, CreditCard, Sliders, ShieldAlert, DollarSign } from 'lucide-react';
+import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus, Wallet, Lock, KeyRound, ShoppingBag, CreditCard, Sliders, ShieldAlert, DollarSign, Package } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminDashboard() {
@@ -1597,7 +1597,7 @@ function AdminSecurityTab() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900">Configurações da Conta do Administrador</h2>
-          <p className="text-slate-500 text-sm">Altere o e-mail e a senha que você usa para acessar o painel /admin</p>
+          <p className="text-slate-500 text-sm">Altere o e-mail e a senha mestra usada para acessar o painel do Fala Bairro e o Marketplace</p>
         </div>
       </div>
 
@@ -1606,7 +1606,7 @@ function AdminSecurityTab() {
           <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
           <div>
             <p className="font-bold text-sm">Credenciais Atualizadas com Sucesso!</p>
-            <p className="text-xs text-emerald-700">Seu novo e-mail e senha de administrador já estão salvos e ativos para login no /admin.</p>
+            <p className="text-xs text-emerald-700">Seu novo e-mail e senha de administrador já estão salvos e ativos para todo o Fala Bairro e Marketplace.</p>
           </div>
         </div>
       )}
