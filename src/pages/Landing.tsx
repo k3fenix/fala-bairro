@@ -19,6 +19,7 @@ export default function Landing() {
   const [expandedBusinessImage, setExpandedBusinessImage] = useState<string | null>(null);
   const [selectedPostDetails, setSelectedPostDetails] = useState<any>(null);
   const [selectedNewsDetails, setSelectedNewsDetails] = useState<any>(null);
+  const [isNewsFullScreen, setIsNewsFullScreen] = useState(false);
 
   const [showPublishModal, setShowPublishModal] = useState(false);
   const AVAILABLE_CITIES = [
