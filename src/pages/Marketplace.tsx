@@ -359,13 +359,6 @@ export default function Marketplace() {
             >
               <Package className="w-3.5 h-3.5 text-orange-500" /> Meus Anúncios
             </button>
-            <button 
-              onClick={() => navigate('/marketplace/admin')} 
-              className="hidden xl:inline-flex items-center gap-1.5 border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[12px] py-[10px] rounded-[11px] text-slate-600 font-semibold text-xs cursor-pointer"
-              title="Painel de Moderação e Administração do Marketplace"
-            >
-              🛡️ Admin
-            </button>
 
             {/* Profile or Login */}
             {authLoading && !activeUser ? (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus, Wallet, Lock, KeyRound } from 'lucide-react';
+import { Users, FileText, AlertTriangle, MessageSquare, LogOut, Ban, Edit, Trash2, Send, Megaphone, ArrowLeft, CheckCircle, XCircle, LayoutDashboard, Save, Store, Plus, Wallet, Lock, KeyRound, ShoppingBag, CreditCard, Sliders, ShieldAlert, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminDashboard() {
@@ -38,6 +38,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
         <div className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col p-4 gap-2 overflow-y-auto">
           <TabButton icon={<AlertTriangle />} label="Visão Geral" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
+          <TabButton icon={<ShoppingBag className="text-orange-500" />} label="🛍️ Marketplace Admin" active={activeTab === 'marketplace'} onClick={() => setActiveTab('marketplace')} />
           <TabButton icon={<Users />} label="Gerenciar Usuários" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
           <TabButton icon={<Store />} label="Guia Comercial" active={activeTab === 'commercial'} onClick={() => setActiveTab('commercial')} />
           <TabButton icon={<AlertTriangle />} label="Pets Perdidos" active={activeTab === 'pets'} onClick={() => setActiveTab('pets')} />
@@ -50,6 +51,7 @@ export default function AdminDashboard() {
 
         <div className="flex-1 p-6 max-w-6xl overflow-y-auto">
           {activeTab === 'overview' && <OverviewTab />}
+          {activeTab === 'marketplace' && <MarketplaceCompleteAdminTab />}
           {activeTab === 'users' && <UsersTab />}
           {activeTab === 'commercial' && <CommercialTab />}
           {activeTab === 'pets' && <PetsTab />}
@@ -1650,6 +1652,667 @@ function AdminSecurityTab() {
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function MarketplaceCompleteAdminTab() {
+  const [subTab, setSubTab] = useState<'listings' | 'users' | 'monetization'>('listings');
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [items, setItems] = useState<any[]>([]);
+  const [loadingItems, setLoadingItems] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Gestão de Usuários do Marketplace
+  const [marketUsers, setMarketUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [editingUser, setEditingUser] = useState<any>(null);
+
+  // Configurações de Cobrança / Mercado Pago
+  const [feeEnabled, setFeeEnabled] = useState(false);
+  const [feeAmount, setFeeAmount] = useState('5.00');
+  const [feeType, setFeeType] = useState('fixed'); // 'fixed' | 'percent'
+  const [mpPublicKey, setMpPublicKey] = useState('');
+  const [mpAccessToken, setMpAccessToken] = useState('');
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSavedSuccess, setSettingsSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    fetchMarketSettings();
+    fetchMarketListings();
+    fetchMarketUsers();
+  }, []);
+
+  const fetchMarketSettings = async () => {
+    try {
+      const { data } = await supabase.from('marketplace_settings').select('*');
+      if (data) {
+        data.forEach((setting: any) => {
+          if (setting.key === 'marketplace_enabled') setIsEnabled(setting.value === 'true');
+          if (setting.key === 'listing_fee_enabled') setFeeEnabled(setting.value === 'true');
+          if (setting.key === 'listing_fee_amount') setFeeAmount(setting.value || '5.00');
+          if (setting.key === 'listing_fee_type') setFeeType(setting.value || 'fixed');
+          if (setting.key === 'mercadopago_public_key') setMpPublicKey(setting.value || '');
+          if (setting.key === 'mercadopago_access_token') setMpAccessToken(setting.value || '');
+        });
+      }
+      if (isEnabled === null) setIsEnabled(true);
+    } catch (e) {
+      console.log('Erro ao carregar settings do marketplace:', e);
+      setIsEnabled(true);
+    }
+  };
+
+  const fetchMarketListings = async () => {
+    setLoadingItems(true);
+    try {
+      const { data: listingsData } = await supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false });
+      const { data: itemsData } = await supabase.from('marketplace_items').select('*').order('created_at', { ascending: false });
+
+      const combined: any[] = [];
+      const seen = new Set();
+
+      if (listingsData) {
+        listingsData.forEach((l: any) => {
+          seen.add(l.id || l.title);
+          combined.push({
+            id: l.id,
+            title: l.title,
+            description: l.description,
+            price: l.price,
+            condition: l.condition || 'Usado',
+            accepts_trade: l.accepts_trade === true,
+            type: l.accepts_trade ? 'Troca' : 'Venda',
+            neighborhood: l.neighborhood || 'Bairro Local',
+            whatsapp: l.whatsapp,
+            seller_name: l.seller_name || 'Vendedor',
+            image: l.image_url || l.image,
+            status: l.status === 'sold' ? 'Vendido' : (l.status === 'paused' ? 'Pausado' : 'Ativo'),
+            created_at: l.created_at,
+            table: 'marketplace_listings'
+          });
+        });
+      }
+
+      if (itemsData) {
+        itemsData.forEach((i: any) => {
+          if (!seen.has(i.id || i.title)) {
+            combined.push({
+              id: i.id,
+              title: i.title,
+              description: i.description,
+              price: i.price,
+              condition: i.condition || 'Usado',
+              accepts_trade: i.type === 'Troca',
+              type: i.type,
+              neighborhood: i.neighborhood || 'Bairro Local',
+              whatsapp: i.seller_whatsapp,
+              seller_name: i.seller_name || 'Morador',
+              image: i.image,
+              status: i.status || 'Ativo',
+              created_at: i.created_at,
+              table: 'marketplace_items'
+            });
+          }
+        });
+      }
+
+      setItems(combined);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoadingItems(false);
+    }
+  };
+
+  const fetchMarketUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      if (data) setMarketUsers(data);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const toggleMarketplace = async () => {
+    const actionText = isEnabled ? 'DESATIVAR' : 'ATIVAR';
+    if (confirm(`Deseja realmente ${actionText} o Marketplace?\n\n${isEnabled ? 'O Marketplace ficará invisível para os usuários.' : 'O Marketplace será disponibilizado para os usuários.'}`)) {
+      const newValue = isEnabled ? 'false' : 'true';
+      await supabase.from('marketplace_settings').upsert({ key: 'marketplace_enabled', value: newValue, description: 'Marketplace Ativo/Inativo' });
+      setIsEnabled(!isEnabled);
+    }
+  };
+
+  const handleDeleteListing = async (item: any) => {
+    if (confirm(`Excluir permanentemente o anúncio "${item.title}"?`)) {
+      if (item.table === 'marketplace_listings') {
+        await supabase.from('marketplace_listings').delete().eq('id', item.id);
+      }
+      await supabase.from('marketplace_items').delete().eq('id', item.id);
+      await supabase.from('marketplace_items').delete().eq('title', item.title);
+      alert('Anúncio excluído com sucesso!');
+      fetchMarketListings();
+    }
+  };
+
+  const handleToggleListingStatus = async (item: any) => {
+    const nextStatus = item.status === 'Vendido' ? 'Ativo' : 'Vendido';
+    if (item.table === 'marketplace_listings') {
+      await supabase.from('marketplace_listings').update({ status: nextStatus === 'Ativo' ? 'approved' : 'sold' }).eq('id', item.id);
+    }
+    await supabase.from('marketplace_items').update({ status: nextStatus }).eq('id', item.id);
+    fetchMarketListings();
+  };
+
+  const handleToggleUserBlock = async (u: any) => {
+    const isBlocked = u.status === 'Bloqueado';
+    const newStatus = isBlocked ? 'Ativo' : 'Bloqueado';
+    if (confirm(`Deseja ${isBlocked ? 'DESBLOQUEAR' : 'BLOQUEAR'} o usuário ${u.name || u.full_name || u.email}?`)) {
+      await supabase.from('profiles').update({ status: newStatus }).eq('id', u.id);
+      setMarketUsers(prev => prev.map(user => user.id === u.id ? { ...user, status: newStatus } : user));
+      alert(`Usuário ${newStatus === 'Bloqueado' ? 'bloqueado' : 'liberado'} com sucesso!`);
+    }
+  };
+
+  const handleDeleteUser = async (u: any) => {
+    if (confirm(`ATENÇÃO: Deseja apagar permanentemente o usuário ${u.name || u.email}? Todos os anúncios dele poderão ser afetados.`)) {
+      await supabase.from('profiles').delete().eq('id', u.id);
+      setMarketUsers(prev => prev.filter(user => user.id !== u.id));
+      alert('Usuário apagado com sucesso!');
+    }
+  };
+
+  const handleSaveUserEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    try {
+      await supabase.from('profiles').update({
+        name: editingUser.name || editingUser.full_name,
+        full_name: editingUser.full_name || editingUser.name,
+        whatsapp: editingUser.whatsapp,
+        phone: editingUser.phone,
+        city: editingUser.city,
+        neighborhood: editingUser.neighborhood
+      }).eq('id', editingUser.id);
+      setMarketUsers(prev => prev.map(user => user.id === editingUser.id ? { ...user, ...editingUser } : user));
+      setEditingUser(null);
+      alert('Usuário atualizado com sucesso!');
+    } catch (err: any) {
+      alert('Erro ao salvar usuário: ' + err.message);
+    }
+  };
+
+  const handleSaveMonetization = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      await supabase.from('marketplace_settings').upsert([
+        { key: 'listing_fee_enabled', value: feeEnabled ? 'true' : 'false', description: 'Cobrança por anúncio ativada' },
+        { key: 'listing_fee_amount', value: feeAmount, description: 'Valor ou taxa da cobrança' },
+        { key: 'listing_fee_type', value: feeType, description: 'Tipo da taxa (fixed ou percent)' },
+        { key: 'mercadopago_public_key', value: mpPublicKey.trim(), description: 'Mercado Pago Public Key' },
+        { key: 'mercadopago_access_token', value: mpAccessToken.trim(), description: 'Mercado Pago Access Token' }
+      ], { onConflict: 'key' });
+
+      setSettingsSavedSuccess(true);
+      setTimeout(() => setSettingsSavedSuccess(false), 4000);
+    } catch (err: any) {
+      alert('Erro ao salvar configurações de cobrança: ' + err.message);
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  return (
+    <div>
+      {/* CABEÇALHO DA ABA MARKETPLACE */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">🛍️</span>
+            <h2 className="text-2xl font-black text-slate-900">Marketplace | Painel de Moderação & Gestão</h2>
+          </div>
+          <p className="text-sm text-slate-500">Administre anúncios, usuários, permissões e configure cobranças com Mercado Pago.</p>
+        </div>
+
+        {/* Status Mestre Liga/Desliga */}
+        <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50">
+            <div className={`w-3 h-3 rounded-full ${isEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+            <span className="text-xs font-black text-slate-700">{isEnabled ? 'ONLINE' : 'OFFLINE'}</span>
+          </div>
+          <button
+            onClick={toggleMarketplace}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${isEnabled ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+          >
+            {isEnabled ? 'Desativar' : 'Ativar Portal'}
+          </button>
+        </div>
+      </div>
+
+      {/* SUB-ABAS DE NAVEGAÇÃO DO MARKETPLACE */}
+      <div className="flex gap-2 mb-6 border-b border-slate-200 pb-2 overflow-x-auto">
+        <button
+          onClick={() => setSubTab('listings')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer ${subTab === 'listings' ? 'bg-[#ff6500] text-white shadow-md shadow-orange-500/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}
+        >
+          <Package className="w-4 h-4" /> Anúncios ({items.length})
+        </button>
+        <button
+          onClick={() => setSubTab('users')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer ${subTab === 'users' ? 'bg-[#ff6500] text-white shadow-md shadow-orange-500/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}
+        >
+          <Users className="w-4 h-4" /> Usuários & Vendedores ({marketUsers.length})
+        </button>
+        <button
+          onClick={() => setSubTab('monetization')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer ${subTab === 'monetization' ? 'bg-[#ff6500] text-white shadow-md shadow-orange-500/20' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`}
+        >
+          <CreditCard className="w-4 h-4" /> Cobrança & Mercado Pago {feeEnabled && '🟢'}
+        </button>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 1. ABA DE ANÚNCIOS */}
+      {/* ========================================================================= */}
+      {subTab === 'listings' && (
+        <div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+              <span className="text-xs font-bold text-slate-500 block mb-1">Total de Anúncios</span>
+              <strong className="text-2xl font-black text-slate-800">{items.length}</strong>
+            </div>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+              <span className="text-xs font-bold text-emerald-600 block mb-1">🟢 Anúncios Ativos</span>
+              <strong className="text-2xl font-black text-emerald-600">{items.filter(i => i.status !== 'Vendido').length}</strong>
+            </div>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+              <span className="text-xs font-bold text-blue-600 block mb-1">🏷️ Vendas</span>
+              <strong className="text-2xl font-black text-blue-600">{items.filter(i => !i.accepts_trade && i.type !== 'Troca').length}</strong>
+            </div>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+              <span className="text-xs font-bold text-purple-600 block mb-1">🔄 Trocas</span>
+              <strong className="text-2xl font-black text-purple-600">{items.filter(i => i.accepts_trade || i.type === 'Troca').length}</strong>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs mb-6 flex flex-col sm:flex-row gap-3 justify-between">
+            <input
+              type="text"
+              placeholder="Buscar anúncio por título, vendedor ou bairro..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium w-full sm:w-80 outline-none focus:border-orange-500"
+            />
+            <div className="flex gap-2">
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none"
+              >
+                <option value="all">Todos os Status</option>
+                <option value="Ativo">Apenas Ativos</option>
+                <option value="Vendido">Apenas Vendidos</option>
+              </select>
+              <button onClick={fetchMarketListings} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
+                🔄 Atualizar
+              </button>
+            </div>
+          </div>
+
+          {loadingItems ? (
+            <div className="text-center py-12 text-slate-500 font-bold">Carregando anúncios...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {items
+                .filter(i => {
+                  const mSearch = !search.trim() || i.title?.toLowerCase().includes(search.toLowerCase()) || i.seller_name?.toLowerCase().includes(search.toLowerCase());
+                  const mStatus = statusFilter === 'all' || i.status === statusFilter;
+                  return mSearch && mStatus;
+                })
+                .map(item => (
+                  <div key={item.id} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-col justify-between">
+                    <div className="flex gap-4">
+                      <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center border border-slate-100">
+                        {item.image ? <img src={item.image} alt={item.title} className="w-full h-full object-cover" /> : <span className="text-2xl">📦</span>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${item.accepts_trade || item.type === 'Troca' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {item.accepts_trade || item.type === 'Troca' ? '🔄 Troca' : '🏷️ Venda'}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.status === 'Vendido' ? 'bg-slate-200 text-slate-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                            {item.status}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-slate-800 text-sm truncate">{item.title}</h4>
+                        <p className="text-emerald-600 font-black text-sm mt-0.5">
+                          {item.accepts_trade || item.type === 'Troca' ? 'Para Troca' : Number(item.price) > 0 ? `R$ ${Number(item.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Grátis'}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1 truncate">📍 {item.neighborhood} • 👤 {item.seller_name}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                      {item.whatsapp ? (
+                        <a href={`https://wa.me/55${String(item.whatsapp).replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-xs text-emerald-600 font-bold hover:underline">
+                          💬 WhatsApp
+                        </a>
+                      ) : <span className="text-xs text-slate-400">Sem WhatsApp</span>}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleToggleListingStatus(item)}
+                          className={`px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer ${item.status === 'Vendido' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}
+                        >
+                          {item.status === 'Vendido' ? 'Reativar' : 'Marcar Vendido'}
+                        </button>
+                        <button onClick={() => handleDeleteListing(item)} className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer" title="Excluir Anúncio">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. ABA DE USUÁRIOS E VENDEDORES DO MARKETPLACE */}
+      {/* ========================================================================= */}
+      {subTab === 'users' && (
+        <div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs mb-6 flex flex-col sm:flex-row gap-3 justify-between items-center">
+            <input
+              type="text"
+              placeholder="Buscar usuário por nome, email ou whatsapp..."
+              value={userSearch}
+              onChange={e => setUserSearch(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium w-full sm:w-96 outline-none focus:border-orange-500"
+            />
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-500">{marketUsers.length} usuários cadastrados</span>
+              <button onClick={fetchMarketUsers} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">
+                🔄 Atualizar
+              </button>
+            </div>
+          </div>
+
+          {/* Modal / Formulário de Edição de Usuário */}
+          {editingUser && (
+            <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+              <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200">
+                <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                  <h3 className="font-extrabold text-slate-900 text-lg">Editar Usuário do Marketplace</h3>
+                  <button onClick={() => setEditingUser(null)} className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold hover:bg-slate-200 flex items-center justify-center">✕</button>
+                </div>
+
+                <form onSubmit={handleSaveUserEdit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Nome Completo</label>
+                    <input
+                      type="text"
+                      value={editingUser.name || editingUser.full_name || ''}
+                      onChange={e => setEditingUser({ ...editingUser, name: e.target.value, full_name: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp</label>
+                      <input
+                        type="text"
+                        value={editingUser.whatsapp || ''}
+                        onChange={e => setEditingUser({ ...editingUser, whatsapp: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none focus:border-orange-500"
+                        placeholder="19999999999"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Cidade</label>
+                      <input
+                        type="text"
+                        value={editingUser.city || ''}
+                        onChange={e => setEditingUser({ ...editingUser, city: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none focus:border-orange-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Bairro</label>
+                    <input
+                      type="text"
+                      value={editingUser.neighborhood || ''}
+                      onChange={e => setEditingUser({ ...editingUser, neighborhood: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-3">
+                    <button type="submit" className="flex-1 bg-[#ff6500] hover:bg-[#e95600] text-white font-bold py-3 rounded-xl text-xs transition cursor-pointer">
+                      Salvar Alterações
+                    </button>
+                    <button type="button" onClick={() => setEditingUser(null)} className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer">
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {loadingUsers ? (
+            <div className="text-center py-12 text-slate-500 font-bold">Carregando usuários...</div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-black tracking-wider">
+                    <tr>
+                      <th className="p-4">Usuário</th>
+                      <th className="p-4">WhatsApp / Tel</th>
+                      <th className="p-4">Localização</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Ações de Moderação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {marketUsers
+                      .filter(u => {
+                        if (!userSearch.trim()) return true;
+                        const s = userSearch.toLowerCase();
+                        return (u.name || u.full_name || '').toLowerCase().includes(s) || (u.email || '').toLowerCase().includes(s) || (u.whatsapp || '').includes(s);
+                      })
+                      .map(u => (
+                        <tr key={u.id} className="hover:bg-slate-50/70 transition">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center font-bold text-slate-600">
+                                {u.avatar_url || u.avatar ? (
+                                  <img src={u.avatar_url || u.avatar} alt={u.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  (u.name || u.full_name || u.email || 'U')[0].toUpperCase()
+                                )}
+                              </div>
+                              <div>
+                                <strong className="block text-slate-800 text-sm font-bold">{u.name || u.full_name || 'Sem nome'}</strong>
+                                <span className="text-slate-400 text-[11px]">{u.email || 'Email não disponível'}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 font-medium text-slate-700">
+                            {u.whatsapp || u.phone ? (
+                              <span className="text-emerald-700 font-bold">📱 {u.whatsapp || u.phone}</span>
+                            ) : (
+                              <span className="text-slate-400 italic">Não informado</span>
+                            )}
+                          </td>
+                          <td className="p-4 text-slate-600">
+                            {u.neighborhood ? `${u.neighborhood}, ` : ''}{u.city || 'Campinas - SP'}
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${u.status === 'Bloqueado' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {u.status === 'Bloqueado' ? '🚫 Bloqueado' : '🟢 Ativo'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setEditingUser(u)}
+                                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1"
+                                title="Editar dados do usuário"
+                              >
+                                <Edit className="w-3.5 h-3.5" /> Editar
+                              </button>
+                              <button
+                                onClick={() => handleToggleUserBlock(u)}
+                                className={`px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1 ${u.status === 'Bloqueado' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700' : 'bg-amber-50 hover:bg-amber-100 text-amber-700'}`}
+                                title={u.status === 'Bloqueado' ? 'Desbloquear usuário' : 'Bloquear usuário'}
+                              >
+                                <Ban className="w-3.5 h-3.5" /> {u.status === 'Bloqueado' ? 'Liberar' : 'Bloquear'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(u)}
+                                className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer"
+                                title="Apagar conta do usuário permanentemente"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. ABA DE COBRANÇA E MERCADO PAGO */}
+      {/* ========================================================================= */}
+      {subTab === 'monetization' && (
+        <div className="max-w-3xl">
+          {settingsSavedSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl mb-6 flex items-center gap-3 shadow-xs">
+              <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
+              <div>
+                <p className="font-bold text-sm">Configurações de Cobrança Salvas com Sucesso!</p>
+                <p className="text-xs text-emerald-700">As novas regras de valor e chaves do Mercado Pago já estão salvas no banco de dados.</p>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSaveMonetization} className="space-y-6">
+            {/* CARD 1: ATIVAR OU DESATIVAR COBRANÇA */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <DollarSign className="w-5 h-5 text-emerald-600" />
+                    <h3 className="font-extrabold text-slate-900 text-base">Cobrança por Anúncios / Vendas</h3>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Ative este botão apenas quando quiser começar a cobrar dos usuários para publicar ou destacar anúncios.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFeeEnabled(!feeEnabled)}
+                  className={`w-14 h-8 rounded-full p-1 transition-colors cursor-pointer flex items-center ${feeEnabled ? 'bg-emerald-600 justify-end' : 'bg-slate-300 justify-start'}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-white shadow-md"></div>
+                </button>
+              </div>
+
+              {feeEnabled && (
+                <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Valor da Cobrança (R$ ou %)</label>
+                    <input
+                      type="text"
+                      value={feeAmount}
+                      onChange={e => setFeeAmount(e.target.value)}
+                      placeholder="Ex: 5.00 ou 10"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:border-emerald-600"
+                      required
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">Exemplo: Digite 5.00 para R$ 5,00 por anúncio.</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Modelo de Taxa</label>
+                    <select
+                      value={feeType}
+                      onChange={e => setFeeType(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 outline-none focus:border-emerald-600"
+                    >
+                      <option value="fixed">Valor Fixo por Anúncio (R$)</option>
+                      <option value="percent">Porcentagem sobre a Venda (%)</option>
+                      <option value="monthly">Assinatura Mensal (R$/mês)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* CARD 2: CREDENCIAIS DO MERCADO PAGO */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-600 font-black">
+                  MP
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Credenciais da Conta do Mercado Pago</h3>
+                  <p className="text-xs text-slate-500">Insira as chaves da sua conta para receber pagamentos via PIX e Cartão no futuro.</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 mt-6">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Public Key (Chave Pública do Mercado Pago)</label>
+                  <input
+                    type="text"
+                    value={mpPublicKey}
+                    onChange={e => setMpPublicKey(e.target.value)}
+                    placeholder="APP_USR-xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-800 outline-none focus:border-sky-500"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Encontrada no painel de desenvolvedores do Mercado Pago.</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Access Token (Token de Acesso Seguro)</label>
+                  <input
+                    type="password"
+                    value={mpAccessToken}
+                    onChange={e => setMpAccessToken(e.target.value)}
+                    placeholder="APP_USR-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-800 outline-none focus:border-sky-500"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Este token permanece criptografado e seguro no seu banco de dados.</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={savingSettings}
+              className="w-full bg-[#ff6500] hover:bg-[#e95600] text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-500/20 text-sm transition cursor-pointer disabled:opacity-50"
+            >
+              {savingSettings ? 'Salvando Configurações...' : '💾 Salvar Configurações de Cobrança'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
