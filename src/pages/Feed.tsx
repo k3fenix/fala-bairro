@@ -151,14 +151,14 @@ export default function Feed() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (profile) {
         if (profile.status === 'Bloqueado') {
           alert('Sua conta foi bloqueada pelo administrador por violações das regras do bairro.');
           handleLogout();
         }
-        setUserName(profile.name);
-        setUserAvatar(profile.avatar);
+        setUserName(profile.name || profile.full_name || 'Morador');
+        setUserAvatar(profile.avatar || profile.avatar_url || '');
         setEditName(profile.name);
         setEditAvatar(profile.avatar);
         localStorage.setItem('user', JSON.stringify({
@@ -237,6 +237,11 @@ export default function Feed() {
       avatar: editAvatar,
       handle: `@${editName.toLowerCase().replace(/\s+/g, '')}`
     }).eq('id', currentUserId);
+    try {
+      await supabase.auth.updateUser({
+        data: { name: editName, full_name: editName, avatar: editAvatar, avatar_url: editAvatar }
+      });
+    } catch (_) {}
     
     setUserName(editName);
     setUserAvatar(editAvatar);
