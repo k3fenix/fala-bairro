@@ -563,9 +563,9 @@ export default function Landing() {
                 </div>
                 <div className="animal-info">
                   <h3>{pet.pet_name}</h3>
-                  <p className="animal-sub">{pet.species} • {pet.last_seen_location}</p>
-                  <p className="animal-desc">{pet.description}</p>
-                  <button className="btn-contact-whatsapp" onClick={(e) => { e.stopPropagation(); openWhatsApp(pet.owner_whatsapp, `Olá, vi o anúncio sobre o ${pet.pet_name} no Fala do Bairro!`); }}>
+                  <p className="animal-sub">📍 {pet.species} • {pet.last_seen_location}</p>
+                  <p className="animal-desc" title={pet.description}>{pet.description}</p>
+                  <button className="btn-contact-whatsapp" onClick={(e) => { e.stopPropagation(); openWhatsApp(pet.owner_whatsapp, `Olá, vi o anúncio sobre o ${pet.pet_name} no Fala do Bairro!`); }} title="Falar no WhatsApp">
                     💬 Falar no WhatsApp
                   </button>
                 </div>
