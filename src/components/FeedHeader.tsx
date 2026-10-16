@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Menu, X, MapPin, ChevronDown, Share2, Dog, Store, User, 
-  LogOut, ShoppingBag, Newspaper, Bell, Sparkles, ChevronRight, Home
+  LogOut, Megaphone, ChevronRight, Home
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -46,7 +46,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
     { id: 'Notícias', label: 'Notícias', icon: '📢' },
     { id: 'Área Pet', label: 'Área Pet', icon: '🐾' },
     { id: 'Guia Local', label: 'Guia Local', icon: '🏪' },
-    { id: 'Vendas & Trocas', label: 'Marketplace', icon: '🛒', isExternal: true }
+    { id: 'Vendas & Trocas', label: 'Marketplace', icon: '🛒' }
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -67,50 +67,37 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
         <div className="max-w-md mx-auto md:max-w-2xl px-3 sm:px-4 py-2.5">
           <div className="flex items-center justify-between gap-2">
             
-            {/* LADO ESQUERDO: Botão de Menu Gaveta + Foto do Usuário e Saudação */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              {/* Botão de Menu Hambúrguer */}
-              <button 
-                onClick={() => setDrawerOpen(true)}
-                className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-orange-50 hover:text-[#ff6500] text-slate-700 flex items-center justify-center transition-all cursor-pointer shrink-0 border border-slate-200/80 shadow-xs"
-                title="Abrir Menu de Opções"
-                aria-label="Abrir Menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-
-              {/* Card do Usuário (Toque abre o perfil) */}
-              <div 
-                className="flex items-center gap-2 cursor-pointer group min-w-0"
-                onClick={() => setShowProfile(true)}
-                title="Editar meu perfil"
-              >
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#ff6500] to-amber-400 shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                    <img 
-                      src={resolvedAvatar} 
-                      alt={userName} 
-                      className="w-full h-full object-cover rounded-full bg-white"
-                    />
-                  </div>
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+            {/* LADO ESQUERDO: Foto do Usuário + Saudação (Toque abre o perfil) */}
+            <div 
+              className="flex items-center gap-2.5 cursor-pointer group min-w-0"
+              onClick={() => setShowProfile(true)}
+              title="Toque para editar seu perfil"
+            >
+              <div className="relative">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full p-[2px] bg-gradient-to-tr from-[#ff6500] to-amber-400 shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <img 
+                    src={resolvedAvatar} 
+                    alt={userName} 
+                    className="w-full h-full object-cover rounded-full bg-white"
+                  />
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 leading-tight">
-                    <span className="text-sm font-black text-slate-800 truncate">{firstName}</span>
-                    <span className="hidden sm:inline-block text-[10px] font-extrabold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-200">
-                      Morador
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-slate-400 font-semibold block truncate">Meu Perfil ⚙️</span>
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 leading-tight">
+                  <span className="text-sm sm:text-base font-black text-slate-900 truncate">{firstName}</span>
+                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                    Ativo
+                  </span>
                 </div>
+                <span className="text-[11px] text-slate-400 font-semibold block truncate">Toque para ver perfil</span>
               </div>
             </div>
 
-            {/* LADO DIREITO: Seletor de Bairro + Marketplace rápido */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            {/* LADO DIREITO: Seletor de Bairro + Botão Hambúrguer no canto direito onde foca a mão */}
+            <div className="flex items-center gap-2 shrink-0">
               {/* Bairro Pill */}
-              <div className="relative flex items-center bg-slate-100/90 border border-slate-200 rounded-full px-2.5 py-1.5 transition-all">
+              <div className="relative flex items-center bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200 rounded-full px-2.5 py-1.5 transition-all">
                 <MapPin className="w-3.5 h-3.5 text-[#ff6500] mr-1 shrink-0" />
                 <select 
                   value={selectedNeighborhood}
@@ -123,18 +110,19 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                 <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none" />
               </div>
 
-              {/* Botão Marketplace Rápido */}
+              {/* Botão de Menu Hambúrguer NO CANTO DIREITO */}
               <button 
-                onClick={() => navigate('/marketplace')}
-                className="hidden sm:inline-flex items-center gap-1 bg-gradient-to-r from-[#ff7a00] to-[#ff5100] text-white text-xs font-black px-3 py-1.5 rounded-full shadow-xs hover:opacity-95 transition-opacity cursor-pointer"
-                title="Acessar o Marketplace"
+                onClick={() => setDrawerOpen(true)}
+                className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-md shadow-orange-500/20 active:scale-95"
+                title="Abrir Menu Lateral"
+                aria-label="Abrir Menu"
               >
-                <span>🛒</span> Marketplace
+                <Menu className="w-5 h-5 stroke-[2.5]" />
               </button>
             </div>
           </div>
 
-          {/* Sub-navegação em Abas (Estilo Story/Pills mobile-friendly) */}
+          {/* Sub-navegação em Abas (Chips de toque rápido) */}
           <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-0.5 no-scrollbar border-t border-slate-100 mt-2">
             {navTabs.map((tab) => {
               const isActive = activeFilter === tab.id;
@@ -157,21 +145,21 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
       </header>
 
       {/* =========================================================================
-          MENU LATERAL GAVETA (SIDEBAR DRAWER) ELEGANTE E MODERNO
+          MENU LATERAL GAVETA NO LADO DIREITO (DRAWER DIREITO ELEGANTE)
           ========================================================================= */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex">
+        <div className="fixed inset-0 z-50 flex justify-end">
           {/* Backdrop escurecido */}
           <div 
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
 
-          {/* Painel Lateral */}
-          <div className="relative w-[300px] sm:w-[340px] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-250">
+          {/* Painel Lateral que desliza da DIREITA para a esquerda */}
+          <div className="relative w-[300px] sm:w-[340px] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250">
             
-            {/* Topo da Sidebar com Logo e Fechar */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-500/5 to-amber-500/5">
+            {/* Topo da Sidebar com Fechar e Logo */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-l from-orange-500/10 to-amber-500/5">
               <div className="flex items-center gap-2.5">
                 <img src="/logo-fala-bairro.svg" alt="Fala do Bairro" className="w-9 h-9 object-contain drop-shadow-sm" />
                 <div>
@@ -181,7 +169,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
               </div>
               <button 
                 onClick={() => setDrawerOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition-colors"
                 aria-label="Fechar Menu"
               >
                 <X className="w-4 h-4" />
@@ -189,7 +177,7 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
             </div>
 
             {/* Cartão de Perfil do Usuário com Foto Grande */}
-            <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+            <div className="p-5 border-b border-slate-100 bg-slate-50/70">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-14 h-14 rounded-2xl p-0.5 bg-gradient-to-tr from-[#ff6500] to-amber-400 shrink-0 shadow-sm overflow-hidden">
                   <img 
