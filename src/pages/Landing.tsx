@@ -282,12 +282,20 @@ export default function Landing() {
       {/* Sub-navegação rápida por categorias */}
       <nav className="subnav-chips" aria-label="Categorias rápidas">
         <div className="chips-wrapper">
-          <a href="#inicio" className="chip active">🏠 Tudo</a>
+          <a href="#inicio" className="chip active">🏠 Início</a>
           <a href="#alertas" className="chip">🚨 Alertas</a>
           <a href="#noticias" className="chip">📰 Notícias</a>
           <a href="#mural" className="chip">📢 Mural</a>
           <a href="#animais" className="chip">🐶 Animais</a>
           <a href="#guia" className="chip">🏪 Guia Local</a>
+          <a 
+            href={import.meta.env.VITE_MARKETPLACE_URL || "/marketplace"} 
+            className="chip chip-marketplace"
+            target={import.meta.env.VITE_MARKETPLACE_URL ? "_blank" : "_self"}
+            rel="noopener noreferrer"
+          >
+            🛒 Marketplace
+          </a>
 
         </div>
       </nav>
@@ -342,32 +350,35 @@ export default function Landing() {
             <Link to="/feed" className="section-link">Ver todas ➔</Link>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', margin: '10px 0 16px 0' }} className="no-scrollbar">
-            {AVAILABLE_CITIES.map(city => (
-              <button
-                key={city}
-                type="button"
-                onClick={() => {
-                  setSelectedCity(city);
-                  localStorage.setItem('user_city', city);
-                }}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '20px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  background: selectedCity === city ? '#0284c7' : '#f1f5f9',
-                  color: selectedCity === city ? '#ffffff' : '#475569',
-                  boxShadow: selectedCity === city ? '0 2px 8px rgba(2,132,199,0.3)' : 'none'
-                }}
-              >
-                {city === 'Todas as Cidades' ? '🌟 Todas as Cidades' : '📍 ' + city.replace(' - SP', '')}
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', margin: '12px 0 18px 0' }} className="no-scrollbar">
+            {AVAILABLE_CITIES.map(city => {
+              const isSelected = selectedCity === city;
+              return (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCity(city);
+                    localStorage.setItem('user_city', city);
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '9999px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    border: isSelected ? '1px solid #ff5100' : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    background: isSelected ? '#ff5100' : '#ffffff',
+                    color: isSelected ? '#ffffff' : '#475569',
+                    boxShadow: isSelected ? '0 3px 10px rgba(255, 81, 0, 0.25)' : '0 1px 3px rgba(0, 0, 0, 0.04)'
+                  }}
+                >
+                  {city === 'Todas as Cidades' ? '🌟 Todas as Cidades' : '📍 ' + city.replace(' - SP', '')}
+                </button>
+              );
+            })}
           </div>
 
           <div className="news-grid">
@@ -386,7 +397,7 @@ export default function Landing() {
                 <div className="news-body">
                   <div className="news-meta">
                     <span className="news-category">{item.category}</span>
-                    <span className="news-neighborhood" style={{ color: '#0284c7', fontWeight: 700 }}>• 📍 {item.city || item.neighborhood}</span>
+                    <span className="news-neighborhood" style={{ color: '#ff5100', fontWeight: 700 }}>• 📍 {item.city || item.neighborhood}</span>
                   </div>
                   <h3 className="news-title">{item.title}</h3>
                   <p className="news-summary">{item.summary}</p>
@@ -638,7 +649,7 @@ export default function Landing() {
                 <div className="business-details">
                   <span className="business-category">{business.category}</span>
                   <h4>{business.name}</h4>
-                  <p className="business-address" style={{ fontSize: '11px' }}>{business.description?.substring(0, 40)}...</p>
+                  <p className="business-address">{business.description || 'Comércio e serviços no bairro'}</p>
                   <button className="btn-business-cta" onClick={(e) => { e.stopPropagation(); openWhatsApp(business.whatsapp, `Olá ${business.name}, vi o anúncio no Fala do Bairro!`); }}>
                     <span>💬</span> WhatsApp
                   </button>
