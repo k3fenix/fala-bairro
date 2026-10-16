@@ -1,102 +1,161 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 360" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 480" width="100%" height="100%">
   <defs>
-    <linearGradient id="bubbleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF7A00" />
-      <stop offset="100%" stop-color="#FF5100" />
+    <!-- Gradiente do telhado laranja brilhante com efeito 3D -->
+    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFC500" />
+      <stop offset="35%" stop-color="#FF8A00" />
+      <stop offset="100%" stop-color="#E54300" />
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.08" />
+
+    <!-- Gradiente das bordas do telhado -->
+    <linearGradient id="roofInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFA800" />
+      <stop offset="100%" stop-color="#D83600" />
+    </linearGradient>
+
+    <!-- Gradiente dos blocos da janela -->
+    <linearGradient id="windowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFDD00" />
+      <stop offset="60%" stop-color="#FFA000" />
+      <stop offset="100%" stop-color="#E65100" />
+    </linearGradient>
+
+    <!-- Gradiente do texto FALA (Branco com leve cinza metalizado) -->
+    <linearGradient id="whiteTextGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="55%" stop-color="#F1F5F9" />
+      <stop offset="100%" stop-color="#CBD5E1" />
+    </linearGradient>
+
+    <!-- Gradiente dos textos DO e BAIRRO (Laranja 3D pop vibrante) -->
+    <linearGradient id="orangeTextGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFB300" />
+      <stop offset="25%" stop-color="#FF8000" />
+      <stop offset="80%" stop-color="#F04E00" />
+      <stop offset="100%" stop-color="#C42A00" />
+    </linearGradient>
+
+    <!-- Sombra projetada geral -->
+    <filter id="logoShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+
+    <filter id="softGaze" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
     </filter>
   </defs>
 
-  <!-- Balão de conversa laranja superior -->
-  <g transform="translate(195, 20)">
-    <path d="M 75 0 C 116 0 150 28 150 62 C 150 82 137 100 118 111 C 115 125 106 142 90 148 C 96 136 98 123 96 117 C 89 120 82 121 75 121 C 34 121 0 93 0 62 C 0 28 34 0 75 0 Z" fill="url(#bubbleGrad)" />
-    <!-- 3 pontinhos brancos -->
-    <circle cx="45" cy="58" r="9.5" fill="#ffffff" />
-    <circle cx="75" cy="58" r="9.5" fill="#ffffff" />
-    <circle cx="105" cy="58" r="9.5" fill="#ffffff" />
-  </g>
+  <g filter="url(#logoShadow)">
+    <!-- CONTORNO PRETO ROBUSTO EXTERNO DA CASA -->
+    <!-- Chaminé direita com contorno arredondado -->
+    <rect x="435" y="44" width="58" height="96" rx="14" fill="#0b0f14" stroke="#000000" stroke-width="8" />
 
-  <!-- Silhueta dos Prédios / Cidade (Preto / Dark Slate) -->
-  <g fill="#101820">
-    <rect x="135" y="105" width="22" height="60" rx="1" />
-    <rect x="160" y="85" width="28" height="80" rx="1" />
-    <rect x="175" y="70" width="18" height="95" rx="1" />
-    <rect x="200" y="95" width="25" height="70" rx="1" />
+    <!-- Corpo de fundo preto da Casa -->
+    <polygon points="350,68 152,228 220,290 480,290 548,228" fill="#13171d" stroke="#000000" stroke-width="14" stroke-linejoin="round" />
 
-    <rect x="315" y="88" width="20" height="75" rx="1" />
-    <rect x="338" y="68" width="26" height="95" rx="1" />
-    <rect x="367" y="85" width="22" height="78" rx="1" />
-    <rect x="392" y="105" width="18" height="58" rx="1" />
-  </g>
+    <!-- Telhado Externo Laranja com Contorno Preto Grosso -->
+    <path d="M 350 48 
+             L 535 200 
+             A 18 18 0 0 1 540 226
+             L 522 242
+             A 18 18 0 0 1 498 240
+             L 350 118 
+             L 202 240 
+             A 18 18 0 0 1 178 242 
+             L 160 226 
+             A 18 18 0 0 1 165 200 
+             Z" 
+          fill="url(#roofGrad)" 
+          stroke="#000000" 
+          stroke-width="12" 
+          stroke-linejoin="round" />
 
-  <!-- Árvores verdes laterais -->
-  <g id="arvore-esquerda">
-    <rect x="117" y="138" width="8" height="42" fill="#101820" rx="2" />
-    <circle cx="121" cy="125" r="21" fill="#15803d" />
-  </g>
-  <g id="arvore-direita">
-    <rect x="415" y="138" width="8" height="42" fill="#101820" rx="2" />
-    <circle cx="419" cy="125" r="21" fill="#15803d" />
-  </g>
+    <!-- Brilho / Detalhe interno do Telhado -->
+    <path d="M 350 64 
+             L 516 200 
+             L 500 216 
+             L 350 94 
+             L 200 216 
+             L 184 200 
+             Z" 
+          fill="none" 
+          stroke="#FFDF66" 
+          stroke-width="5" 
+          opacity="0.85" 
+          stroke-linecap="round" />
 
-  <!-- Casinhas da Comunidade (Casas com telhado escuro, paredes brancas com contorno e janelas laranja) -->
-  <!-- Casa Esquerda -->
-  <g>
-    <!-- Telhado -->
-    <path d="M 135 150 L 180 115 L 225 150 Z" fill="#101820" stroke="#101820" stroke-width="3" stroke-linejoin="round" />
-    <!-- Parede Branca -->
-    <path d="M 143 148 L 180 119 L 217 148 L 217 185 L 143 185 Z" fill="#ffffff" stroke="#101820" stroke-width="4" stroke-linejoin="round" />
-    <!-- Janela Laranja dividida em 4 -->
-    <g fill="#FF5100">
-      <rect x="172" y="152" width="7" height="7" rx="0.5" />
-      <rect x="181" y="152" width="7" height="7" rx="0.5" />
-      <rect x="172" y="161" width="7" height="7" rx="0.5" />
-      <rect x="181" y="161" width="7" height="7" rx="0.5" />
+    <!-- 4 Janelas Quadradas Laranjas 3D com divisória preta -->
+    <g transform="translate(320, 114)">
+      <!-- Janela Top-Left -->
+      <rect x="0" y="0" width="26" height="26" rx="5" fill="url(#windowGrad)" stroke="#000000" stroke-width="3" />
+      <rect x="2" y="2" width="22" height="6" rx="3" fill="#FFF2A3" opacity="0.6" />
+
+      <!-- Janela Top-Right -->
+      <rect x="34" y="0" width="26" height="26" rx="5" fill="url(#windowGrad)" stroke="#000000" stroke-width="3" />
+      <rect x="36" y="2" width="22" height="6" rx="3" fill="#FFF2A3" opacity="0.6" />
+
+      <!-- Janela Bottom-Left -->
+      <rect x="0" y="34" width="26" height="26" rx="5" fill="url(#windowGrad)" stroke="#000000" stroke-width="3" />
+      <rect x="2" y="36" width="22" height="6" rx="3" fill="#FFF2A3" opacity="0.6" />
+
+      <!-- Janela Bottom-Right -->
+      <rect x="34" y="34" width="26" height="26" rx="5" fill="url(#windowGrad)" stroke="#000000" stroke-width="3" />
+      <rect x="36" y="36" width="22" height="6" rx="3" fill="#FFF2A3" opacity="0.6" />
+    </g>
+
+    <!-- Silhueta preta que abraça a tipografia (Outer Black Plaque) -->
+    <path d="M 125 210 
+             L 245 195 
+             L 420 195 
+             L 575 220 
+             Q 640 260 625 360 
+             Q 590 445 350 445 
+             Q 110 445 75 360 
+             Q 60 260 125 210 Z" 
+          fill="#000000" />
+
+    <!-- ==========================================
+         LINHA 1: "FALA" (Branco) + "DO" (Laranja)
+         ========================================== -->
+    <!-- Contorno preto robusto atrás dos textos superiores -->
+    <g font-family="'Montserrat', 'Arial Black', Impact, sans-serif" font-weight="900" font-size="94">
+      <!-- FALA (BRANCO 3D) -->
+      <text x="135" y="292" fill="#000000" stroke="#000000" stroke-width="16" stroke-linejoin="round" letter-spacing="-3">FALA</text>
+      <text x="135" y="295" fill="#8896A6" letter-spacing="-3">FALA</text>
+      <text x="135" y="292" fill="url(#whiteTextGrad)" letter-spacing="-3">FALA</text>
+
+      <!-- DO (LARANJA 3D) -->
+      <text x="445" y="286" fill="#000000" stroke="#000000" stroke-width="16" stroke-linejoin="round" letter-spacing="-2" font-size="82">DO</text>
+      <text x="445" y="289" fill="#9C2000" letter-spacing="-2" font-size="82">DO</text>
+      <text x="445" y="286" fill="url(#orangeTextGrad)" letter-spacing="-2" font-size="82">DO</text>
+      <!-- Brilho no 'DO' -->
+      <text x="445" y="286" fill="none" stroke="#FFEAA0" stroke-width="2" letter-spacing="-2" font-size="82" opacity="0.65">DO</text>
+    </g>
+
+    <!-- ==========================================
+         LINHA 2: "BAIRRO" (Laranja 3D Gigante)
+         ========================================== -->
+    <g font-family="'Montserrat', 'Arial Black', Impact, sans-serif" font-weight="900" font-size="124" letter-spacing="-3">
+      <!-- Sombra / Extrusão 3D -->
+      <text x="350" y="406" text-anchor="middle" fill="#000000" stroke="#000000" stroke-width="24" stroke-linejoin="round">BAIRRO</text>
+      <text x="350" y="412" text-anchor="middle" fill="#751500">BAIRRO</text>
+      <text x="350" y="408" text-anchor="middle" fill="#9C2000">BAIRRO</text>
+      
+      <!-- Letra Principal -->
+      <text x="350" y="402" text-anchor="middle" fill="url(#orangeTextGrad)">BAIRRO</text>
+
+      <!-- Brilho Superior Curvado nas letras -->
+      <text x="350" y="402" text-anchor="middle" fill="none" stroke="#FFECA0" stroke-width="2.5" opacity="0.7">BAIRRO</text>
+    </g>
+
+    <!-- ARCO / FAIXA LARANJA INFERIOR 3D -->
+    <g>
+      <!-- Sombra do arco -->
+      <path d="M 108 438 Q 350 388 592 438 Q 350 405 108 438 Z" fill="#000000" />
+      <!-- Arco Laranja com gradiente -->
+      <path d="M 112 432 Q 350 382 588 432 Q 350 398 112 432 Z" fill="url(#orangeTextGrad)" stroke="#000000" stroke-width="3" />
+      <!-- Filete de brilho no arco -->
+      <path d="M 130 427 Q 350 386 570 427" fill="none" stroke="#FFECA0" stroke-width="2" opacity="0.8" />
     </g>
   </g>
-
-  <!-- Casa Direita -->
-  <g>
-    <!-- Telhado -->
-    <path d="M 315 150 L 360 115 L 405 150 Z" fill="#101820" stroke="#101820" stroke-width="3" stroke-linejoin="round" />
-    <!-- Parede Branca -->
-    <path d="M 323 148 L 360 119 L 397 148 L 397 185 L 323 185 Z" fill="#ffffff" stroke="#101820" stroke-width="4" stroke-linejoin="round" />
-    <!-- Janela Laranja dividida em 4 -->
-    <g fill="#FF5100">
-      <rect x="352" y="152" width="7" height="7" rx="0.5" />
-      <rect x="361" y="152" width="7" height="7" rx="0.5" />
-      <rect x="352" y="161" width="7" height="7" rx="0.5" />
-      <rect x="361" y="161" width="7" height="7" rx="0.5" />
-    </g>
-  </g>
-
-  <!-- Casa Central (Maior / Principal) -->
-  <g>
-    <!-- Telhado -->
-    <path d="M 205 142 L 270 95 L 335 142 Z" fill="#101820" stroke="#101820" stroke-width="4" stroke-linejoin="round" />
-    <!-- Parede Branca -->
-    <path d="M 215 140 L 270 100 L 325 140 L 325 190 L 215 190 Z" fill="#ffffff" stroke="#101820" stroke-width="5" stroke-linejoin="round" />
-    <!-- Janela Laranja Central Maior -->
-    <g fill="#FF5100">
-      <rect x="257" y="138" width="11" height="11" rx="1" />
-      <rect x="272" y="138" width="11" height="11" rx="1" />
-      <rect x="257" y="153" width="11" height="11" rx="1" />
-      <rect x="272" y="153" width="11" height="11" rx="1" />
-    </g>
-  </g>
-
-  <!-- Curva do chão / morro -->
-  <path d="M 90 198 Q 270 180 450 198 Q 270 187 90 198 Z" fill="#101820" />
-
-  <!-- Texto: FALA DO (FALA em preto, DO em laranja) -->
-  <text x="90" y="258" font-family="'Arial Black', Impact, Montserrat, sans-serif" font-weight="900" font-size="64" fill="#101820" letter-spacing="-1.5">FALA</text>
-  <text x="365" y="258" font-family="'Arial Black', Impact, Montserrat, sans-serif" font-weight="900" font-size="64" fill="#FF5100" letter-spacing="-1.5">DO</text>
-
-  <!-- Texto: BAIRRO (Laranja Vibrante grande) -->
-  <text x="270" y="328" text-anchor="middle" font-family="'Arial Black', Impact, Montserrat, sans-serif" font-weight="900" font-size="78" fill="#FF5100" letter-spacing="-2">BAIRRO</text>
-
-  <!-- Linha curva laranja decorativa embaixo de BAIRRO -->
-  <path d="M 95 344 Q 270 334 445 344 Q 270 338 95 344 Z" fill="#FF5100" />
 </svg>

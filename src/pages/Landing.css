@@ -77,10 +77,11 @@
 }
 
 .brand-logo-img {
-  height: 48px;
+  height: 52px;
   width: auto;
   object-fit: contain;
   transition: transform 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
 }
 
 .brand:hover .brand-logo-img {
