@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart, Sparkles, X, UserCheck } from 'lucide-react';
+import { Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, Heart, Sparkles, X, UserCheck, Menu, Home, Tag, PlusCircle } from 'lucide-react';
 import { getAuthUserSync } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,6 +22,7 @@ export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [tradeOnlyFilter, setTradeOnlyFilter] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Normalização de textos para busca sem falhas por acentos ou caixa alta
   const normalize = (str: string) => {
@@ -312,135 +313,213 @@ export default function Marketplace() {
   return (
     <div className="min-h-screen bg-[#f5f6f8] text-[#1d2433] pb-16">
       {/* HEADER MARKETPLACE */}
-      <header className="bg-white border-b border-[#e7e7e7] sticky top-0 z-50">
-        <div className="max-w-[1250px] mx-auto min-h-[72px] flex items-center gap-[20px] px-[20px] py-[12px] flex-wrap sm:flex-nowrap">
-          <div className="flex items-center gap-[10px] min-w-auto sm:min-w-[220px] cursor-pointer flex-1 sm:flex-none" onClick={() => navigate('/')}>
-            <div className="w-[45px] h-[45px] rounded-[14px] bg-gradient-to-br from-[#ff7a00] to-[#ff3d00] flex items-center justify-center text-white text-[23px] font-bold shrink-0 shadow-sm">
-              FB
-            </div>
+      <header className="bg-white border-b border-[#e7e7e7] sticky top-0 z-50 shadow-xs">
+        <div className="max-w-[1250px] mx-auto min-h-[64px] flex items-center justify-between gap-3 px-4 py-2 flex-wrap sm:flex-nowrap">
+          
+          {/* LOGO OFICIAL FALA DO BAIRRO COM 3D CARTOON HOUSE */}
+          <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => navigate('/')}>
+            <img src="/logo-fala-bairro.svg" alt="Fala do Bairro" className="h-10 sm:h-11 w-auto object-contain drop-shadow-sm" />
             <div>
-              <strong className="block text-[20px] text-[#202636] leading-none mb-[2px]">FALA DO BAIRRO</strong>
-              <span className="block text-[#ff6500] text-[12px] font-bold uppercase tracking-wider">MARKETPLACE</span>
+              <strong className="block text-base sm:text-lg font-black text-[#202636] leading-none mb-0.5">FALA DO BAIRRO</strong>
+              <span className="block text-[#ff6500] text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider">MARKETPLACE</span>
             </div>
             <button 
               onClick={(e) => { e.stopPropagation(); navigate('/'); }}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer ml-1"
+              className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer ml-1.5 transition-colors"
               title="Voltar para a página principal do Fala do Bairro"
             >
-              ⬅️ Portal Principal
+              ⬅️ Portal
             </button>
           </div>
 
-          <div className="flex-1 relative order-3 sm:order-none w-full sm:w-auto mt-2 sm:mt-0">
+          {/* BARRA DE PESQUISA COMPACTA */}
+          <div className="flex-1 relative order-3 sm:order-none w-full sm:w-auto max-w-xl mx-auto">
             <input 
               type="text" 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="O que você está procurando no bairro?" 
-              className="w-full h-[48px] border border-[#ddd] rounded-[14px] pl-[18px] pr-[50px] outline-none bg-[#f7f7f8] focus:border-[#ff7200] focus:bg-white transition-colors"
+              placeholder="Buscar produtos, roupas, eletrônicos..." 
+              className="w-full h-10 sm:h-11 border border-slate-200 rounded-full pl-4 pr-11 outline-none bg-slate-50 focus:border-[#ff6500] focus:bg-white text-xs sm:text-sm font-medium transition-all"
             />
-            <button className="absolute right-[5px] top-[5px] h-[38px] w-[42px] border-0 rounded-[10px] bg-[#ff6800] hover:bg-[#e95600] text-white flex items-center justify-center text-[18px] cursor-pointer">
+            <button className="absolute right-1 top-1 h-8 sm:h-9 w-9 border-0 rounded-full bg-[#ff6500] hover:bg-[#e95600] text-white flex items-center justify-center text-sm cursor-pointer shadow-xs transition-colors">
               🔍
             </button>
           </div>
 
-          {/* BOTÕES DE USUÁRIO / AUTENTICAÇÃO RESPONSIVOS */}
-          <div className="flex items-center gap-[8px] order-2 sm:order-none ml-auto sm:ml-0">
-            {/* Desktop Quick Links */}
+          {/* BOTÕES DE USUÁRIO / ATALHOS / HAMBURGUER RESPONSIVOS */}
+          <div className="flex items-center gap-2 order-2 sm:order-none shrink-0 ml-auto sm:ml-0">
+            {/* Botão + Publicar anúncio em destaque */}
             <button 
-              onClick={() => handleProtectedAction('/marketplace/favoritos')} 
-              className="hidden xl:inline-flex items-center gap-1.5 border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[12px] py-[10px] rounded-[11px] text-[#333] font-semibold text-xs cursor-pointer"
+              onClick={handleProtectedSellClick} 
+              className="border-0 bg-gradient-to-r from-[#ff7a00] to-[#ff5100] hover:opacity-95 text-white font-black px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full cursor-pointer shadow-sm shadow-orange-500/20 whitespace-nowrap text-xs sm:text-sm flex items-center gap-1"
             >
-              ❤️ Favoritos
-            </button>
-            <button 
-              onClick={() => handleProtectedAction('/marketplace/meus-anuncios')} 
-              className="hidden lg:inline-flex items-center gap-1.5 border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-[12px] py-[10px] rounded-[11px] text-[#333] font-semibold text-xs cursor-pointer"
-            >
-              <Package className="w-3.5 h-3.5 text-orange-500" /> Meus Anúncios
+              <span>+</span> <span>Anunciar</span>
             </button>
 
-            {/* Profile or Login */}
-            {authLoading && !activeUser ? (
-              <div className="w-24 h-10 bg-slate-100 animate-pulse rounded-xl"></div>
-            ) : activeUser ? (
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-[12px] shadow-sm">
-                <div 
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff7a00] to-[#ff3d00] text-white font-bold flex items-center justify-center text-xs overflow-hidden shrink-0 shadow-sm cursor-pointer"
-                  onClick={() => navigate('/feed')}
-                  title="Acessar Área do Usuário / Feed"
-                >
+            {/* Perfil Compacto (se logado) */}
+            {activeUser ? (
+              <div 
+                onClick={() => navigate('/feed')}
+                className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 sm:px-2.5 sm:py-1 rounded-full shadow-xs cursor-pointer hover:bg-slate-100 transition-colors"
+                title="Meu Perfil"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-[#ff6500] shrink-0 border border-orange-200">
                   {activeUser.avatar ? (
                     <img src={activeUser.avatar} alt={activeUser.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span>{activeUser.name ? activeUser.name.charAt(0).toUpperCase() : '👤'}</span>
+                    <span className="w-full h-full flex items-center justify-center text-white text-xs font-bold">{activeUser.name?.charAt(0)}</span>
                   )}
                 </div>
-                <div className="hidden sm:block text-left leading-tight cursor-pointer" onClick={() => navigate('/feed')}>
-                  <span className="block text-xs font-extrabold text-slate-800 truncate max-w-[110px]">{activeUser.name}</span>
-                  <span className="text-[10px] text-slate-500 font-semibold truncate max-w-[110px] block">{activeUser.neighborhood || 'Morador'}</span>
-                </div>
-                <button 
-                  onClick={() => handleProtectedAction('/marketplace/meus-anuncios')}
-                  className="hidden md:inline-flex px-2 py-1 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                  title="Ver Meus Anúncios Publicados"
-                >
-                  Meus Itens
-                </button>
-                <button 
-                  onClick={() => navigate('/feed')} 
-                  className="hidden md:inline-flex px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                  title="Voltar para a área do usuário / Feed"
-                >
-                  Feed ➔
-                </button>
-                <button 
-                  onClick={logout}
-                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                  title="Sair da conta"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                </button>
+                <span className="hidden sm:inline-block text-xs font-bold text-slate-800 max-w-[80px] truncate">{activeUser.name?.split(' ')[0]}</span>
               </div>
             ) : (
               <button 
-                onClick={() => {
-                  setAuthRedirectTarget('/marketplace');
-                  setShowAuthModal(true);
-                }} 
-                className="border border-[#e1e1e1] bg-white hover:bg-[#f5f5f5] px-3.5 sm:px-4 py-2 sm:py-[10px] rounded-[11px] text-[#333] font-bold text-xs sm:text-sm cursor-pointer whitespace-nowrap shadow-xs"
-                title="Entrar com a conta Fala do Bairro"
+                onClick={() => { setAuthRedirectTarget('/marketplace'); setShowAuthModal(true); }}
+                className="border border-slate-200 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-full text-slate-700 font-bold text-xs cursor-pointer"
               >
-                👤 Entrar
+                Entrar
               </button>
             )}
 
+            {/* BOTÃO DO MENU GAVETA NO LADO DIREITO */}
             <button 
-              onClick={handleProtectedSellClick} 
-              className="border-0 bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold px-[16px] sm:px-[20px] py-[11px] sm:py-[13px] rounded-[12px] cursor-pointer shadow-md shadow-orange-500/20 whitespace-nowrap text-xs sm:text-sm"
+              onClick={() => setDrawerOpen(true)}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-sm shadow-orange-500/20 active:scale-95"
+              title="Abrir Menu do Marketplace"
+              aria-label="Abrir Menu"
             >
-              + Publicar anúncio
+              <Menu className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* HERO BANNER */}
-      <section className="bg-gradient-to-br from-[#ff6500] to-[#ff3d00] text-white overflow-hidden relative">
-        <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white 0%, transparent 25%)' }}></div>
-        <div className="max-w-[1250px] mx-auto min-h-[200px] p-[30px_20px] flex items-center justify-between gap-[30px] relative z-10">
-          <div>
-            <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold mb-3 border border-white/20">
-              <Sparkles className="w-3.5 h-3.5" /> Classificados de Confiança
+      {/* =========================================================================
+          DRAWER LATERAL DO MARKETPLACE NO LADO DIREITO
+          ========================================================================= */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div 
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <div className="relative w-[300px] sm:w-[340px] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250">
+            {/* Topo do Menu com Logo Oficial e Fechar */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-l from-orange-500/10 to-amber-500/5">
+              <div className="flex items-center gap-2">
+                <img src="/logo-fala-bairro.svg" alt="Fala do Bairro" className="w-9 h-9 object-contain" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">Fala do Bairro</h3>
+                  <span className="text-[10px] font-extrabold text-[#ff6500] uppercase tracking-wider block">Marketplace Local</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setDrawerOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <h1 className="text-[28px] sm:text-[clamp(28px,4.5vw,46px)] font-black leading-[1.1] mb-[10px]">
-              Compre, Venda e Troque<br/>no Seu Bairro
+
+            {/* Perfil no Menu */}
+            {activeUser ? (
+              <div className="p-4 border-b border-slate-100 bg-slate-50/70">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#ff6500] to-amber-400 shrink-0 overflow-hidden shadow-xs">
+                    <img src={activeUser.avatar || `https://i.pravatar.cc/150?u=${activeUser.name}`} alt={activeUser.name} className="w-full h-full object-cover rounded-full bg-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-black text-slate-900 truncate">{activeUser.name}</h4>
+                    <p className="text-xs text-[#ff6500] font-bold">{activeUser.neighborhood || 'Morador'}</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Links do Menu */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-1 text-sm">
+              <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider px-3 mb-2">
+                Marketplace
+              </div>
+
+              <button 
+                onClick={() => { handleProtectedSellClick(); setDrawerOpen(false); }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl font-bold bg-orange-50 text-[#ff6500] border border-orange-200/80 cursor-pointer text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <PlusCircle className="w-5 h-5 text-[#ff6500]" />
+                  <span>Publicar Novo Anúncio</span>
+                </span>
+                <span className="text-xs font-black text-white bg-[#ff6500] px-2 py-0.5 rounded-full">Grátis</span>
+              </button>
+
+              <button 
+                onClick={() => { handleProtectedAction('/marketplace/meus-anuncios'); setDrawerOpen(false); }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer text-left"
+              >
+                <Package className="w-5 h-5 text-orange-500" />
+                <span>Meus Anúncios Publicados</span>
+              </button>
+
+              <button 
+                onClick={() => { handleProtectedAction('/marketplace/favoritos'); setDrawerOpen(false); }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer text-left"
+              >
+                <Heart className="w-5 h-5 text-rose-500" />
+                <span>Itens Favoritos</span>
+              </button>
+
+              <div className="pt-4 border-t border-slate-100 mt-4 text-[10px] font-extrabold uppercase text-slate-400 tracking-wider px-3 mb-2">
+                Portal Fala do Bairro
+              </div>
+
+              <button 
+                onClick={() => { navigate('/feed'); setDrawerOpen(false); }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer text-left"
+              >
+                <Home className="w-5 h-5 text-blue-600" />
+                <span>Ir para o Feed / Mural</span>
+              </button>
+
+              <button 
+                onClick={() => { navigate('/'); setDrawerOpen(false); }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer text-left"
+              >
+                <Store className="w-5 h-5 text-slate-500" />
+                <span>Página Inicial do Portal</span>
+              </button>
+            </div>
+
+            {/* Rodapé Logout */}
+            {activeUser && (
+              <div className="p-4 border-t border-slate-100 bg-slate-50">
+                <button 
+                  onClick={() => { setDrawerOpen(false); logout(); }}
+                  className="w-full py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-red-200/80"
+                >
+                  <LogOut className="w-4 h-4" /> Sair da Conta
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* HERO BANNER - COMPACTO E ELEGANTE (FAIXA LARANJA DIMINUÍDA) */}
+      <section className="bg-gradient-to-r from-[#ff6500] via-[#ff5100] to-[#ea580c] text-white overflow-hidden relative shadow-inner">
+        <div className="max-w-[1250px] mx-auto py-5 sm:py-7 px-4 flex items-center justify-between gap-4 relative z-10">
+          <div>
+            <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-bold mb-2 border border-white/25">
+              <Sparkles className="w-3 h-3 text-amber-200" /> Classificados de Confiança
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black leading-tight tracking-tight text-white mb-1">
+              Compre, Venda e Troque no Seu Bairro
             </h1>
-            <p className="text-[15px] opacity-95 max-w-[550px]">
+            <p className="text-xs sm:text-sm text-orange-100 font-medium max-w-xl">
               Classificados locais de pessoas reais da sua vizinhança. Desapegue com facilidade e segurança.
             </p>
           </div>
-          <div className="hidden md:flex w-[200px] min-h-[130px] rounded-[24px] bg-white/10 border border-white/20 items-center justify-center text-[65px] shrink-0 shadow-inner">
+          <div className="hidden sm:flex w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white/15 border border-white/20 items-center justify-center text-4xl shrink-0 shadow-inner">
             🛍️
           </div>
         </div>

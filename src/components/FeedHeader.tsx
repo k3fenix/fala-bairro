@@ -42,8 +42,9 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
   const resolvedAvatar = userAvatar || `https://i.pravatar.cc/150?u=${userName}`;
 
   const navTabs = [
-    { id: 'Mural', label: 'Mural', icon: '📰' },
-    { id: 'Notícias', label: 'Notícias', icon: '📢' },
+    { id: 'Mural', label: 'Mural do Bairro', icon: '📰' },
+    { id: 'Minhas Publicações', label: 'Minhas Publicações', icon: '✍️' },
+    { id: 'Notícias', label: 'Notícias da Região', icon: '📢' },
     { id: 'Área Pet', label: 'Área Pet', icon: '🐾' },
     { id: 'Guia Local', label: 'Guia Local', icon: '🏪' },
     { id: 'Vendas & Trocas', label: 'Marketplace', icon: '🛒' }
@@ -120,26 +121,6 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                 <Menu className="w-5 h-5 stroke-[2.5]" />
               </button>
             </div>
-          </div>
-
-          {/* Sub-navegação em Abas (Chips de toque rápido) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-0.5 no-scrollbar border-t border-slate-100 mt-2">
-            {navTabs.map((tab) => {
-              const isActive = activeFilter === tab.id;
-              return (
-                <button 
-                  key={tab.id}
-                  onClick={() => handleTabClick(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 flex items-center gap-1 ${
-                    isActive 
-                      ? 'bg-[#ff6500] text-white shadow-sm shadow-orange-500/25 scale-[1.02]' 
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
-                  }`}
-                >
-                  <span>{tab.icon}</span> {tab.label}
-                </button>
-              );
-            })}
           </div>
         </div>
       </header>
