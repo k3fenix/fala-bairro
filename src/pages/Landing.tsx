@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import { 
+  Menu, X, ChevronRight, User, ShoppingBag, Bell, Newspaper, 
+  Store, LogIn, LogOut, MapPin, Heart, Shield
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Landing.css';
@@ -9,6 +13,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const { user: contextUser } = useAuth();
   const [currentUser, setCurrentUser] = useState<UserSession | null>(contextUser);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [publicPosts, setPublicPosts] = useState<any[]>([]);
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
@@ -275,6 +280,15 @@ export default function Landing() {
             >
               👤 <span>{currentUser ? currentUser.name : 'Entrar / Cadastrar'}</span>
             </Link>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="btn-header-menu-drawer"
+              title="Abrir Menu Lateral"
+              aria-label="Abrir Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </header>
@@ -1074,6 +1088,217 @@ export default function Landing() {
                   <p className="text-xs text-slate-500">Ajude a encontrar pets perdidos</p>
                 </div>
               </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MENU LATERAL GAVETA NO LADO DIREITO (DRAWER DIREITO ELEGANTE)
+          ========================================================================= */}
+      {drawerOpen && (
+        <div className="landing-drawer-overlay">
+          {/* Backdrop escurecido */}
+          <div 
+            className="landing-drawer-backdrop"
+            onClick={() => setDrawerOpen(false)}
+          />
+
+          {/* Painel Lateral que desliza da DIREITA para a esquerda */}
+          <div className="landing-drawer-panel">
+            {/* Cabeçalho do Drawer com Perfil ou Boas-vindas */}
+            <div className="landing-drawer-header">
+              <div className="landing-drawer-user-info">
+                {currentUser ? (
+                  <div className="landing-drawer-avatar-wrap">
+                    <img 
+                      src={currentUser.avatar || `https://i.pravatar.cc/150?u=${currentUser.name}`} 
+                      alt={currentUser.name}
+                      className="landing-drawer-avatar"
+                    />
+                    <span className="landing-drawer-online-dot"></span>
+                  </div>
+                ) : (
+                  <div className="landing-drawer-avatar-placeholder">
+                    <User className="w-6 h-6 text-orange-600" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="landing-drawer-user-name">
+                    {currentUser ? currentUser.name : 'Bem-vindo ao Fala do Bairro!'}
+                  </h3>
+                  <p className="landing-drawer-user-sub">
+                    {currentUser ? 'Vizinho ativo' : 'Acesse sua conta comunitária'}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setDrawerOpen(false)}
+                className="landing-drawer-close-btn"
+                title="Fechar Menu"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Ações Rápidas no Topo do Menu */}
+            <div className="landing-drawer-quick-actions">
+              <a 
+                href={import.meta.env.VITE_MARKETPLACE_URL || "/marketplace"} 
+                className="landing-drawer-quick-btn marketplace-gradient"
+                target={import.meta.env.VITE_MARKETPLACE_URL ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>Marketplace</span>
+              </a>
+
+              {currentUser ? (
+                <Link 
+                  to="/feed" 
+                  className="landing-drawer-quick-btn feed-gradient"
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Área do Morador</span>
+                </Link>
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="landing-drawer-quick-btn feed-gradient"
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Entrar / Cadastro</span>
+                </Link>
+              )}
+            </div>
+
+            {/* Lista de Navegação */}
+            <div className="landing-drawer-body">
+              <div className="landing-drawer-section-title">NAVEGAÇÃO RÁPIDA</div>
+
+              <a 
+                href="#inicio" 
+                className="landing-drawer-nav-item"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">🏠</span>
+                <span className="landing-drawer-nav-label">Início</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+
+              <a 
+                href="#alertas" 
+                className="landing-drawer-nav-item"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">🚨</span>
+                <span className="landing-drawer-nav-label">Alertas Urgentes</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+
+              <a 
+                href="#noticias" 
+                className="landing-drawer-nav-item"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">📰</span>
+                <span className="landing-drawer-nav-label">Notícias da Região</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+
+              <a 
+                href="#mural" 
+                className="landing-drawer-nav-item"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">📢</span>
+                <span className="landing-drawer-nav-label">Mural Comunitário</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+
+              <a 
+                href="#animais" 
+                className="landing-drawer-nav-item"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">🐶</span>
+                <span className="landing-drawer-nav-label">Animais & Adoção</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+
+              <a 
+                href="#guia" 
+                className="landing-drawer-nav-item"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">🏪</span>
+                <span className="landing-drawer-nav-label">Guia Comercial</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
+
+              <div className="landing-drawer-divider" />
+
+              <div className="landing-drawer-section-title">SERVIÇOS & PLATAFORMAS</div>
+
+              <a 
+                href={import.meta.env.VITE_MARKETPLACE_URL || "/marketplace"} 
+                className="landing-drawer-nav-item highlight-marketplace"
+                target={import.meta.env.VITE_MARKETPLACE_URL ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">🛒</span>
+                <span className="landing-drawer-nav-label">
+                  <strong>Marketplace do Bairro</strong>
+                  <small style={{ display: 'block', fontSize: '0.72rem', color: '#ea580c' }}>Compre e venda sem taxas</small>
+                </span>
+                <ChevronRight className="w-4 h-4 text-orange-400" />
+              </a>
+
+              <Link 
+                to="/feed" 
+                className="landing-drawer-nav-item"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <span className="landing-drawer-nav-icon">👤</span>
+                <span className="landing-drawer-nav-label">
+                  <strong>Portal do Morador (Feed)</strong>
+                  <small style={{ display: 'block', fontSize: '0.72rem', color: '#64748b' }}>Postagens, curtidas e comentários</small>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </Link>
+            </div>
+
+            {/* Rodapé do Menu */}
+            <div className="landing-drawer-footer">
+              {currentUser ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    localStorage.removeItem('fala_bairro_user');
+                    localStorage.removeItem('impersonatedUser');
+                    setCurrentUser(null);
+                    setDrawerOpen(false);
+                  }}
+                  className="landing-drawer-logout-btn"
+                >
+                  <LogOut className="w-4 h-4 text-red-500" />
+                  <span>Sair da Conta</span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="landing-drawer-login-btn"
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Entrar ou Cadastrar-se</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>
