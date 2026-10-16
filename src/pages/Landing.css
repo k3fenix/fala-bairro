@@ -128,14 +128,9 @@
   transform: translateY(-1px);
 }
 
-/* Busca Global */
-@media (min-width: 900px) {
-  .header-search {
-    flex: 1;
-    max-width: 320px;
-    position: relative;
-    display: block;
-  }
+/* Busca Global desativada a pedido do usuario */
+.header-search {
+  display: none !important;
 }
 
 .header-search input {
@@ -172,10 +167,10 @@
 }
 
 .btn-header-marketplace {
-  background: #ffffff;
-  color: #ff5100;
-  border: 1.5px solid #ffedd5;
-  padding: 8px 16px;
+  background: linear-gradient(135deg, #ff7a00 0%, #ff5100 100%);
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
   border-radius: 9999px;
   font-size: 0.82rem;
   font-weight: 800;
@@ -186,20 +181,18 @@
   text-decoration: none;
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 4px rgba(255, 81, 0, 0.08);
+  box-shadow: 0 3px 10px rgba(255, 81, 0, 0.35);
 }
 
 .btn-header-marketplace:hover {
-  background: #fff7ed;
-  border-color: #fdba74;
-  color: #ea580c;
+  background: linear-gradient(135deg, #ff6500 0%, #e04400 100%);
+  box-shadow: 0 5px 14px rgba(255, 81, 0, 0.45);
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(255, 81, 0, 0.15);
 }
 
 .btn-header-auth {
   background: linear-gradient(135deg, #ff6500 0%, #ff5100 100%);
-  color: #ffffff;
+  color: #ffffff !important;
   border: none;
   padding: 8px 18px;
   border-radius: 9999px;
@@ -212,11 +205,36 @@
   text-decoration: none;
   transition: all 0.2s ease;
   box-shadow: 0 3px 10px rgba(255, 81, 0, 0.35);
+  white-space: nowrap;
 }
 
 .btn-header-auth:hover {
   background: linear-gradient(135deg, #ea580c 0%, #e04400 100%);
   box-shadow: 0 5px 14px rgba(255, 81, 0, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-header-register {
+  background: #fff7ed;
+  color: #ff5100 !important;
+  border: 1.5px solid #fed7aa;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-header-register:hover {
+  background: #ffedd5;
+  border-color: #fdba74;
+  color: #ea580c !important;
   transform: translateY(-1px);
 }
 

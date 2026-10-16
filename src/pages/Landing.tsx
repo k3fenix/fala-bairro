@@ -269,7 +269,7 @@ export default function Landing() {
             </a>
 
             <Link 
-              to={currentUser ? "/feed" : "/login"} 
+              to="/login" 
               className="btn-header-auth" 
               title={currentUser ? `Conectado como ${currentUser.name}` : "Entrar"}
             >
