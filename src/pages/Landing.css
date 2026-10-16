@@ -262,19 +262,9 @@
   transform: translateY(-1px);
 }
 
-/* Sub-navegação em chips - Menu Organizado */
+/* Sub-navegação em chips desativada porque agora temos o Menu Lateral */
 .subnav-chips {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 64px;
-  z-index: 40;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: none !important;
 }
 
 .subnav-chips::-webkit-scrollbar {
@@ -1686,12 +1676,9 @@
     flex-shrink: 0;
   }
 
-  /* Sub-navegação fixa no celular com scroll horizontal suave */
+  /* Sub-navegação fixa no celular desativada pois já temos o menu lateral */
   .subnav-chips {
-    top: auto;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    border-bottom: 1px solid #f1f5f9;
+    display: none !important;
   }
 
   .chips-wrapper {
