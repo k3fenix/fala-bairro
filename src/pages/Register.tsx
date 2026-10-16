@@ -47,10 +47,23 @@ export default function Register() {
 
     setLoading(true);
     
-    // 1. Sign up the user in Supabase Auth
+    // 1. Sign up the user in Supabase Auth with metadata included
+    const handle = `@${formData.name.toLowerCase().replace(/\s+/g, '')}`;
+    const avatar = `https://i.pravatar.cc/150?u=${formData.name}`;
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email.trim(),
       password: formData.password,
+      options: {
+        data: {
+          name: formData.name.trim(),
+          handle: handle,
+          avatar: avatar,
+          whatsapp: formData.whatsapp,
+          neighborhood: formData.neighborhood,
+          address: formData.address,
+        }
+      }
     });
 
     if (authError) {
@@ -60,28 +73,26 @@ export default function Register() {
     }
 
     if (authData.user) {
-      // 2. Create the user profile in our database
-      const handle = `@${formData.name.toLowerCase().replace(/\s+/g, '')}`;
-      const avatar = `https://i.pravatar.cc/150?u=${formData.name}`;
-
-      const { error: profileError } = await supabase.from('profiles').upsert([
-        {
-          id: authData.user.id,
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          handle: handle,
-          avatar: avatar,
-          whatsapp: formData.whatsapp,
-          neighborhood: formData.neighborhood,
-          address: formData.address,
-          status: 'Aprovado'
-        }
-      ]);
-
-      if (profileError) {
-        setError(`Erro ao salvar perfil: ${profileError.message || JSON.stringify(profileError)}`);
-        setLoading(false);
-        return;
+      // 2. Tentar criar o perfil do morador na tabela profiles (se falhar RLS, não bloqueia o usuário)
+      try {
+        await supabase.from('profiles').upsert([
+          {
+            id: authData.user.id,
+            name: formData.name.trim(),
+            full_name: formData.name.trim(),
+            email: formData.email.trim(),
+            handle: handle,
+            avatar: avatar,
+            avatar_url: avatar,
+            whatsapp: formData.whatsapp,
+            phone: formData.whatsapp,
+            neighborhood: formData.neighborhood,
+            address: formData.address,
+            status: 'Aprovado'
+          }
+        ]);
+      } catch (profileError) {
+        console.warn('Aviso ao sincronizar profiles:', profileError);
       }
 
       // Manter a sessão ativa e gravar dados unificados
@@ -102,7 +113,7 @@ export default function Register() {
         const params = new URLSearchParams(window.location.search);
         const target = params.get('redirect') || '/marketplace';
         navigate(target);
-      }, 1200);
+      }, 1000);
     }
     setLoading(false);
   };

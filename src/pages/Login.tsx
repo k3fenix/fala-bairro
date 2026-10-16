@@ -50,33 +50,44 @@ export default function Login() {
     }
 
     if (data.user) {
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
+      let profile = null;
+      try {
+        const { data: pData } = await supabase.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
+        profile = pData;
+      } catch (err) {
+        console.warn('Erro ao carregar perfil:', err);
+      }
+
       if (profile) {
-        if (profile.status === 'Pendente') {
-          // Auto-aprovação para liberar o acesso imediato do morador
-          await supabase.from('profiles').update({ status: 'Aprovado' }).eq('id', data.user.id);
-        }
         if (profile.status === 'Bloqueado') {
           setError('Sua conta foi bloqueada.');
           await supabase.auth.signOut();
           setLoading(false);
           return;
         }
-
-        localStorage.removeItem('admin_auth');
-        const userObj = {
-          id: data.user.id,
-          name: profile.name,
-          email: data.user.email,
-          avatar: profile.avatar || '',
-          neighborhood: profile.neighborhood || '',
-          whatsapp: profile.whatsapp || ''
-        };
-        setAuthUser(userObj);
-        const params = new URLSearchParams(window.location.search);
-        const target = params.get('redirect') || '/feed';
-        navigate(target);
+        if (profile.status === 'Pendente') {
+          try {
+            await supabase.from('profiles').update({ status: 'Aprovado' }).eq('id', data.user.id);
+          } catch (_) {}
+        }
       }
+
+      localStorage.removeItem('admin_auth');
+      const fallbackName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Morador';
+      const userObj = {
+        id: data.user.id,
+        name: profile?.name || fallbackName,
+        email: data.user.email,
+        avatar: profile?.avatar || data.user.user_metadata?.avatar || `https://i.pravatar.cc/150?u=${data.user.id}`,
+        neighborhood: profile?.neighborhood || data.user.user_metadata?.neighborhood || 'Mário Covas',
+        whatsapp: profile?.whatsapp || data.user.user_metadata?.whatsapp || ''
+      };
+
+      setAuthUser(userObj);
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get('redirect') || '/feed';
+      navigate(target);
+      return;
     }
 
     setLoading(false);
