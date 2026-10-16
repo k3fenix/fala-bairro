@@ -314,14 +314,7 @@ export default function Landing() {
                     <img
                       src={pet.image}
                       alt={pet.pet_name}
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                        flexShrink: 0,
-                        border: '2px solid #ef4444'
-                      }}
+                      className="alert-pet-thumb"
                     />
                   ) : (
                     <div className="alert-badge-icon">🐶</div>

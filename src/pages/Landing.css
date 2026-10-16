@@ -356,6 +356,15 @@
   flex-shrink: 0;
 }
 
+.alert-pet-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid #ef4444;
+}
+
 .alert-card-text strong {
   display: block;
   color: #ef4444;
@@ -1546,148 +1555,218 @@
 }
 
 /* ==========================================================================
-   OTIMIZAÇÃO DO MENU E CABEÇALHO PARA CELULAR (MOBILE-FIRST)
+   DESIGN PROFISSIONAL MOBILE-FIRST (ANDROID & IPHONE/IOS)
    ========================================================================== */
 @media (max-width: 768px) {
   .top-header {
     position: sticky;
     top: 0;
     z-index: 50;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
   .top-header-inner {
     height: auto;
-    padding: 8px 12px;
+    padding: 10px 12px 10px 12px;
+    display: flex;
     flex-wrap: wrap;
-    gap: 8px;
     align-items: center;
+    justify-content: space-between;
+    row-gap: 10px;
+    column-gap: 8px;
   }
 
+  /* Linha 1 no celular: Logo e Cidade lado a lado ocupando topo */
   .brand {
     gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .brand-logo-img {
     height: 38px;
+    width: auto;
   }
 
   .brand-text h1 {
     font-size: 1.05rem;
+    font-weight: 900;
+    color: #1e293b;
   }
 
   .brand-text span {
-    font-size: 0.62rem;
+    display: none;
   }
 
   .location-badge {
     padding: 5px 10px;
     font-size: 0.72rem;
     gap: 4px;
-    max-width: 135px;
-    overflow: hidden;
+    background: #fff7ed;
+    border: 1px solid #ffedd5;
+    border-radius: 9999px;
   }
 
   .location-badge select {
-    font-size: 0.72rem !important;
-    max-width: 95px;
-    text-overflow: ellipsis;
+    font-size: 0.75rem !important;
+    max-width: 100px;
   }
 
+  /* Linha 2 no celular: Botões Marketplace e Entrar com 100% de largura dividida ou alinhados */
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-left: auto;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
   }
 
   .btn-header-marketplace {
-    padding: 6px 12px;
-    font-size: 0.72rem;
-    gap: 4px;
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    border-radius: 9999px;
+  }
+
+  .btn-header-marketplace span {
+    display: inline;
   }
 
   .btn-header-auth {
-    padding: 6px 12px;
-    font-size: 0.72rem;
-    gap: 4px;
-    max-width: 120px;
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    border-radius: 9999px;
   }
 
   .btn-header-auth span {
-    max-width: 80px;
+    max-width: 110px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: inline-block;
-    vertical-align: middle;
   }
 
   /* Sub-navegação fixa no celular com scroll horizontal suave */
   .subnav-chips {
     top: auto;
     background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    padding: 6px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-bottom: 1px solid #f1f5f9;
   }
 
   .chips-wrapper {
-    padding: 4px 10px;
-    gap: 6px;
+    padding: 8px 12px;
+    gap: 8px;
     -webkit-overflow-scrolling: touch;
   }
 
   .chip {
-    padding: 6px 13px;
+    padding: 7px 15px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    border-radius: 9999px;
+    flex-shrink: 0;
+  }
+
+  /* CARD DE ALERTA NO CELULAR - SEM QUEBRAS E ALINHADO */
+  .alerts-container {
+    margin: 12px 0 16px 0;
+    padding: 0 4px;
+  }
+
+  .alert-card-urgent {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    gap: 10px;
+    border-radius: 18px;
+  }
+
+  .alert-card-content {
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .alert-badge-icon,
+  .alert-pet-thumb {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+  }
+
+  .alert-card-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .alert-card-text strong {
+    font-size: 0.68rem;
+    margin-bottom: 1px;
+    line-height: 1.2;
+  }
+
+  .alert-card-text p {
+    font-size: 0.95rem;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .alert-card-text span {
+    font-size: 0.72rem;
+    display: block;
+    margin-top: 2px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .btn-alert-action {
+    padding: 8px 14px;
     font-size: 0.75rem;
-    gap: 5px;
+    font-weight: 900;
+    border-radius: 9999px;
     flex-shrink: 0;
   }
 }
 
-@media (max-width: 480px) {
-  .top-header-inner {
-    padding: 6px 10px;
-  }
-
-  .brand-text span {
-    display: none;
-  }
-
+@media (max-width: 400px) {
   .brand-logo-img {
     height: 34px;
   }
 
   .brand-text h1 {
-    font-size: 0.98rem;
-  }
-
-  .location-badge {
-    padding: 4px 8px;
-    font-size: 0.68rem;
-    max-width: 110px;
+    font-size: 0.95rem;
   }
 
   .location-badge select {
-    font-size: 0.68rem !important;
-    max-width: 75px;
+    max-width: 80px;
   }
 
-  .btn-header-marketplace span {
-    display: none;
-  }
-
-  .btn-header-marketplace {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-  }
-
+  .btn-header-marketplace,
   .btn-header-auth {
-    padding: 6px 10px;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
+    padding: 7px 10px;
   }
 
-  .chip {
-    padding: 5px 11px;
+  .btn-alert-action {
     font-size: 0.72rem;
   }
 }
