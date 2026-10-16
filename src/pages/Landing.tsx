@@ -18,6 +18,7 @@ export default function Landing() {
   const [commercialGuide, setCommercialGuide] = useState<any[]>([]);
   const [lostPets, setLostPets] = useState<any[]>([]);
   const [allPets, setAllPets] = useState<any[]>([]);
+  const [currentPetTickerIndex, setCurrentPetTickerIndex] = useState(0);
   
   const [selectedPetDetails, setSelectedPetDetails] = useState<any>(null);
   const [selectedBusinessDetails, setSelectedBusinessDetails] = useState<any>(null);
@@ -60,6 +61,14 @@ export default function Landing() {
   useEffect(() => {
     if (contextUser) setCurrentUser(contextUser);
   }, [contextUser]);
+
+  useEffect(() => {
+    if (allPets.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentPetTickerIndex(prev => (prev + 1) % allPets.length);
+    }, 3800);
+    return () => clearInterval(timer);
+  }, [allPets.length]);
 
   const defaultNews = [
     {
@@ -253,6 +262,46 @@ export default function Landing() {
             <span style={{ fontSize: '0.7rem', color: '#ff5100' }}>▾</span>
           </div>
 
+          {allPets.length > 0 && (() => {
+            const pet = allPets[currentPetTickerIndex] || allPets[0];
+            const isLost = pet.status === 'Perdido';
+            const isFound = pet.status === 'Encontrado' || pet.status === 'Achado';
+
+            const badgeBg = isLost ? '#ef4444' : isFound ? '#10b981' : '#ec4899';
+            const badgeLabel = isLost ? '🚨 PERDIDO' : isFound ? '🐾 ACHADO' : '💖 DOAÇÃO';
+
+            return (
+              <div 
+                className="header-pet-showcase" 
+                onClick={() => setSelectedPetDetails(pet)}
+                title={`Clique para ver detalhes de ${pet.pet_name}`}
+              >
+                <div className="header-pet-pill">
+                  <span 
+                    className="header-pet-badge"
+                    style={{ backgroundColor: badgeBg }}
+                  >
+                    {badgeLabel}
+                  </span>
+                  {pet.image ? (
+                    <img 
+                      src={pet.image} 
+                      alt={pet.pet_name} 
+                      className="header-pet-img" 
+                    />
+                  ) : (
+                    <span className="header-pet-emoji">🐾</span>
+                  )}
+                  <div className="header-pet-info">
+                    <strong className="header-pet-name">{pet.pet_name}</strong>
+                    <span className="header-pet-loc">
+                      {pet.last_seen_location || pet.neighborhood || pet.city || 'Bairro'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           <div className="header-search">
             <span className="header-search-icon">🔍</span>
             <input type="text" placeholder="Buscar notícias, avisos ou empresas..." aria-label="Buscar no bairro" />

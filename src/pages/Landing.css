@@ -112,10 +112,101 @@
   display: none !important;
 }
 
-/* Busca Global desativada a pedido do usuario */
-.header-search {
-  display: none !important;
+/* ==========================================================================
+   VITRINE DE ANIMAIS NO CENTRO DO CABEÇALHO (PERDIDOS, ACHADOS E DOAÇÃO)
+   ========================================================================== */
+.header-pet-showcase {
+  flex: 1;
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  min-width: 0;
+  transition: transform 0.2s ease;
 }
+
+.header-pet-showcase:hover {
+  transform: translateY(-1px);
+}
+
+.header-pet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 4px 12px 4px 5px;
+  border-radius: 9999px;
+  max-width: 100%;
+  animation: fadeInPet 0.4s ease-in-out;
+}
+
+@keyframes fadeInPet {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header-pet-badge {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #ffffff;
+  padding: 4px 9px;
+  border-radius: 9999px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.header-pet-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid #fed7aa;
+}
+
+.header-pet-emoji {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.header-pet-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.header-pet-name {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-pet-loc {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 .header-search input {
   width: 100%;
@@ -1551,6 +1642,38 @@
   }
 
   .brand-text span {
+    display: none;
+  }
+
+  /* Centro no celular: Vitrine rotativa de pets ajustada perfeitamente */
+  .header-pet-showcase {
+    max-width: 170px;
+    margin: 0 auto;
+  }
+
+  .header-pet-pill {
+    padding: 2px 8px 2px 4px;
+    gap: 5px;
+  }
+
+  .header-pet-badge {
+    font-size: 0.6rem;
+    padding: 3px 6px;
+  }
+
+  .header-pet-img,
+  .header-pet-emoji {
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+  }
+
+  .header-pet-name {
+    font-size: 0.74rem;
+    max-width: 60px;
+  }
+
+  .header-pet-loc {
     display: none;
   }
 
