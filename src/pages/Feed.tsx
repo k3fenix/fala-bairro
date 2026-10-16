@@ -1007,11 +1007,13 @@ export default function Feed() {
         </div>
       )}
 
-      <div className="bg-amber-50/80 border-b border-amber-200 p-3 text-center mb-2">
+      <div onClick={() => setShowBusinessModal(true)} className="max-w-md mx-auto md:max-w-2xl px-3 sm:px-4 mb-3 cursor-pointer">
+        <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-2.5 text-center shadow-xs">
         <p className="text-amber-800 text-sm font-medium">
           <Store className="inline-block w-4 h-4 mr-1 mb-1" />
           Tem um negócio no bairro? Divulgue de graça! Acesse <strong>Minha Empresa</strong> no menu acima.
         </p>
+        </div>
       </div>
 
       {['Mural', 'Notícias'].includes(activeFilter) && (

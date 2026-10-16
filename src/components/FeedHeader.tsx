@@ -38,104 +38,72 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
 
   return (
     <>
-      {/* HEADER DE BOAS-VINDAS MODERNO (ÁREA DO USUÁRIO) */}
-      <div className={`bg-white sticky ${typeof window !== 'undefined' && localStorage.getItem('impersonatedUser') ? 'top-[72px]' : 'top-10'} z-40 shadow-sm border-b border-slate-100`}>
-        <div className="max-w-md mx-auto md:max-w-2xl px-4 pt-3 pb-3">
-          {/* Linha 1: Saudação e Localização */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-0.5 shadow-sm shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => setShowProfile(true)}
-                title="Meu Perfil"
-              >
+    <>
+      {/* HEADER DE BOAS-VINDAS MODERNO & OTIMIZADO PARA CELULAR (iOS & Android) */}
+      <div className={`bg-white sticky ${typeof window !== 'undefined' && localStorage.getItem('impersonatedUser') ? 'top-[72px]' : 'top-10'} z-40 shadow-xs border-b border-slate-200/80 backdrop-blur-md bg-white/95`}>
+        <div className="max-w-md mx-auto md:max-w-2xl px-3 sm:px-4 pt-2.5 pb-2">
+          
+          {/* Linha 1: Perfil do Usuário + Seletor de Bairro + Botão Sair */}
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            {/* Usuário logado */}
+            <div 
+              className="flex items-center gap-2.5 min-w-0 cursor-pointer group"
+              onClick={() => setShowProfile(true)}
+              title="Clique para editar seu perfil"
+            >
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-orange-500 to-amber-400 p-0.5 shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                 <img 
                   src={userAvatar || `https://i.pravatar.cc/150?u=${userName}`} 
                   alt={userName} 
-                  className="w-full h-full object-cover rounded-[14px]"
+                  className="w-full h-full object-cover rounded-full"
                 />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                    Olá, {firstName}! 👋
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
+                    Olá, {firstName}!
                   </h2>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                    Morador Ativo
+                  <span className="shrink-0 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-1.5 py-0.2 rounded-full">
+                    Ativo
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">O que está acontecendo no seu bairro hoje?</p>
+                <p className="text-[11px] text-slate-400 font-medium truncate">Toque para ver perfil</p>
               </div>
             </div>
 
-            {/* Badge de Localização Ativa */}
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <div className="relative flex items-center bg-slate-100 hover:bg-slate-200 border border-slate-200/80 rounded-full transition-all px-3 py-1.5 shadow-xs group">
-                <MapPin className="w-3.5 h-3.5 text-blue-600 mr-1.5 group-hover:scale-110 transition-transform" />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mr-1 hidden sm:inline">Bairro:</span>
+            {/* Ações da Direita: Bairro + Sair */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="relative flex items-center bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200 rounded-full px-2.5 py-1 transition-all">
+                <MapPin className="w-3.5 h-3.5 text-orange-600 mr-1 shrink-0" />
                 <select 
                   value={selectedNeighborhood}
                   onChange={(e) => setSelectedNeighborhood(e.target.value)}
-                  className="bg-transparent font-extrabold text-slate-800 text-xs sm:text-sm appearance-none cursor-pointer outline-none pr-5"
+                  className="bg-transparent font-extrabold text-slate-800 text-[11px] sm:text-xs appearance-none cursor-pointer outline-none pr-4 max-w-[100px] sm:max-w-[130px] truncate"
                 >
                   {allNeighborhoods.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 pointer-events-none" />
+                <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none" />
               </div>
 
-              {/* Botão Sair */}
               <button 
                 onClick={handleLogout} 
-                className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-red-600 bg-slate-100 hover:bg-red-50 px-2.5 py-1.5 rounded-full transition-colors cursor-pointer"
+                className="flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-red-600 bg-slate-100 hover:bg-red-50 p-1.5 sm:px-2.5 sm:py-1 rounded-full transition-colors cursor-pointer"
                 title="Sair da Conta"
               >
-                <LogOut className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Sair</span>
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sair</span>
               </button>
             </div>
           </div>
 
-          {/* Linha 2: Atalhos Rápidos */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-            <button 
-              onClick={handleCopyInvite} 
-              className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <Share2 className="w-3.5 h-3.5 text-emerald-600" /> Convidar Vizinho
-            </button>
-            <button 
-              onClick={() => setShowPetsModal(true)} 
-              className="flex items-center gap-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <Dog className="w-3.5 h-3.5 text-rose-600" /> Meus Pets
-            </button>
-            <button 
-              onClick={() => setShowBusinessModal(true)} 
-              className="flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <Store className="w-3.5 h-3.5 text-amber-600" /> Minha Empresa
-            </button>
-            <button 
-              onClick={() => navigate('/marketplace')} 
-              className="flex items-center gap-1.5 text-xs font-bold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <span className="text-orange-500 font-black">🛍️</span> Marketplace
-            </button>
-            <button 
-              onClick={() => setShowProfile(true)} 
-              className="flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <User className="w-3.5 h-3.5 text-blue-600" /> Meu Perfil
-            </button>
-          </div>
-
-          {/* Linha 3: Barra de Navegação em Abas Modernas com Alto Contraste */}
-          <div className="flex gap-2 overflow-x-auto pt-1 pb-1 no-scrollbar border-t border-slate-100">
+          {/* Linha 2: Barra de Abas Principais (Instagram / Twitter style) com toque fácil */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-1 no-scrollbar border-t border-slate-100">
             {[
               { id: 'Mural', label: '📰 Mural' },
               { id: 'Notícias', label: '📢 Notícias' },
-              { id: 'Área Pet', label: '🐾 Área Pet' },
-              { id: 'Guia Local', label: '🏪 Guia Local' },
-              { id: 'Vendas & Trocas', label: '🛍️ Vendas & Trocas' }
+              { id: 'Área Pet', label: '🐾 Pets' },
+              { id: 'Guia Local', label: '🏪 Guia' },
+              { id: 'Vendas & Trocas', label: '🛒 Marketplace' }
             ].map((tab) => {
               const isActive = activeFilter === tab.id;
               return (
@@ -148,16 +116,38 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
                       setActiveFilter(tab.id);
                     }
                   }}
-                  className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 ${
                     isActive 
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 scale-[1.02]' 
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-transparent'
+                      ? 'bg-[#ff6500] text-white shadow-sm shadow-orange-500/25 scale-[1.02]' 
+                      : 'bg-slate-100/90 text-slate-600 hover:bg-slate-200/90 hover:text-slate-900'
                   }`}
                 >
                   {tab.label}
                 </button>
               );
             })}
+          </div>
+
+          {/* Linha 3: Ações Rápidas em Chips Elegantes */}
+          <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-0.5 no-scrollbar text-xs">
+            <button 
+              onClick={() => setShowBusinessModal(true)} 
+              className="flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2.5 py-1 rounded-lg transition-all shrink-0 cursor-pointer"
+            >
+              <Store className="w-3 h-3 text-amber-600" /> Divulgar Empresa
+            </button>
+            <button 
+              onClick={() => setShowPetsModal(true)} 
+              className="flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 px-2.5 py-1 rounded-lg transition-all shrink-0 cursor-pointer"
+            >
+              <Dog className="w-3 h-3 text-rose-600" /> Cadastrar Pet
+            </button>
+            <button 
+              onClick={handleCopyInvite} 
+              className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-lg transition-all shrink-0 cursor-pointer"
+            >
+              <Share2 className="w-3 h-3 text-emerald-600" /> Convidar Vizinho
+            </button>
           </div>
         </div>
       </div>
