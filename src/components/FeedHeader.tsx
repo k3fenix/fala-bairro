@@ -1,5 +1,8 @@
-import React from 'react';
-import { MapPin, ChevronDown, Share2, Dog, Store, User, LogOut, Megaphone } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  Menu, X, MapPin, ChevronDown, Share2, Dog, Store, User, 
+  LogOut, ShoppingBag, Newspaper, Bell, Sparkles, ChevronRight, Home
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface FeedHeaderProps {
@@ -34,144 +37,308 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
   globalAnnouncement,
 }) => {
   const navigate = useNavigate();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const firstName = userName ? userName.split(' ')[0] : 'Vizinho';
+  const resolvedAvatar = userAvatar || `https://i.pravatar.cc/150?u=${userName}`;
+
+  const navTabs = [
+    { id: 'Mural', label: 'Mural', icon: '📰' },
+    { id: 'Notícias', label: 'Notícias', icon: '📢' },
+    { id: 'Área Pet', label: 'Área Pet', icon: '🐾' },
+    { id: 'Guia Local', label: 'Guia Local', icon: '🏪' },
+    { id: 'Vendas & Trocas', label: 'Marketplace', icon: '🛒', isExternal: true }
+  ];
+
+  const handleTabClick = (tabId: string) => {
+    if (tabId === 'Vendas & Trocas') {
+      navigate('/marketplace');
+    } else {
+      setActiveFilter(tabId);
+    }
+    setDrawerOpen(false);
+  };
 
   return (
     <>
-    <>
-      {/* HEADER DE BOAS-VINDAS MODERNO & OTIMIZADO PARA CELULAR (iOS & Android) */}
-      <div className={`bg-white sticky ${typeof window !== 'undefined' && localStorage.getItem('impersonatedUser') ? 'top-[72px]' : 'top-10'} z-40 shadow-xs border-b border-slate-200/80 backdrop-blur-md bg-white/95`}>
-        <div className="max-w-md mx-auto md:max-w-2xl px-3 sm:px-4 pt-2.5 pb-2">
-          
-          {/* Linha 1: Perfil do Usuário + Seletor de Bairro + Botão Sair */}
-          <div className="flex items-center justify-between gap-2 mb-2.5">
-            {/* Usuário logado */}
-            <div 
-              className="flex items-center gap-2.5 min-w-0 cursor-pointer group"
-              onClick={() => setShowProfile(true)}
-              title="Clique para editar seu perfil"
-            >
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-orange-500 to-amber-400 p-0.5 shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                <img 
-                  src={userAvatar || `https://i.pravatar.cc/150?u=${userName}`} 
-                  alt={userName} 
-                  className="w-full h-full object-cover rounded-full"
-                />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
-                    Olá, {firstName}!
-                  </h2>
-                  <span className="shrink-0 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-1.5 py-0.2 rounded-full">
-                    Ativo
-                  </span>
+      {/* =========================================================================
+          BARRA DE NAVEGAÇÃO SUPERIOR FIXA (CLEAN, MODERNA E ELEGANTE)
+          ========================================================================= */}
+      <header className={`bg-white/95 backdrop-blur-md sticky ${typeof window !== 'undefined' && localStorage.getItem('impersonatedUser') ? 'top-[72px]' : 'top-10'} z-40 border-b border-slate-200 shadow-[0_2px_12px_rgba(0,0,0,0.04)]`}>
+        <div className="max-w-md mx-auto md:max-w-2xl px-3 sm:px-4 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            
+            {/* LADO ESQUERDO: Botão de Menu Gaveta + Foto do Usuário e Saudação */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              {/* Botão de Menu Hambúrguer */}
+              <button 
+                onClick={() => setDrawerOpen(true)}
+                className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-orange-50 hover:text-[#ff6500] text-slate-700 flex items-center justify-center transition-all cursor-pointer shrink-0 border border-slate-200/80 shadow-xs"
+                title="Abrir Menu de Opções"
+                aria-label="Abrir Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+
+              {/* Card do Usuário (Toque abre o perfil) */}
+              <div 
+                className="flex items-center gap-2 cursor-pointer group min-w-0"
+                onClick={() => setShowProfile(true)}
+                title="Editar meu perfil"
+              >
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#ff6500] to-amber-400 shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                    <img 
+                      src={resolvedAvatar} 
+                      alt={userName} 
+                      className="w-full h-full object-cover rounded-full bg-white"
+                    />
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium truncate">Toque para ver perfil</p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 leading-tight">
+                    <span className="text-sm font-black text-slate-800 truncate">{firstName}</span>
+                    <span className="hidden sm:inline-block text-[10px] font-extrabold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-200">
+                      Morador
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-400 font-semibold block truncate">Meu Perfil ⚙️</span>
+                </div>
               </div>
             </div>
 
-            {/* Ações da Direita: Bairro + Sair */}
+            {/* LADO DIREITO: Seletor de Bairro + Marketplace rápido */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <div className="relative flex items-center bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200 rounded-full px-2.5 py-1 transition-all">
-                <MapPin className="w-3.5 h-3.5 text-orange-600 mr-1 shrink-0" />
+              {/* Bairro Pill */}
+              <div className="relative flex items-center bg-slate-100/90 border border-slate-200 rounded-full px-2.5 py-1.5 transition-all">
+                <MapPin className="w-3.5 h-3.5 text-[#ff6500] mr-1 shrink-0" />
                 <select 
                   value={selectedNeighborhood}
                   onChange={(e) => setSelectedNeighborhood(e.target.value)}
-                  className="bg-transparent font-extrabold text-slate-800 text-[11px] sm:text-xs appearance-none cursor-pointer outline-none pr-4 max-w-[100px] sm:max-w-[130px] truncate"
+                  className="bg-transparent font-extrabold text-slate-800 text-[11px] sm:text-xs appearance-none cursor-pointer outline-none pr-4 max-w-[95px] sm:max-w-[130px] truncate"
+                  aria-label="Escolher Bairro"
                 >
                   {allNeighborhoods.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
                 <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none" />
               </div>
 
+              {/* Botão Marketplace Rápido */}
               <button 
-                onClick={handleLogout} 
-                className="flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-red-600 bg-slate-100 hover:bg-red-50 p-1.5 sm:px-2.5 sm:py-1 rounded-full transition-colors cursor-pointer"
-                title="Sair da Conta"
+                onClick={() => navigate('/marketplace')}
+                className="hidden sm:inline-flex items-center gap-1 bg-gradient-to-r from-[#ff7a00] to-[#ff5100] text-white text-xs font-black px-3 py-1.5 rounded-full shadow-xs hover:opacity-95 transition-opacity cursor-pointer"
+                title="Acessar o Marketplace"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sair</span>
+                <span>🛒</span> Marketplace
               </button>
             </div>
           </div>
 
-          {/* Linha 2: Barra de Abas Principais (Instagram / Twitter style) com toque fácil */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-1 no-scrollbar border-t border-slate-100">
-            {[
-              { id: 'Mural', label: '📰 Mural' },
-              { id: 'Notícias', label: '📢 Notícias' },
-              { id: 'Área Pet', label: '🐾 Pets' },
-              { id: 'Guia Local', label: '🏪 Guia' },
-              { id: 'Vendas & Trocas', label: '🛒 Marketplace' }
-            ].map((tab) => {
+          {/* Sub-navegação em Abas (Estilo Story/Pills mobile-friendly) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-0.5 no-scrollbar border-t border-slate-100 mt-2">
+            {navTabs.map((tab) => {
               const isActive = activeFilter === tab.id;
               return (
                 <button 
                   key={tab.id}
-                  onClick={() => {
-                    if (tab.id === 'Vendas & Trocas') {
-                      navigate('/marketplace');
-                    } else {
-                      setActiveFilter(tab.id);
-                    }
-                  }}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 ${
+                  onClick={() => handleTabClick(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 flex items-center gap-1 ${
                     isActive 
                       ? 'bg-[#ff6500] text-white shadow-sm shadow-orange-500/25 scale-[1.02]' 
-                      : 'bg-slate-100/90 text-slate-600 hover:bg-slate-200/90 hover:text-slate-900'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                   }`}
                 >
-                  {tab.label}
+                  <span>{tab.icon}</span> {tab.label}
                 </button>
               );
             })}
           </div>
+        </div>
+      </header>
 
-          {/* Linha 3: Ações Rápidas em Chips Elegantes */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-0.5 no-scrollbar text-xs">
-            <button 
-              onClick={() => setShowBusinessModal(true)} 
-              className="flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2.5 py-1 rounded-lg transition-all shrink-0 cursor-pointer"
-            >
-              <Store className="w-3 h-3 text-amber-600" /> Divulgar Empresa
-            </button>
-            <button 
-              onClick={() => setShowPetsModal(true)} 
-              className="flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 px-2.5 py-1 rounded-lg transition-all shrink-0 cursor-pointer"
-            >
-              <Dog className="w-3 h-3 text-rose-600" /> Cadastrar Pet
-            </button>
-            <button 
-              onClick={handleCopyInvite} 
-              className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-lg transition-all shrink-0 cursor-pointer"
-            >
-              <Share2 className="w-3 h-3 text-emerald-600" /> Convidar Vizinho
-            </button>
+      {/* =========================================================================
+          MENU LATERAL GAVETA (SIDEBAR DRAWER) ELEGANTE E MODERNO
+          ========================================================================= */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Backdrop escurecido */}
+          <div 
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+            onClick={() => setDrawerOpen(false)}
+          />
+
+          {/* Painel Lateral */}
+          <div className="relative w-[300px] sm:w-[340px] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-250">
+            
+            {/* Topo da Sidebar com Logo e Fechar */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-500/5 to-amber-500/5">
+              <div className="flex items-center gap-2.5">
+                <img src="/logo-fala-bairro.svg" alt="Fala do Bairro" className="w-9 h-9 object-contain drop-shadow-sm" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">Fala do Bairro</h3>
+                  <span className="text-[10px] font-extrabold text-[#ff6500] uppercase tracking-wider block">Área do Morador</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setDrawerOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+                aria-label="Fechar Menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Cartão de Perfil do Usuário com Foto Grande */}
+            <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-14 h-14 rounded-2xl p-0.5 bg-gradient-to-tr from-[#ff6500] to-amber-400 shrink-0 shadow-sm overflow-hidden">
+                  <img 
+                    src={resolvedAvatar} 
+                    alt={userName} 
+                    className="w-full h-full object-cover rounded-[14px] bg-white"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-base font-black text-slate-900 truncate">{userName}</h4>
+                  <p className="text-xs text-[#ff6500] font-bold flex items-center gap-1">
+                    <MapPin className="w-3 h-3 shrink-0" /> {selectedNeighborhood}
+                  </p>
+                  <span className="inline-block mt-1 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                    Morador Conectado
+                  </span>
+                </div>
+              </div>
+
+              {/* Botão de Editar Perfil */}
+              <button 
+                onClick={() => { setShowProfile(true); setDrawerOpen(false); }}
+                className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200/80 transition-all flex items-center justify-between cursor-pointer shadow-xs"
+              >
+                <span className="flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-blue-600" /> Editar Foto e Nome
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+            </div>
+
+            {/* Lista de Opções do Menu */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-1 text-sm">
+              <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider px-3 mb-2">
+                Navegação Principal
+              </div>
+
+              {navTabs.map((tab) => {
+                const isActive = activeFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl font-bold transition-all cursor-pointer text-left ${
+                      isActive 
+                        ? 'bg-orange-50 text-[#ff6500] border border-orange-200/80 shadow-xs' 
+                        : 'text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="text-lg">{tab.icon}</span>
+                      <span>{tab.label}</span>
+                    </span>
+                    {isActive && <span className="w-2 h-2 rounded-full bg-[#ff6500]"></span>}
+                  </button>
+                );
+              })}
+
+              <div className="pt-4 border-t border-slate-100 mt-4 text-[10px] font-extrabold uppercase text-slate-400 tracking-wider px-3 mb-2">
+                Recursos do Bairro
+              </div>
+
+              {/* Minha Empresa */}
+              <button 
+                onClick={() => { setShowBusinessModal(true); setDrawerOpen(false); }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-amber-50 hover:text-amber-800 transition-all cursor-pointer text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <Store className="w-4 h-4" />
+                  </div>
+                  <span>Minha Empresa / Comércio</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+
+              {/* Meus Pets */}
+              <button 
+                onClick={() => { setShowPetsModal(true); setDrawerOpen(false); }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 transition-all cursor-pointer text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                    <Dog className="w-4 h-4" />
+                  </div>
+                  <span>Cadastrar Pet Perdido</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+
+              {/* Convidar Vizinhos */}
+              <button 
+                onClick={() => { handleCopyInvite(); setDrawerOpen(false); }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition-all cursor-pointer text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                    <Share2 className="w-4 h-4" />
+                  </div>
+                  <span>Convidar Vizinho no WhatsApp</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+
+              {/* Ir para o Portal Inicial */}
+              <button 
+                onClick={() => { navigate('/'); setDrawerOpen(false); }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-800 transition-all cursor-pointer text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                    <Home className="w-4 h-4" />
+                  </div>
+                  <span>Página Inicial do Portal</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+            </div>
+
+            {/* Rodapé da Sidebar: Botão Sair da Conta */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50">
+              <button 
+                onClick={() => { setDrawerOpen(false); handleLogout(); }}
+                className="w-full py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-red-200/80"
+              >
+                <LogOut className="w-4 h-4" /> Sair da Conta
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* CARD DE ALERTA / AVISO OFICIAL REESTILIZADO */}
       {globalAnnouncement && (
-        <div className="max-w-md mx-auto md:max-w-2xl px-4 mt-6 mb-4">
-          <div className="relative overflow-hidden rounded-2xl shadow-[0_10px_30px_rgb(37,99,235,0.18)] border border-blue-400/30 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-5 sm:p-6">
-            <div className="absolute -top-12 -right-12 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-            
-            <div className="relative z-10 flex gap-4 items-start sm:items-center">
-              <div className="bg-white/20 p-3.5 rounded-2xl shrink-0 backdrop-blur-md shadow-inner border border-white/20">
-                <Megaphone className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+        <div className="max-w-md mx-auto md:max-w-2xl px-4 mt-4 mb-2">
+          <div className="relative overflow-hidden rounded-2xl shadow-[0_10px_30px_rgb(37,99,235,0.18)] border border-blue-400/30 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-4 sm:p-5">
+            <div className="relative z-10 flex gap-3.5 items-start sm:items-center">
+              <div className="bg-white/20 p-2.5 rounded-2xl shrink-0 backdrop-blur-md shadow-inner border border-white/20">
+                <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="relative flex h-2.5 w-2.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
                   </span>
-                  <h4 className="font-extrabold text-xs uppercase tracking-widest text-blue-100">Comunicado Oficial do Bairro</h4>
+                  <h4 className="font-extrabold text-[11px] uppercase tracking-widest text-blue-100">Comunicado Oficial</h4>
                 </div>
-                <p className="text-sm sm:text-[15px] font-medium leading-relaxed text-white/95">
+                <p className="text-xs sm:text-sm font-medium leading-relaxed text-white/95">
                   {globalAnnouncement}
                 </p>
               </div>
