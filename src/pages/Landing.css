@@ -1870,11 +1870,7 @@
 }
 
 .landing-drawer-quick-actions {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #fafaf9;
-  border-bottom: 1px solid #f1f5f9;
+  display: none !important;
 }
 
 .landing-drawer-quick-btn {
