@@ -107,28 +107,9 @@
   letter-spacing: 0.05em;
 }
 
-/* Seletor de Bairro */
-.location-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff7ed;
-  color: #ff5100;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  border: 1px solid #fed7aa;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(255, 81, 0, 0.08);
-}
-
-.location-badge:hover {
-  background: #ffedd5;
-  border-color: #fdba74;
-  transform: translateY(-1px);
+/* Seletor de Bairro no cabeçalho desativado pois agora está dentro do Menu Lateral */
+.top-header .location-badge {
+  display: none !important;
 }
 
 /* Busca Global desativada a pedido do usuario */
@@ -1573,26 +1554,7 @@
     display: none;
   }
 
-  /* Centro: Seletor de Cidade em formato pílula elegante */
-  .location-badge {
-    padding: 5px 10px;
-    font-size: 0.72rem;
-    gap: 4px;
-    background: #fff7ed;
-    border: 1px solid #fed7aa;
-    border-radius: 9999px;
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .location-badge select {
-    font-size: 0.74rem !important;
-    max-width: 85px;
-    font-weight: 800;
-  }
-
-  /* Lado Direito: Apenas o botão do Menu Hambúrguer (os demais botões estão dentro do menu) */
+  /* Lado Direito: Apenas o botão do Menu Hambúrguer (os demais botões e cidades estão dentro do menu) */
   .header-actions {
     display: flex;
     align-items: center;
