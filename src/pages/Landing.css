@@ -1545,4 +1545,152 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
+/* ==========================================================================
+   OTIMIZAÇÃO DO MENU E CABEÇALHO PARA CELULAR (MOBILE-FIRST)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .top-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .top-header-inner {
+    height: auto;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand-logo-img {
+    height: 38px;
+  }
+
+  .brand-text h1 {
+    font-size: 1.05rem;
+  }
+
+  .brand-text span {
+    font-size: 0.62rem;
+  }
+
+  .location-badge {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    gap: 4px;
+    max-width: 135px;
+    overflow: hidden;
+  }
+
+  .location-badge select {
+    font-size: 0.72rem !important;
+    max-width: 95px;
+    text-overflow: ellipsis;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .btn-header-marketplace {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+
+  .btn-header-auth {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    gap: 4px;
+    max-width: 120px;
+  }
+
+  .btn-header-auth span {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  /* Sub-navegação fixa no celular com scroll horizontal suave */
+  .subnav-chips {
+    top: auto;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 6px 0;
+  }
+
+  .chips-wrapper {
+    padding: 4px 10px;
+    gap: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chip {
+    padding: 6px 13px;
+    font-size: 0.75rem;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-header-inner {
+    padding: 6px 10px;
+  }
+
+  .brand-text span {
+    display: none;
+  }
+
+  .brand-logo-img {
+    height: 34px;
+  }
+
+  .brand-text h1 {
+    font-size: 0.98rem;
+  }
+
+  .location-badge {
+    padding: 4px 8px;
+    font-size: 0.68rem;
+    max-width: 110px;
+  }
+
+  .location-badge select {
+    font-size: 0.68rem !important;
+    max-width: 75px;
+  }
+
+  .btn-header-marketplace span {
+    display: none;
+  }
+
+  .btn-header-marketplace {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .btn-header-auth {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+
+  .chip {
+    padding: 5px 11px;
+    font-size: 0.72rem;
+  }
+}
+
+
 

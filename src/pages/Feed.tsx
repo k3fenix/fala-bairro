@@ -232,6 +232,8 @@ export default function Feed() {
 
     await supabase.from('profiles').update({
       name: editName,
+      full_name: editName,
+      avatar_url: editAvatar,
       avatar: editAvatar,
       handle: `@${editName.toLowerCase().replace(/\s+/g, '')}`
     }).eq('id', currentUserId);
@@ -240,6 +242,12 @@ export default function Feed() {
     setUserAvatar(editAvatar);
     localStorage.setItem('user_name', editName);
     localStorage.setItem('user_avatar', editAvatar);
+    setAuthUser({
+      id: currentUserId,
+      name: editName,
+      avatar: editAvatar,
+      neighborhood: selectedNeighborhood || 'Mário Covas'
+    });
       
     setShowProfile(false);
     alert('Perfil atualizado com sucesso!');
