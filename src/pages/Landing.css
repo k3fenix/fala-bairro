@@ -1578,24 +1578,24 @@
     z-index: 50;
     background: #ffffff;
     border-bottom: 1px solid #f1f5f9;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   }
 
   .top-header-inner {
-    height: auto;
-    padding: 10px 12px 10px 12px;
+    height: 56px;
+    padding: 0 14px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    row-gap: 10px;
-    column-gap: 8px;
+    gap: 10px;
+    flex-wrap: nowrap;
   }
 
-  /* Linha 1 no celular: Logo e Cidade lado a lado ocupando topo perfeitamente */
+  /* Lado Esquerdo: Logo Fala do Bairro */
   .brand {
     gap: 8px;
-    flex: 1;
+    flex-shrink: 0;
     min-width: 0;
   }
 
@@ -1609,70 +1609,54 @@
     font-weight: 900;
     color: #1e293b;
     white-space: nowrap;
+    letter-spacing: -0.02em;
   }
 
   .brand-text span {
     display: none;
   }
 
+  /* Centro: Seletor de Cidade em formato pílula elegante */
   .location-badge {
-    padding: 6px 10px;
+    padding: 5px 10px;
     font-size: 0.72rem;
     gap: 4px;
     background: #fff7ed;
     border: 1px solid #fed7aa;
     border-radius: 9999px;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .location-badge select {
-    font-size: 0.75rem !important;
-    max-width: 110px;
+    font-size: 0.74rem !important;
+    max-width: 85px;
+    font-weight: 800;
   }
 
-  /* Linha 2 no celular: Botões Marketplace, Entrar e Gaveta Lateral */
+  /* Lado Direito: Apenas o botão do Menu Hambúrguer (os demais botões estão dentro do menu) */
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 100%;
+    gap: 6px;
+    width: auto;
     margin: 0;
+    flex-shrink: 0;
   }
 
-  .btn-header-marketplace {
-    flex: 1;
-    justify-content: center;
-    padding: 8px 10px;
-    font-size: 0.76rem;
-    font-weight: 800;
-    border-radius: 9999px;
-  }
-
-  .btn-header-marketplace span {
-    display: inline;
-  }
-
-  .btn-header-auth {
-    flex: 1;
-    justify-content: center;
-    padding: 8px 10px;
-    font-size: 0.76rem;
-    font-weight: 800;
-    border-radius: 9999px;
-  }
-
-  .btn-header-auth span {
-    max-width: 95px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
+  /* No celular esconde os botões soltos pois já estão no menu lateral */
+  .header-actions .btn-header-marketplace,
+  .header-actions .btn-header-auth {
+    display: none !important;
   }
 
   .btn-header-menu-drawer {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 12px;
+    background: linear-gradient(135deg, #ff7a00 0%, #ff5100 100%);
+    box-shadow: 0 3px 10px rgba(255, 81, 0, 0.3);
     flex-shrink: 0;
   }
 
@@ -1769,25 +1753,26 @@
 
 @media (max-width: 400px) {
   .brand-logo-img {
-    height: 34px;
+    height: 32px;
   }
 
   .brand-text h1 {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
 
   .location-badge select {
-    max-width: 80px;
+    max-width: 72px;
+    font-size: 0.7rem !important;
   }
 
-  .btn-header-marketplace,
-  .btn-header-auth {
-    font-size: 0.74rem;
-    padding: 7px 10px;
+  .btn-header-menu-drawer {
+    width: 38px;
+    height: 38px;
   }
 
   .btn-alert-action {
     font-size: 0.72rem;
+    padding: 7px 12px;
   }
 }
 
