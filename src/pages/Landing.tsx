@@ -211,7 +211,7 @@ export default function Landing() {
       <header className="top-header">
         <div className="container top-header-inner">
           <Link to="/" className="brand" title="Fala do Bairro - Início">
-            <div className="brand-icon">FB</div>
+            <img src="/logo-fala-bairro.svg" alt="Fala do Bairro" className="brand-logo-img" />
             <div className="brand-text">
               <h1>Fala do Bairro</h1>
               <span>PORTAL COMUNITÁRIO</span>
@@ -232,8 +232,8 @@ export default function Landing() {
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                color: '#0369a1',
-                fontWeight: 700,
+                color: '#ff5100',
+                fontWeight: 800,
                 fontSize: '0.82rem',
                 cursor: 'pointer'
               }}
@@ -245,7 +245,7 @@ export default function Landing() {
                 </option>
               ))}
             </select>
-            <span style={{ fontSize: '0.7rem', color: '#0284c7' }}>▾</span>
+            <span style={{ fontSize: '0.7rem', color: '#ff5100' }}>▾</span>
           </div>
 
           <div className="header-search">
@@ -515,10 +515,14 @@ export default function Landing() {
                 <p className="mural-compact-text">{post.content}</p>
                 <div className="mural-card-footer">
                   <div className="post-action-group">
-                    <button className="btn-action-ghost" onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'likes'); }}>👍 <span>{post.likes || 0} curtidas</span></button>
-                    <Link to="/feed" onClick={(e) => e.stopPropagation()} className="btn-action-ghost">💬 {post.comments?.length || 0} comentários</Link>
+                    <button className="mural-pill-stat" onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'likes'); }} title="Curtir">
+                      <span className="stat-emoji">👍</span> <strong>{post.likes || 0}</strong>
+                    </button>
+                    <button className="mural-pill-stat" onClick={(e) => { e.stopPropagation(); setSelectedPostDetails(post); }} title="Comentários">
+                      <span className="stat-emoji">💬</span> <strong>{post.comments?.length || 0}</strong>
+                    </button>
                   </div>
-                  <span className="mural-read-more" style={{ fontWeight: 800, color: 'var(--primary)' }}>🔍 Ver postagem ➔</span>
+                  <span className="mural-view-link">Ver postagem ➔</span>
                   <div style={{ display: 'none' }}>
                     <button className="btn-action-ghost" onClick={(e) => { e.stopPropagation(); shareText(`Publicação de ${post.author_name} no Mural`); }}>📤 Compartilhar</button>
                   </div>
@@ -681,7 +685,10 @@ export default function Landing() {
         <div className="container">
           <div className="footer-content">
             <div className="footer-about">
-              <h3>Fala do Bairro</h3>
+              <div className="footer-brand-title">
+                <img src="/logo-fala-bairro.svg" alt="Fala do Bairro" className="footer-logo-img" />
+                <h3>Fala do Bairro</h3>
+              </div>
               <p>Plataforma comunitária independente feita para conectar vizinhos, dar voz aos acontecimentos locais, resgatar animais e fortalecer os pequenos negócios da região.</p>
             </div>
             <div className="footer-links">
