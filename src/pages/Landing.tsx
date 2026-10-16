@@ -1119,16 +1119,20 @@ export default function Landing() {
                     <span className="landing-drawer-online-dot"></span>
                   </div>
                 ) : (
-                  <div className="landing-drawer-avatar-placeholder">
-                    <User className="w-6 h-6 text-orange-600" />
+                  <div className="landing-drawer-avatar-placeholder" title="Fala do Bairro">
+                    <img 
+                      src="/logo-fala-bairro.svg" 
+                      alt="Fala do Bairro" 
+                      className="landing-drawer-logo-img"
+                    />
                   </div>
                 )}
                 <div>
                   <h3 className="landing-drawer-user-name">
-                    {currentUser ? currentUser.name : 'Bem-vindo ao Fala do Bairro!'}
+                    {currentUser ? currentUser.name : 'Fala do Bairro'}
                   </h3>
                   <p className="landing-drawer-user-sub">
-                    {currentUser ? 'Vizinho ativo' : 'Acesse sua conta comunitária'}
+                    {currentUser ? 'Vizinho ativo' : 'Portal Comunitário'}
                   </p>
                 </div>
               </div>
@@ -1177,6 +1181,32 @@ export default function Landing() {
 
             {/* Lista de Navegação */}
             <div className="landing-drawer-body">
+              {/* Seletor de Cidades dentro do Menu */}
+              <div className="landing-drawer-city-section">
+                <div className="landing-drawer-section-title" style={{ padding: '0 0 6px 0' }}>ESCOLHER CIDADE</div>
+                <div className="landing-drawer-city-pill">
+                  <span style={{ fontSize: '1.1rem' }}>📍</span>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedCity(val);
+                      localStorage.setItem('user_city', val);
+                    }}
+                    className="landing-drawer-city-select"
+                    aria-label="Escolher Cidade no Menu"
+                  >
+                    {AVAILABLE_CITIES.map(c => (
+                      <option key={c} value={c}>
+                        {c === 'Todas as Cidades' ? '🌟 ' + c : '📍 ' + c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="landing-drawer-divider" />
+
               <div className="landing-drawer-section-title">NAVEGAÇÃO RÁPIDA</div>
 
               <a 
