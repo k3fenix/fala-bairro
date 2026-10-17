@@ -378,22 +378,24 @@ function MarketplaceContent() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#1e293b] pb-24">
       
-      {/* 1. CABEÇALHO PRINCIPAL DO MARKETPLACE COM A LOGO OFICIAL */}
+      {/* 1. CABEÇALHO PRINCIPAL COM A LOGO OFICIAL E TÍTULO 'FEIRA DO ROLO' */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-[70px] flex items-center justify-between gap-3">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-3">
           
-          {/* Logo Oficial Fala do Bairro e Identidade "Venda e Troca" */}
-          <Link to="/marketplace" className="flex items-center gap-3 group shrink-0" title="Fala do Bairro - Venda e Troca">
+          {/* Logo Oficial Fala do Bairro e Identidade "Feira do Rolo" */}
+          <Link to="/marketplace" className="flex items-center gap-3.5 group shrink-0" title="Fala do Bairro - Feira do Rolo">
             <img 
               src="/logo-fala-bairro.svg" 
               alt="Fala do Bairro" 
               className="h-9 sm:h-11 w-auto object-contain transition-transform group-hover:scale-102" 
             />
+            <div className="h-8 w-px bg-slate-200 hidden sm:block" />
             <div className="flex flex-col">
-              <span className="text-base sm:text-lg font-black text-slate-900 leading-none tracking-tight group-hover:text-[#ff6500] transition-colors">
-                Venda e Troca
+              <span className="text-lg sm:text-2xl font-black text-slate-900 leading-none tracking-tight group-hover:text-[#ff6500] transition-colors flex items-center gap-1.5 font-sans">
+                <span>Feira do</span>
+                <span className="text-[#ff6500] italic font-serif font-black underline decoration-orange-400 decoration-2 underline-offset-4">Rolo</span>
               </span>
-              <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold tracking-normal mt-0.5 hidden xs:block">
+              <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold tracking-normal mt-1 hidden xs:block">
                 Compre, venda e troque no seu bairro
               </span>
             </div>
@@ -471,54 +473,74 @@ function MarketplaceContent() {
         </div>
       </header>
 
-      {/* 2. BANNER PRINCIPAL COM IMAGEM DE BAIRRO NO FUNDO E BUSCA INTEGRADA */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-orange-50 via-amber-50/50 to-sky-50 border-b border-slate-200/80 py-8 sm:py-12">
-        {/* Imagem de Fundo Panorâmica de Bairro / Cidade acolhedora */}
+      {/* 2. BANNER PRINCIPAL FEIRA DO ROLO COM ALTURA COMPACTA (300-360px) E MONUMENTO ROLA DE BAIRRO */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-white via-orange-50/70 to-sky-50 border-b border-slate-200/80 py-6 sm:py-8 min-h-[300px] sm:min-h-[340px] flex flex-col justify-center">
+        
+        {/* Camada de Fundo Temática Panorâmica de Céu e Cidade */}
         <div 
-          className="absolute inset-0 z-0 bg-cover bg-bottom opacity-25 mix-blend-multiply pointer-events-none"
+          className="absolute inset-0 z-0 bg-cover bg-right sm:bg-center opacity-25 mix-blend-multiply pointer-events-none"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1600&q=80')`
           }}
         />
-        {/* Gradiente suave para manter a legibilidade perfeita dos textos */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none" />
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
+        {/* Gradiente degradê branco / claro sobre a área do texto para garantir leitura cristalina */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-white via-white/95 sm:via-white/85 to-transparent pointer-events-none" />
+
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10 w-full">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
             
-            {/* Lado Esquerdo: Textos do Banner */}
+            {/* Lado Esquerdo: Textos do Banner (Feira do Rolo + O que você está procurando hoje?) */}
             <div className="max-w-xl">
-              <span className="text-[11px] sm:text-xs font-black text-[#ff6500] uppercase tracking-wider block mb-1">
-                MARKETPLACE FALA DO BAIRRO
-              </span>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-[1.1]">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[10px] sm:text-xs font-black text-[#ff6500] uppercase tracking-wider bg-orange-100/90 px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-[#ff6500]" />
+                  MARKETPLACE FALA DO BAIRRO
+                </span>
+                <span className="text-xs font-black text-slate-800 tracking-tight">
+                  FEIRA DO ROLO
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
                 O que você está <br className="hidden sm:block" />
                 <span className="text-[#ff6500]">procurando</span> hoje?
               </h1>
-              <p className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-2 leading-relaxed">
-                Aqui tem de tudo: venda, troca e doação.<br className="hidden xs:block" />
-                Tudo no seu bairro, de pessoas da sua comunidade.
+              <p className="text-xs sm:text-sm md:text-base text-slate-600 font-semibold mt-1.5 leading-snug">
+                “Compre, venda, troque e encontre oportunidades perto de você!”
               </p>
             </div>
 
-            {/* Lado Direito: Carimbo/Selo Visual "Juntos fortalecemos o nosso bairro!" */}
-            <div className="hidden md:flex items-center gap-3 bg-white/85 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-orange-200/80 shadow-sm shrink-0">
-              <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-lg shadow-sm">
-                📍
+            {/* Lado Direito: Representação do Rola de Bairro, Americana/SP e Selo Comunitário */}
+            <div className="hidden md:flex flex-col items-end gap-2 shrink-0">
+              {/* Badge Rola de Bairro - Americana / SP */}
+              <div className="bg-slate-950/90 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-lg flex items-center gap-2.5 hover:scale-102 transition-transform">
+                <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                  🎙️
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-black tracking-tight text-white leading-tight">
+                    ROLA DE BAIRRO
+                  </span>
+                  <span className="text-[10px] font-bold text-orange-300 leading-tight">
+                    Americana — São Paulo
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-sm text-[#ff6500] tracking-tight leading-tight">
-                  Juntos fortalecemos
-                </span>
-                <span className="font-black text-sm text-slate-800 tracking-tight leading-tight">
-                  o nosso bairro!
+
+              {/* Selo Juntos fortalecemos o nosso bairro */}
+              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-orange-200/90 shadow-2xs">
+                <span className="text-xs">🤝</span>
+                <span className="text-xs font-extrabold text-[#ff6500] italic">
+                  Juntos fortalecemos o nosso bairro!
                 </span>
               </div>
             </div>
+
           </div>
 
-          {/* BARRA DE PESQUISA INTEGRADA COM BAIRROS E ORDENAÇÃO (EXATAMENTE COMO NA IMAGEM DE REFERÊNCIA) */}
-          <div className="bg-white/95 backdrop-blur-md p-1.5 sm:p-2 rounded-full border border-slate-200/90 shadow-md flex flex-col md:flex-row items-stretch gap-2 mb-4">
+          {/* BARRA DE PESQUISA INTEGRADA COM BAIRROS E ORDENAÇÃO */}
+          <div className="bg-white/95 backdrop-blur-md p-1.5 sm:p-2 rounded-full border border-slate-200/90 shadow-md flex flex-col md:flex-row items-stretch gap-2 mb-3 max-w-4xl">
             
             {/* Campo de Busca Principal */}
             <div className="relative flex-1">
@@ -528,7 +550,7 @@ function MarketplaceContent() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Digite o que você procura..."
-                className="w-full bg-transparent border-0 rounded-full pl-12 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none placeholder:text-slate-400"
+                className="w-full bg-transparent border-0 rounded-full pl-12 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-900 font-medium outline-none placeholder:text-slate-400"
               />
               {searchQuery && (
                 <button
@@ -549,7 +571,7 @@ function MarketplaceContent() {
                 <select
                   value={selectedNeighborhood}
                   onChange={e => setSelectedNeighborhood(e.target.value)}
-                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold pl-8 pr-6 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold pl-8 pr-6 py-2 outline-none cursor-pointer border-0 appearance-none"
                 >
                   <option value="all">📍 Todos os Bairros</option>
                   {availableNeighborhoods.map(b => (
@@ -563,7 +585,7 @@ function MarketplaceContent() {
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as any)}
-                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold px-3 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold px-3 py-2 outline-none cursor-pointer border-0 appearance-none"
                 >
                   <option value="recent">⏱️ Mais Recentes</option>
                   <option value="price_asc">💲 Menor Preço</option>
@@ -587,7 +609,7 @@ function MarketplaceContent() {
                 <button
                   key={tab.id}
                   onClick={() => setTypeFilter(tab.id as any)}
-                  className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-xs ${
+                  className={`px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-xs ${
                     active
                       ? 'bg-[#ff6500] text-white shadow-orange-500/25 scale-102'
                       : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
