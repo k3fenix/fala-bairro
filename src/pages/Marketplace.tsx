@@ -488,75 +488,18 @@ function MarketplaceContent() {
       {/* 2. BANNER PRINCIPAL FEIRA DO ROLO — COMPOSIÇÃO SOLAR COM CÉU AZUL E MONUMENTO ILUMINADO */}
       <section className="relative overflow-hidden bg-gradient-to-r from-white via-sky-50/50 to-amber-50/40 border-b border-slate-200/80 py-7 sm:py-10 min-h-[310px] sm:min-h-[350px] flex flex-col justify-center">
         
-        {/* Imagem de Fundo Oficial com 'FEIRA DO ROLO' no monumento */}
-        <div 
-          className="absolute inset-0 z-0 bg-cover bg-right md:bg-right-center pointer-events-none opacity-95"
-          style={{
-            backgroundImage: `url('/banner-feira-do-rolo.jpg?v=20261017b')`
-          }}
-        />
+        {/* Banner Oficial com Imagem Nítida e Sem Sombras */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/banner-feira-do-rolo.jpg?v=20261017b" 
+            alt="Banner Feira do Rolo - Fala do Bairro" 
+            className="w-full h-full object-cover object-center"
+          />
+        </div>
 
-        {/* Suave degradê claro na lateral esquerda para leitura perfeita do texto sem escurecer */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-white via-white/85 sm:via-white/70 to-transparent pointer-events-none" />
-
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10 w-full">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 mb-5">
-            
-            {/* Lado Esquerdo: Textos do Banner em azul-marinho e laranja com máxima legibilidade */}
-            <div className="max-w-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] sm:text-xs font-black text-[#ff6500] uppercase tracking-wider bg-orange-100/90 border border-orange-200/80 px-2.5 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
-                  <MapPin className="w-3 h-3 text-[#ff6500]" />
-                  MARKETPLACE FALA DO BAIRRO
-                </span>
-                <span className="text-xs font-black text-slate-900 tracking-tight">
-                  FEIRA DO ROLO
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#0f172a] tracking-tight leading-[1.12]">
-                O que você está <br className="hidden sm:block" />
-                <span className="text-[#ff6500]">procurando</span> hoje?
-              </h1>
-              <p className="text-xs sm:text-sm md:text-base text-slate-700 font-bold mt-1.5 leading-snug">
-                Compre, venda, troque e encontre oportunidades perto de você!
-              </p>
-            </div>
-
-            {/* Lado Direito: Monumento Rola de Bairro com Microfone e Selo "Juntos fortalecemos o nosso bairro!" */}
-            <div className="hidden md:flex flex-col items-end gap-2.5 shrink-0">
-              
-              {/* Selo Juntos fortalecemos o nosso bairro em estilo caligráfico/festivo */}
-              <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border border-orange-300 shadow-sm">
-                <span className="text-base">☀️</span>
-                <div className="flex flex-col">
-                  <span className="text-xs font-black text-[#ff6500] italic leading-tight">
-                    Juntos fortalecemos
-                  </span>
-                  <span className="text-xs font-black text-[#0f172a] italic leading-tight">
-                    o nosso bairro!
-                  </span>
-                </div>
-              </div>
-
-              {/* Badge Rola de Bairro com Microfone e Americana/SP */}
-              <div className="bg-slate-900/95 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-md flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center font-black text-sm shadow-xs">
-                  🎙️
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-black tracking-wider text-white leading-tight">
-                    ROLA DE BAIRRO
-                  </span>
-                  <span className="text-[10px] font-bold text-orange-300 leading-tight">
-                    Americana — São Paulo
-                  </span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10 w-full mt-auto">
+          {/* Espaçador flexível para deixar a arte do banner totalmente visível */}
+          <div className="h-28 sm:h-36 md:h-44" />
 
           {/* BOTÕES DE SELEÇÃO: TODOS OS BAIRROS E MAIS RECENTES (SEM A BARRA DE DIGITAÇÃO) */}
           <div className="flex flex-wrap items-center gap-2.5 mb-4">
