@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabaseMarketplace } from '../lib/supabaseMarketplace';
+import { supabase } from '../lib/supabase';
 import { 
   Package, CheckCircle, XCircle, Trash2, Eye, ShieldCheck, 
   Search, RefreshCw, ArrowLeft, LogOut, Tags, AlertOctagon 
@@ -50,11 +51,45 @@ export default function MarketplaceAdmin() {
     setLoading(true);
     try {
       if (activeTab === 'listings') {
-        const { data } = await supabaseMarketplace
-          .from('marketplace_listings')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (data) setListings(data);
+        const [resListings, resItems] = await Promise.all([
+          supabaseMarketplace.from('marketplace_listings').select('*').order('created_at', { ascending: false }),
+          supabase.from('marketplace_items').select('*').order('created_at', { ascending: false })
+        ]);
+
+        const combined: any[] = [];
+        const seenIds = new Set<string>();
+
+        if (resListings?.data) {
+          resListings.data.forEach(l => {
+            if (l?.id) {
+              seenIds.add(l.id.toString());
+              combined.push(l);
+            }
+          });
+        }
+
+        if (resItems?.data) {
+          resItems.data.forEach(item => {
+            if (item?.id && !seenIds.has(item.id.toString())) {
+              combined.push({
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                price: item.price,
+                condition: item.condition || 'Usado',
+                type: item.type || (item.accepts_trade ? 'Troca' : 'Venda'),
+                seller_name: item.seller_name || 'Vendedor',
+                whatsapp: item.seller_whatsapp || item.whatsapp,
+                neighborhood: item.neighborhood,
+                city: 'Campinas',
+                status: item.status === 'Ativo' ? 'approved' : item.status,
+                created_at: item.created_at
+              });
+            }
+          });
+        }
+
+        setListings(combined);
       } else if (activeTab === 'categories') {
         const { data } = await supabaseMarketplace
           .from('marketplace_categories')
@@ -77,13 +112,20 @@ export default function MarketplaceAdmin() {
 
   const updateListingStatus = async (id: string, newStatus: string) => {
     try {
-      const { error } = await supabaseMarketplace
-        .from('marketplace_listings')
-        .update({ status: newStatus })
-        .eq('id', id);
-      if (!error) {
-        setListings(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+      const [resListings, resItems] = await Promise.all([
+        supabaseMarketplace.from('marketplace_listings').update({ status: newStatus }).eq('id', id),
+        supabase.from('marketplace_items').update({ status: newStatus === 'approved' ? 'Ativo' : newStatus }).eq('id', id)
+      ]);
+
+      if (resListings.error && resItems.error) {
+        alert('Não foi possível atualizar o status no banco: ' + (resListings.error.message || resItems.error.message));
+        return;
       }
+
+      setListings(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+      try {
+        localStorage.removeItem('cache_marketplace_listings');
+      } catch (_) {}
     } catch (e: any) {
       alert('Erro ao atualizar status: ' + e.message);
     }
@@ -92,13 +134,30 @@ export default function MarketplaceAdmin() {
   const deleteListing = async (id: string) => {
     if (confirm('Confirma a remoção definitiva deste anúncio?')) {
       try {
-        const { error } = await supabaseMarketplace
-          .from('marketplace_listings')
-          .delete()
-          .eq('id', id);
-        if (!error) {
-          setListings(prev => prev.filter(l => l.id !== id));
+        // Exclui com verificação em ambas as tabelas (marketplace_listings e marketplace_items)
+        const [resListings, resItems] = await Promise.all([
+          supabaseMarketplace.from('marketplace_listings').delete().eq('id', id),
+          supabase.from('marketplace_items').delete().eq('id', id)
+        ]);
+
+        if (resListings.error && resItems.error) {
+          alert('Erro ao excluir do banco de dados: ' + (resListings.error.message || resItems.error.message));
+          return;
         }
+
+        // Remover imagens filhas caso existam
+        try {
+          await supabaseMarketplace.from('marketplace_listing_images').delete().eq('listing_id', id);
+        } catch (_) {}
+
+        setListings(prev => prev.filter(l => l.id !== id));
+
+        // Limpar cache local para sincronizar imediatamente com o Marketplace público
+        try {
+          localStorage.removeItem('cache_marketplace_listings');
+        } catch (_) {}
+
+        alert('Anúncio excluído com sucesso!');
       } catch (e: any) {
         alert('Erro ao excluir anúncio: ' + e.message);
       }
