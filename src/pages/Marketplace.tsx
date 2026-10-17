@@ -485,32 +485,84 @@ function MarketplaceContent() {
         </div>
       </header>
 
-      {/* 2. BANNER PRINCIPAL FEIRA DO ROLO — COMPOSIÇÃO SOLAR COM CÉU AZUL E MONUMENTO ILUMINADO */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-white via-sky-50/50 to-amber-50/40 border-b border-slate-200/80 py-7 sm:py-10 min-h-[310px] sm:min-h-[350px] flex flex-col justify-center">
+      {/* 2. BANNER PRINCIPAL FEIRA DO ROLO — DESIGN EXATO DA REFERÊNCIA */}
+      <section className="relative w-full overflow-hidden bg-slate-50 border-b border-slate-200">
         
-        {/* Banner Oficial com Imagem Nítida e Sem Sombras */}
-        <div className="absolute inset-0 z-0">
+        {/* Banner Gráfico Oficial (Arte completa: Céu, Monumento, Logo Fala do Bairro, Feira do Rolo, Slogan, Sol) */}
+        <div className="relative w-full">
           <img 
             src="/banner-feira-do-rolo.jpg?v=20261017b" 
-            alt="Banner Feira do Rolo - Fala do Bairro" 
-            className="w-full h-full object-cover object-center"
+            alt="Feira do Rolo - Fala do Bairro" 
+            className="w-full h-auto block select-none"
           />
+
+          {/* Barra de Filtros Funcionais (Todos os Itens, Vendas, Trocas, Doações) posicionada na área dos botões */}
+          <div className="hidden lg:block absolute left-[3.2%] bottom-[7.5%] z-20">
+            <div className="flex items-center gap-2.5">
+              {[
+                { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-4 h-4" /> },
+                { id: 'Venda', label: 'Vendas', icon: <Tag className="w-4 h-4" /> },
+                { id: 'Troca', label: 'Trocas', icon: <Repeat className="w-4 h-4" /> },
+                { id: 'Gratis', label: 'Doações', icon: <Package className="w-4 h-4" /> },
+              ].map(tab => {
+                const active = typeFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setTypeFilter(tab.id as any)}
+                    className={`h-[42px] px-5 rounded-2xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-sm ${
+                      active
+                        ? 'bg-[#ff6500] text-white shadow-orange-500/30 ring-2 ring-white/80'
+                        : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 shadow-xs'
+                    }`}
+                  >
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10 w-full mt-auto">
-          {/* Espaçador flexível para deixar a arte do banner totalmente visível */}
-          <div className="h-28 sm:h-36 md:h-44" />
+        {/* Barra de Controles Móvel / Responsiva (para telas menores e seleção de Bairros/Ordem) */}
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 bg-white/95 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          
+          {/* Botões de Modalidade visíveis em telas menores */}
+          <div className="flex lg:hidden items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
+            {[
+              { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-3.5 h-3.5" /> },
+              { id: 'Venda', label: 'Vendas', icon: <Tag className="w-3.5 h-3.5" /> },
+              { id: 'Troca', label: 'Trocas', icon: <Repeat className="w-3.5 h-3.5" /> },
+              { id: 'Gratis', label: 'Doações', icon: <Package className="w-3.5 h-3.5" /> },
+            ].map(tab => {
+              const active = typeFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setTypeFilter(tab.id as any)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shadow-xs ${
+                    active
+                      ? 'bg-[#ff6500] text-white shadow-orange-500/25'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
-          {/* BOTÕES DE SELEÇÃO: TODOS OS BAIRROS E MAIS RECENTES (SEM A BARRA DE DIGITAÇÃO) */}
-          <div className="flex flex-wrap items-center gap-2.5 mb-4">
-            
+          {/* Seletores de Bairros e Ordenação */}
+          <div className="flex items-center gap-2.5 ml-auto">
             {/* Botão Seletor de Bairros */}
-            <div className="relative bg-white/95 hover:bg-white text-slate-800 rounded-2xl border border-white/40 shadow-md backdrop-blur-md transition-all">
-              <MapPin className="w-4 h-4 text-[#ff6500] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="relative bg-slate-50 hover:bg-white text-slate-800 rounded-xl border border-slate-200 shadow-xs transition-all">
+              <MapPin className="w-3.5 h-3.5 text-[#ff6500] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <select
                 value={selectedNeighborhood}
                 onChange={e => setSelectedNeighborhood(e.target.value)}
-                className="bg-transparent text-slate-800 text-xs sm:text-sm font-extrabold pl-9 pr-8 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+                className="bg-transparent text-slate-800 text-xs font-bold pl-8 pr-7 py-2 outline-none cursor-pointer border-0 appearance-none"
               >
                 <option value="all">📍 Todos os Bairros</option>
                 {availableNeighborhoods.map(b => (
@@ -520,44 +572,17 @@ function MarketplaceContent() {
             </div>
 
             {/* Botão Seletor de Ordenação */}
-            <div className="relative bg-white/95 hover:bg-white text-slate-800 rounded-2xl border border-white/40 shadow-md backdrop-blur-md transition-all">
+            <div className="relative bg-slate-50 hover:bg-white text-slate-800 rounded-xl border border-slate-200 shadow-xs transition-all">
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as any)}
-                className="bg-transparent text-slate-800 text-xs sm:text-sm font-extrabold px-4 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+                className="bg-transparent text-slate-800 text-xs font-bold px-3 py-2 outline-none cursor-pointer border-0 appearance-none"
               >
                 <option value="recent">⏱️ Mais Recentes</option>
                 <option value="price_asc">💲 Menor Preço</option>
                 <option value="price_desc">💎 Maior Preço</option>
               </select>
             </div>
-
-          </div>
-
-          {/* BOTÕES DE MODALIDADE: Todos os Itens, Vendas, Trocas, Doações */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            {[
-              { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-4 h-4" /> },
-              { id: 'Venda', label: 'Vendas', icon: <Tag className="w-4 h-4" /> },
-              { id: 'Troca', label: 'Trocas', icon: <Repeat className="w-4 h-4" /> },
-              { id: 'Gratis', label: 'Doações', icon: <Package className="w-4 h-4" /> },
-            ].map(tab => {
-              const active = typeFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setTypeFilter(tab.id as any)}
-                  className={`px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-xs ${
-                    active
-                      ? 'bg-[#ff6500] text-white shadow-orange-500/25 scale-102'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
           </div>
 
         </div>
