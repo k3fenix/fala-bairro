@@ -10,7 +10,16 @@ import { compressImage } from '../lib/imageUtils';
 
 export default function Feed() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>(() => {
+    try {
+      const c = localStorage.getItem('cache_feed_posts');
+      if (c) {
+        const p = JSON.parse(c);
+        if (Array.isArray(p) && p.length > 0) return p;
+      }
+    } catch (_) {}
+    return [];
+  });
   const [activeFilter, setActiveFilter] = useState('Mural');
   const [postContent, setPostContent] = useState('');
   const [postCategory, setPostCategory] = useState('Informação');
@@ -194,6 +203,9 @@ export default function Feed() {
     const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
     if (data) {
       setPosts(data);
+      try {
+        if (data.length > 0) localStorage.setItem('cache_feed_posts', JSON.stringify(data));
+      } catch (_) {}
     }
   };
 

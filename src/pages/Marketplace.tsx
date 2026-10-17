@@ -81,10 +81,50 @@ function MarketplaceContent() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'recent' | 'price_asc' | 'price_desc'>('recent');
   
-  // Estado dos dados
-  const [categories, setCategories] = useState<any[]>([]);
-  const [listings, setListings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const DEFAULT_CATEGORIES = [
+    { id: '1', name: 'Eletrônicos', icon: '📱' },
+    { id: '2', name: 'Veículos & Peças', icon: '🚗' },
+    { id: '3', name: 'Imóveis & Aluguel', icon: '🏠' },
+    { id: '4', name: 'Móveis & Casa', icon: '🛋️' },
+    { id: '5', name: 'Roupas & Moda', icon: '👗' },
+    { id: '6', name: 'Serviços & Bicos', icon: '🛠️' },
+    { id: '7', name: 'Infantil & Bebês', icon: '🧸' },
+    { id: '8', name: 'Esportes & Lazer', icon: '⚽' },
+    { id: '9', name: 'Alimentos & Doces', icon: '🍰' },
+    { id: '10', name: 'Outros', icon: '📦' }
+  ];
+
+  // Estado dos dados com Cache Inicial Instantâneo (0ms de tela branca)
+  const [categories, setCategories] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem('cache_marketplace_categories');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return DEFAULT_CATEGORIES;
+  });
+
+  const [listings, setListings] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem('cache_marketplace_listings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [];
+  });
+
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cache_marketplace_listings');
+      return !(cached && JSON.parse(cached).length > 0);
+    } catch (_) {
+      return true;
+    }
+  });
   
   // Paginação progressiva
   const [visibleCount, setVisibleCount] = useState<number>(12);
@@ -115,8 +155,7 @@ function MarketplaceContent() {
   }, [location.search]);
 
   const loadMarketplaceData = async () => {
-    setLoading(true);
-    let loadedCategories: any[] = [];
+    let loadedCategories = categories;
     try {
       const { data: catData } = await supabase
         .from('marketplace_categories')
@@ -126,6 +165,9 @@ function MarketplaceContent() {
       if (catData && catData.length > 0) {
         loadedCategories = catData;
         setCategories(catData);
+        try {
+          localStorage.setItem('cache_marketplace_categories', JSON.stringify(catData));
+        } catch (_) {}
       }
     } catch (e) {
       console.warn("Aviso ao buscar categorias:", e);
@@ -134,39 +176,23 @@ function MarketplaceContent() {
   };
 
   const fetchListings = async (loadedCategories: any[] = categories) => {
-    setLoading(true);
     const combinedListings: any[] = [];
     const seenTitles = new Set<string>();
 
     try {
       const catMapById = new Map<string, any>();
-      loadedCategories.forEach(c => {
+      (loadedCategories.length > 0 ? loadedCategories : DEFAULT_CATEGORIES).forEach(c => {
         if (c && c.id) catMapById.set(c.id.toString(), c);
       });
 
-      // 1. Buscar em marketplace_listings (oficial)
-      let listingsData: any[] | null = null;
-      try {
-        const res = await supabase
-          .from('marketplace_listings')
-          .select('*')
-          .order('created_at', { ascending: false });
-        listingsData = res.data;
-      } catch (err) {
-        console.warn("Aviso ao buscar marketplace_listings:", err);
-      }
-      
-      // 2. Buscar em marketplace_items (legado com compatibilidade)
-      let itemsData: any[] | null = null;
-      try {
-        const res = await supabase
-          .from('marketplace_items')
-          .select('*')
-          .order('created_at', { ascending: false });
-        itemsData = res.data;
-      } catch (err) {
-        console.warn("Aviso ao buscar marketplace_items:", err);
-      }
+      // Busca paralela otimizada (Promise.all) para máxima velocidade
+      const [listingsRes, itemsRes] = await Promise.all([
+        supabase.from('marketplace_listings').select('*').order('created_at', { ascending: false }),
+        supabase.from('marketplace_items').select('*').order('created_at', { ascending: false })
+      ]);
+
+      const listingsData = listingsRes?.data || [];
+      const itemsData = itemsRes?.data || [];
 
       // 3. Buscar imagens para listings
       const imagesMap: Record<string, string> = {};
@@ -259,6 +285,11 @@ function MarketplaceContent() {
     } finally {
       setListings(combinedListings);
       setLoading(false);
+      try {
+        if (combinedListings.length > 0) {
+          localStorage.setItem('cache_marketplace_listings', JSON.stringify(combinedListings));
+        }
+      } catch (_) {}
     }
   };
 
