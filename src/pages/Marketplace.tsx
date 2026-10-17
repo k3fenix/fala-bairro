@@ -215,9 +215,15 @@ function MarketplaceContent() {
         } catch (_) {}
       }
 
+      const seenIds = new Set<string>();
+
       if (listingsData) {
         listingsData.forEach(l => {
-          if (!l) return;
+          if (!l || !l.id) return;
+          const idStr = l.id.toString();
+          if (seenIds.has(idStr)) return;
+          seenIds.add(idStr);
+
           const titleKey = normalize(l.title);
           if (titleKey) seenTitles.add(titleKey);
 
@@ -253,9 +259,15 @@ function MarketplaceContent() {
 
       if (itemsData) {
         itemsData.forEach(item => {
-          if (!item) return;
+          if (!item || !item.id) return;
+          const idStr = item.id.toString();
+          if (seenIds.has(idStr)) return;
+
           const titleKey = normalize(item.title);
-          if (titleKey && !seenTitles.has(titleKey)) {
+          if (titleKey && seenTitles.has(titleKey)) return;
+
+          seenIds.add(idStr);
+          if (titleKey) seenTitles.add(titleKey);
             const rawPrice = Number(item.price);
             const safePrice = isNaN(rawPrice) ? 0 : rawPrice;
             const isFree = safePrice === 0 || item.type === 'Doação' || item.type === 'Gratis';
@@ -660,92 +672,7 @@ function MarketplaceContent() {
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 mt-6">
         
-        {/* 4. SEÇÃO "DESTAGUES DO MARKETPLACE" (CONFORME A IMAGEM DE REFERÊNCIA) */}
-        {!searchQuery && activeCategory === 'all' && typeFilter === 'all' && selectedNeighborhood === 'all' && listings.length > 0 && (
-          <section className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Flame className="w-6 h-6 text-[#ff6500] fill-orange-500" />
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Destaques do Marketplace
-                  </h2>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 ml-8">
-                  Os melhores anúncios da sua região
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  window.scrollTo({ top: 600, behavior: 'smooth' });
-                }}
-                className="text-xs sm:text-sm font-bold text-[#ff6500] hover:text-[#e95600] flex items-center gap-1 cursor-pointer"
-              >
-                <span>Ver todos</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Grid de Destaques */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
-              {listings.slice(0, 5).map(ad => {
-                const rawPrice = Number(ad.price);
-                const isFree = isNaN(rawPrice) || rawPrice === 0 || ad.type === 'Gratis';
-                const isTrade = ad.accepts_trade || ad.type === 'Troca';
-                const formattedPrice = (!isNaN(rawPrice) && rawPrice > 0)
-                  ? `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                  : 'Grátis';
-
-                return (
-                  <div
-                    key={`featured-${ad.id}`}
-                    onClick={() => navigate(`/marketplace/anuncio/${ad.id}`)}
-                    className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group flex flex-col relative cursor-pointer shadow-xs"
-                  >
-                    <div className="aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center">
-                      {ad.image_url ? (
-                        <img
-                          src={ad.image_url}
-                          alt={ad.title || 'Destaque'}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="text-4xl opacity-20">📦</div>
-                      )}
-                      
-                      {/* Selo Condição */}
-                      <span className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
-                        {ad.condition || 'Usado'}
-                      </span>
-
-                      {/* Botão de Favorito decorativo */}
-                      <div className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/80 backdrop-blur-md text-slate-600 flex items-center justify-center shadow-xs">
-                        <Heart className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 sm:p-4 flex flex-col flex-1">
-                      <div className="text-base sm:text-lg font-black text-emerald-600 mb-1 leading-none">
-                        {isFree ? '🎁 Doação Grátis' : (isTrade && !rawPrice ? '🔄 Troca' : formattedPrice)}
-                      </div>
-                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-snug mb-2 group-hover:text-[#ff6500] transition-colors">
-                        {ad.title}
-                      </h3>
-                      <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                        <span className="truncate flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#ff6500] shrink-0" />
-                          <span className="truncate">{ad.neighborhood || 'Mário Covas'}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+        {/* CATÁLOGO GERAL DE PRODUTOS */}
 
         {/* 6. TÍTULO DO CATÁLOGO GERAL DE PRODUTOS */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">

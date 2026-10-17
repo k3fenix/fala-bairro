@@ -219,6 +219,53 @@ export default function MarketplaceAd() {
     (currentUser.name && ad.seller_name && currentUser.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase())
   );
 
+  const isAdmin = (currentUser && ((currentUser as any).role === 'admin' || (currentUser as any).is_admin === true)) || 
+    localStorage.getItem('marketplace_admin_auth') === 'true';
+
+  const handleDeleteByAdmin = async () => {
+    if (!confirm('⚠️ AÇÃO DO ADMINISTRADOR:\nDeseja realmente EXCLUIR DEFINITIVAMENTE este anúncio?')) return;
+    try {
+      try {
+        await supabase.from('marketplace_listing_images').delete().eq('listing_id', id);
+      } catch (_) {}
+      await supabase.from('marketplace_listings').delete().eq('id', id);
+      try {
+        await supabase.from('marketplace_items').delete().eq('id', id);
+      } catch (_) {}
+      localStorage.removeItem('cache_marketplace_listings');
+      alert('Anúncio excluído com sucesso pelo Administrador!');
+      navigate('/marketplace');
+    } catch (err: any) {
+      alert('Erro ao excluir anúncio: ' + err.message);
+    }
+  };
+
+  const handleBanUserByAdmin = async () => {
+    const targetUserId = ad.user_id;
+    const targetName = seller?.name || ad.seller_name || 'este usuário';
+    if (!confirm(`🚨 AÇÃO DO ADMINISTRADOR:\nDeseja realmente BLOQUEAR / BANIR PARA SEMPRE o usuário "${targetName}"?\nTodos os anúncios deste usuário serão desativados.`)) return;
+
+    try {
+      if (targetUserId) {
+        // Bloquear / Banir no perfil
+        await supabase.from('profiles').update({ is_banned: true, banned: true, status: 'banned' }).eq('id', targetUserId);
+        // Desativar todos os anúncios dele
+        await supabase.from('marketplace_listings').update({ status: 'banned' }).eq('user_id', targetUserId);
+      }
+      // Marcar este anúncio específico como rejeitado/bloqueado
+      await supabase.from('marketplace_listings').update({ status: 'rejected' }).eq('id', id);
+      try {
+        await supabase.from('marketplace_items').update({ status: 'Rejeitado' }).eq('id', id);
+      } catch (_) {}
+
+      localStorage.removeItem('cache_marketplace_listings');
+      alert(`Usuário "${targetName}" foi bloqueado e banido com sucesso!`);
+      navigate('/marketplace');
+    } catch (err: any) {
+      alert('Erro ao bloquear usuário: ' + err.message);
+    }
+  };
+
   const isSold = ad.status === 'sold' || ad.status === 'Vendido';
   const isTrade = ad.accepts_trade || ad.type === 'Troca';
   const isFree = Number(ad.price) === 0 || ad.type === 'Gratis';
@@ -272,18 +319,23 @@ export default function MarketplaceAd() {
           </div>
         )}
 
-        {/* BARRA DO PROPRIETÁRIO DO ANÚNCIO */}
-        {isOwner && (
-          <div className="mb-4 bg-orange-50 border border-orange-200 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs">
-            <span className="text-xs sm:text-sm font-extrabold text-orange-950 flex items-center gap-2">
-              ⚙️ <span>Você é o anunciante deste produto:</span>
+        {/* BARRA DE GESTÃO DO ADMINISTRADOR OU DO PROPRIETÁRIO */}
+        {(isOwner || isAdmin) && (
+          <div className={`mb-4 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs border ${
+            isAdmin ? 'bg-red-50/80 border-red-200' : 'bg-orange-50 border-orange-200'
+          }`}>
+            <span className={`text-xs sm:text-sm font-black flex items-center gap-2 ${
+              isAdmin ? 'text-red-950' : 'text-orange-950'
+            }`}>
+              <span>{isAdmin ? '🛡️ PAINEL DO ADMINISTRADOR:' : '⚙️ Você é o anunciante deste produto:'}</span>
             </span>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-wrap items-center gap-2">
               <Link
                 to={`/marketplace/editar/${ad.id}`}
-                className="bg-white border border-orange-300 text-orange-800 hover:bg-orange-100/70 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                className="bg-white border border-slate-300 hover:border-orange-500 text-slate-800 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
               >
-                <Edit3 className="w-3.5 h-3.5" /> Editar Dados
+                <Edit3 className="w-3.5 h-3.5 text-[#ff6500]" /> Editar Anúncio
               </Link>
 
               {!isSold ? (
@@ -300,6 +352,26 @@ export default function MarketplaceAd() {
                 >
                   <PlayCircle className="w-3.5 h-3.5" /> Reativar
                 </button>
+              )}
+
+              {isAdmin && (
+                <>
+                  <button 
+                    onClick={handleDeleteByAdmin}
+                    className="bg-red-600 hover:bg-red-700 text-white text-xs font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                    title="Excluir este anúncio do Marketplace"
+                  >
+                    🗑️ Excluir Anúncio
+                  </button>
+
+                  <button 
+                    onClick={handleBanUserByAdmin}
+                    className="bg-slate-900 hover:bg-black text-amber-300 text-xs font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs border border-amber-400/40"
+                    title="Banir usuário para sempre"
+                  >
+                    🚫 Banir Usuário
+                  </button>
+                </>
               )}
             </div>
           </div>

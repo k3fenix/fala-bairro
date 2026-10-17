@@ -351,6 +351,14 @@ export default function MarketplaceAdmin() {
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            <button 
+                              onClick={() => navigate(`/marketplace/editar/${l.id}`)}
+                              className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg cursor-pointer"
+                              title="Editar este anúncio"
+                            >
+                              ✏️
+                            </button>
+
                             {l.status !== 'approved' && (
                               <button 
                                 onClick={() => updateListingStatus(l.id, 'approved')}
@@ -372,9 +380,26 @@ export default function MarketplaceAdmin() {
                             <button 
                               onClick={() => deleteListing(l.id)}
                               className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg cursor-pointer"
-                              title="Remover anúncio"
+                              title="Remover anúncio definitivamente"
                             >
                               <Trash2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                const targetName = l.seller_name || 'este anunciante';
+                                if (confirm(`🚨 BANIR USUÁRIO:\nDeseja realmente BANIR e BLOQUEAR o usuário "${targetName}" para sempre?`)) {
+                                  if (l.user_id) {
+                                    await supabase.from('profiles').update({ is_banned: true, banned: true, status: 'banned' }).eq('id', l.user_id);
+                                    await supabaseMarketplace.from('marketplace_listings').update({ status: 'banned' }).eq('user_id', l.user_id);
+                                  }
+                                  await updateListingStatus(l.id, 'banned');
+                                  alert(`Usuário "${targetName}" banido com sucesso!`);
+                                }
+                              }}
+                              className="p-1.5 bg-slate-900 hover:bg-black text-amber-300 rounded-lg cursor-pointer"
+                              title="Bloquear / Banir usuário para sempre"
+                            >
+                              🚫
                             </button>
                           </div>
                         </td>
