@@ -1,18 +1,77 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, Component, type ReactNode } from 'react';
 import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
-  Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, 
-  Heart, Sparkles, X, UserCheck, Menu, Home, Tag, PlusCircle,
-  SlidersHorizontal, ChevronDown, Check, ArrowUpDown, User as UserIcon
+  Repeat, RefreshCw, LogOut, Package, 
+  Heart, X, PlusCircle, User as UserIcon, AlertCircle, ShoppingBag
 } from 'lucide-react';
-import { getAuthUserSync, type UserSession } from '../lib/authHelper';
+import { getAuthUserSync } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
-export default function Marketplace() {
+// Error Boundary de proteção para nunca deixar a tela em branco
+class MarketplaceErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; errorInfo: string }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, errorInfo: '' };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, errorInfo: error?.message || 'Erro inesperado' };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Marketplace Error Boundary capturou:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 text-center max-w-md w-full">
+            <div className="w-14 h-14 bg-orange-100 text-[#ff6500] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <ShoppingBag className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-black text-slate-800 mb-2">Marketplace do Bairro</h2>
+            <p className="text-sm text-slate-500 mb-6">
+              Ocorreu uma pequena instabilidade temporária ao carregar a página.
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false });
+                  window.location.reload();
+                }}
+                className="bg-[#ff6500] hover:bg-[#e95600] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow cursor-pointer transition-all"
+              >
+                Recarregar Página
+              </button>
+              <Link
+                to="/feed"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
+              >
+                Ir para o Início
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function MarketplaceWrapper() {
+  return (
+    <MarketplaceErrorBoundary>
+      <MarketplaceContent />
+    </MarketplaceErrorBoundary>
+  );
+}
+
+function MarketplaceContent() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user: currentUser, loading: authLoading, logout } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   const activeUser = currentUser || getAuthUserSync();
   
   // Filtros principais
