@@ -4,7 +4,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   Store, Search, Repeat, MapPin, RefreshCw, LogOut, Package, 
   Heart, Sparkles, X, UserCheck, Menu, Home, Tag, PlusCircle,
-  SlidersHorizontal, ChevronDown, Check, ArrowUpDown, User
+  SlidersHorizontal, ChevronDown, Check, ArrowUpDown, User as UserIcon
 } from 'lucide-react';
 import { getAuthUserSync, type UserSession } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
@@ -29,14 +29,11 @@ export default function Marketplace() {
   
   // Paginação progressiva
   const [visibleCount, setVisibleCount] = useState<number>(12);
-  
-  // Menu mobile drawer
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [showFiltersModal, setShowFiltersModal] = useState(false);
 
   // Normalização de busca para remover acentos e case
-  const normalize = (str: string) => {
-    return (str || '')
+  const normalize = (str: any) => {
+    if (!str || typeof str !== 'string') return '';
+    return str
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
@@ -49,11 +46,13 @@ export default function Marketplace() {
 
   // Sincronizar parâmetros de query da URL se houver
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tipo = params.get('tipo');
-    if (tipo === 'Venda' || tipo === 'Troca' || tipo === 'Gratis') {
-      setTypeFilter(tipo);
-    }
+    try {
+      const params = new URLSearchParams(location.search);
+      const tipo = params.get('tipo');
+      if (tipo === 'Venda' || tipo === 'Troca' || tipo === 'Gratis') {
+        setTypeFilter(tipo);
+      }
+    } catch (_) {}
   }, [location.search]);
 
   const loadMarketplaceData = async () => {
@@ -70,126 +69,145 @@ export default function Marketplace() {
         setCategories(catData);
       }
     } catch (e) {
-      console.warn("Erro ao buscar categorias:", e);
+      console.warn("Aviso ao buscar categorias:", e);
     }
     await fetchListings(loadedCategories);
   };
 
   const fetchListings = async (loadedCategories: any[] = categories) => {
     setLoading(true);
-
-    const catMapById = new Map<string, any>();
-    loadedCategories.forEach(c => {
-      catMapById.set(c.id.toString(), c);
-    });
-
-    // 1. Buscar em marketplace_listings (oficial)
-    const { data: listingsData } = await supabase
-      .from('marketplace_listings')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    // 2. Buscar em marketplace_items (legado com compatibilidade)
-    const { data: itemsData } = await supabase
-      .from('marketplace_items')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    // 3. Buscar imagens para listings
-    const imagesMap: Record<string, string> = {};
-    if (listingsData && listingsData.length > 0) {
-      const listingIds = listingsData.map(l => l.id);
-      try {
-        const { data: imgs } = await supabase
-          .from('marketplace_listing_images')
-          .select('*')
-          .in('listing_id', listingIds);
-        if (imgs) {
-          imgs.forEach(img => {
-            if (!imagesMap[img.listing_id] || img.is_primary) {
-              imagesMap[img.listing_id] = img.image_url;
-            }
-          });
-        }
-      } catch (e) {}
-    }
-
     const combinedListings: any[] = [];
     const seenTitles = new Set<string>();
 
-    if (listingsData) {
-      listingsData.forEach(l => {
-        const titleKey = normalize(l.title);
-        if (titleKey) seenTitles.add(titleKey);
-
-        const cat = l.category_id ? catMapById.get(l.category_id.toString()) : null;
-        const catName = cat?.name || l.category || 'Outros';
-
-        const rawPrice = Number(l.price);
-        const isFree = rawPrice === 0 || l.type === 'Gratis';
-        const isTrade = l.accepts_trade === true || l.type === 'Troca';
-        const inferredType = isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda');
-
-        combinedListings.push({
-          id: l.id,
-          title: l.title,
-          description: l.description,
-          price: rawPrice,
-          condition: l.condition || 'Usado',
-          category_id: l.category_id ? l.category_id.toString() : null,
-          category: catName,
-          accepts_trade: isTrade,
-          type: inferredType,
-          neighborhood: l.neighborhood || 'Mário Covas',
-          city: l.city || 'Campinas',
-          whatsapp: l.whatsapp,
-          seller_name: l.seller_name || 'Morador do Bairro',
-          image_url: imagesMap[l.id] || l.image_url || l.image || '',
-          status: l.status === 'sold' ? 'Vendido' : (l.status === 'paused' ? 'Pausado' : (l.status || 'Ativo')),
-          created_at: l.created_at
-        });
+    try {
+      const catMapById = new Map<string, any>();
+      loadedCategories.forEach(c => {
+        if (c && c.id) catMapById.set(c.id.toString(), c);
       });
-    }
 
-    if (itemsData) {
-      itemsData.forEach(item => {
-        const titleKey = normalize(item.title);
-        if (titleKey && !seenTitles.has(titleKey)) {
-          const rawPrice = Number(item.price);
-          const isFree = rawPrice === 0 || item.type === 'Doação' || item.type === 'Gratis';
-          const isTrade = item.type === 'Troca';
+      // 1. Buscar em marketplace_listings (oficial)
+      let listingsData: any[] | null = null;
+      try {
+        const res = await supabase
+          .from('marketplace_listings')
+          .select('*')
+          .order('created_at', { ascending: false });
+        listingsData = res.data;
+      } catch (err) {
+        console.warn("Aviso ao buscar marketplace_listings:", err);
+      }
+      
+      // 2. Buscar em marketplace_items (legado com compatibilidade)
+      let itemsData: any[] | null = null;
+      try {
+        const res = await supabase
+          .from('marketplace_items')
+          .select('*')
+          .order('created_at', { ascending: false });
+        itemsData = res.data;
+      } catch (err) {
+        console.warn("Aviso ao buscar marketplace_items:", err);
+      }
+
+      // 3. Buscar imagens para listings
+      const imagesMap: Record<string, string> = {};
+      if (listingsData && listingsData.length > 0) {
+        const listingIds = listingsData.map(l => l.id).filter(Boolean);
+        try {
+          const { data: imgs } = await supabase
+            .from('marketplace_listing_images')
+            .select('*')
+            .in('listing_id', listingIds);
+          if (imgs) {
+            imgs.forEach(img => {
+              if (!imagesMap[img.listing_id] || img.is_primary) {
+                imagesMap[img.listing_id] = img.image_url;
+              }
+            });
+          }
+        } catch (_) {}
+      }
+
+      if (listingsData) {
+        listingsData.forEach(l => {
+          if (!l) return;
+          const titleKey = normalize(l.title);
+          if (titleKey) seenTitles.add(titleKey);
+
+          const cat = l.category_id ? catMapById.get(l.category_id.toString()) : null;
+          const catName = cat?.name || l.category || 'Outros';
+
+          const rawPrice = Number(l.price);
+          const safePrice = isNaN(rawPrice) ? 0 : rawPrice;
+          const isFree = safePrice === 0 || l.type === 'Gratis';
+          const isTrade = l.accepts_trade === true || l.type === 'Troca';
+          const inferredType = isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda');
 
           combinedListings.push({
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            price: rawPrice,
-            condition: item.condition || 'Usado',
-            category_id: null,
-            category: item.category || 'Outros',
+            id: l.id,
+            title: l.title || 'Produto sem título',
+            description: l.description || '',
+            price: safePrice,
+            condition: l.condition || 'Usado',
+            category_id: l.category_id ? l.category_id.toString() : null,
+            category: catName,
             accepts_trade: isTrade,
-            type: isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda'),
-            neighborhood: item.neighborhood || 'Mário Covas',
-            city: 'Campinas',
-            whatsapp: item.seller_whatsapp,
-            seller_name: item.seller_name || 'Morador do Bairro',
-            image_url: item.image || '',
-            status: item.status || 'Ativo',
-            created_at: item.created_at
+            type: inferredType,
+            neighborhood: l.neighborhood || 'Mário Covas',
+            city: l.city || 'Campinas',
+            whatsapp: l.whatsapp || '',
+            seller_name: l.seller_name || 'Morador do Bairro',
+            image_url: imagesMap[l.id] || l.image_url || l.image || '',
+            status: l.status === 'sold' ? 'Vendido' : (l.status === 'paused' ? 'Pausado' : (l.status || 'Ativo')),
+            created_at: l.created_at || new Date().toISOString()
           });
-        }
-      });
-    }
+        });
+      }
 
-    setListings(combinedListings);
-    setLoading(false);
+      if (itemsData) {
+        itemsData.forEach(item => {
+          if (!item) return;
+          const titleKey = normalize(item.title);
+          if (titleKey && !seenTitles.has(titleKey)) {
+            const rawPrice = Number(item.price);
+            const safePrice = isNaN(rawPrice) ? 0 : rawPrice;
+            const isFree = safePrice === 0 || item.type === 'Doação' || item.type === 'Gratis';
+            const isTrade = item.type === 'Troca';
+
+            combinedListings.push({
+              id: item.id,
+              title: item.title || 'Produto sem título',
+              description: item.description || '',
+              price: safePrice,
+              condition: item.condition || 'Usado',
+              category_id: null,
+              category: item.category || 'Outros',
+              accepts_trade: isTrade,
+              type: isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda'),
+              neighborhood: item.neighborhood || 'Mário Covas',
+              city: 'Campinas',
+              whatsapp: item.seller_whatsapp || '',
+              seller_name: item.seller_name || 'Morador do Bairro',
+              image_url: item.image || '',
+              status: item.status || 'Ativo',
+              created_at: item.created_at || new Date().toISOString()
+            });
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Erro geral em fetchListings:", e);
+    } finally {
+      setListings(combinedListings);
+      setLoading(false);
+    }
   };
 
   // Extrair lista de bairros disponíveis nos anúncios
   const availableNeighborhoods = useMemo(() => {
     const set = new Set<string>();
     listings.forEach(l => {
-      if (l.neighborhood && l.neighborhood.trim()) {
+      if (l && l.neighborhood && typeof l.neighborhood === 'string' && l.neighborhood.trim()) {
         set.add(l.neighborhood.trim());
       }
     });
@@ -198,54 +216,68 @@ export default function Marketplace() {
 
   // Filtros combinados e ordenação
   const filteredListings = useMemo(() => {
-    let result = listings.filter(item => {
-      // Ocultar produtos pausados para o público em geral
-      if (item.status === 'Pausado' || item.status === 'paused') return false;
+    try {
+      let result = listings.filter(item => {
+        if (!item) return false;
 
-      // Filtro de Texto (Título e Descrição)
-      if (searchQuery.trim()) {
-        const queryNorm = normalize(searchQuery);
-        const titleNorm = normalize(item.title);
-        const descNorm = normalize(item.description || '');
-        if (!titleNorm.includes(queryNorm) && !descNorm.includes(queryNorm)) {
-          return false;
+        // Ocultar produtos pausados para o público em geral
+        if (item.status === 'Pausado' || item.status === 'paused') return false;
+
+        // Filtro de Texto (Título e Descrição)
+        if (searchQuery.trim()) {
+          const queryNorm = normalize(searchQuery);
+          const titleNorm = normalize(item.title);
+          const descNorm = normalize(item.description || '');
+          if (!titleNorm.includes(queryNorm) && !descNorm.includes(queryNorm)) {
+            return false;
+          }
         }
+
+        // Filtro por Modalidade (Venda, Troca, Doação)
+        if (typeFilter !== 'all') {
+          if (typeFilter === 'Troca' && !item.accepts_trade && item.type !== 'Troca') return false;
+          if (typeFilter === 'Gratis' && item.type !== 'Gratis' && item.price !== 0) return false;
+          if (typeFilter === 'Venda' && (item.price === 0 || item.type === 'Gratis')) return false;
+        }
+
+        // Filtro por Categoria
+        if (activeCategory !== 'all') {
+          const matchesCatId = item.category_id && item.category_id.toString() === activeCategory;
+          const selectedCatObj = categories.find(c => c && c.id && c.id.toString() === activeCategory);
+          const matchesCatName = selectedCatObj && normalize(item.category) === normalize(selectedCatObj.name);
+          if (!matchesCatId && !matchesCatName) return false;
+        }
+
+        // Filtro por Bairro
+        if (selectedNeighborhood !== 'all') {
+          if (normalize(item.neighborhood) !== normalize(selectedNeighborhood)) return false;
+        }
+
+        return true;
+      });
+
+      // Cópia para ordenação sem mutação
+      const sorted = [...result];
+
+      // Ordenação segura
+      if (sortBy === 'price_asc') {
+        sorted.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+      } else if (sortBy === 'price_desc') {
+        sorted.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+      } else {
+        // Mais recentes primeiro
+        sorted.sort((a, b) => {
+          const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+        });
       }
 
-      // Filtro por Modalidade (Venda, Troca, Doação)
-      if (typeFilter !== 'all') {
-        if (typeFilter === 'Troca' && !item.accepts_trade && item.type !== 'Troca') return false;
-        if (typeFilter === 'Gratis' && item.type !== 'Gratis' && item.price !== 0) return false;
-        if (typeFilter === 'Venda' && (item.price === 0 || item.type === 'Gratis')) return false;
-      }
-
-      // Filtro por Categoria
-      if (activeCategory !== 'all') {
-        const matchesCatId = item.category_id && item.category_id.toString() === activeCategory;
-        const selectedCatObj = categories.find(c => c.id.toString() === activeCategory);
-        const matchesCatName = selectedCatObj && normalize(item.category) === normalize(selectedCatObj.name);
-        if (!matchesCatId && !matchesCatName) return false;
-      }
-
-      // Filtro por Bairro
-      if (selectedNeighborhood !== 'all') {
-        if (normalize(item.neighborhood) !== normalize(selectedNeighborhood)) return false;
-      }
-
-      return true;
-    });
-
-    // Ordenação
-    if (sortBy === 'price_asc') {
-      result.sort((a, b) => Number(a.price) - Number(b.price));
-    } else if (sortBy === 'price_desc') {
-      result.sort((a, b) => Number(b.price) - Number(a.price));
-    } else {
-      // Mais recentes primeiro
-      result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return sorted;
+    } catch (err) {
+      console.error("Erro ao filtrar anúncios:", err);
+      return listings;
     }
-
-    return result;
   }, [listings, searchQuery, typeFilter, activeCategory, selectedNeighborhood, sortBy, categories]);
 
   const displayedListings = filteredListings.slice(0, visibleCount);
@@ -301,7 +333,7 @@ export default function Marketplace() {
             >
               <PlusCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Anunciar</span>
-            </button>
+            </Link>
 
             {activeUser ? (
               <div className="flex items-center gap-1.5">
@@ -323,14 +355,18 @@ export default function Marketplace() {
 
                 <Link
                   to="/marketplace/perfil"
-                  className="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 shadow-xs cursor-pointer ml-1"
+                  className="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 shadow-xs cursor-pointer ml-1 flex items-center justify-center bg-slate-100"
                   title="Minha Conta"
                 >
-                  <img
-                    src={activeUser.avatar || `https://i.pravatar.cc/150?u=${activeUser.id}`}
-                    alt={activeUser.name}
-                    className="w-full h-full object-cover"
-                  />
+                  {activeUser.avatar ? (
+                    <img
+                      src={activeUser.avatar}
+                      alt={activeUser.name || 'Usuário'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <UserIcon className="w-4 h-4 text-slate-600" />
+                  )}
                 </Link>
               </div>
             ) : (
@@ -497,9 +533,12 @@ export default function Marketplace() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
               {displayedListings.map(ad => {
                 const rawPrice = Number(ad.price);
-                const isFree = rawPrice === 0 || ad.type === 'Gratis';
+                const isFree = isNaN(rawPrice) || rawPrice === 0 || ad.type === 'Gratis';
                 const isTrade = ad.accepts_trade || ad.type === 'Troca';
                 const isSold = ad.status === 'Vendido' || ad.status === 'sold';
+                const formattedPrice = (!isNaN(rawPrice) && rawPrice > 0)
+                  ? `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                  : 'Grátis';
 
                 return (
                   <div
@@ -512,7 +551,7 @@ export default function Marketplace() {
                       {ad.image_url ? (
                         <img
                           src={ad.image_url}
-                          alt={ad.title}
+                          alt={ad.title || 'Anúncio'}
                           loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
@@ -544,7 +583,7 @@ export default function Marketplace() {
                     {/* Informações do Produto */}
                     <div className="p-3.5 flex flex-col flex-1">
                       <div className="text-base sm:text-lg font-black text-emerald-600 mb-1 leading-none">
-                        {isFree ? '🎁 Doação Grátis' : `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                        {isFree ? '🎁 Doação Grátis' : formattedPrice}
                       </div>
 
                       <h3 className="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2 leading-tight mb-2">

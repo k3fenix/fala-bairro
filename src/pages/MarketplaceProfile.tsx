@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
-  User, MapPin, Phone, Mail, Package, Heart, LogOut, 
+  MapPin, Phone, Mail, Package, Heart, LogOut, 
   ArrowLeft, CheckCircle, Camera, Shield, Bell, Settings,
   AlertTriangle, ExternalLink, ChevronRight
 } from 'lucide-react';

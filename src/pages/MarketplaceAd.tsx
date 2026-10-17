@@ -4,7 +4,7 @@ import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, AlertTriangle, 
   MapPin, Repeat, CheckCircle, PlayCircle, Edit3, ShieldAlert,
-  Clock, Sparkles, X, ChevronRight, User, Eye
+  Clock, Sparkles, X, ChevronRight, Eye
 } from 'lucide-react';
 import { getAuthUser, type UserSession } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
