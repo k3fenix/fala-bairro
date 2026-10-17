@@ -305,25 +305,7 @@ export default function Marketplace() {
             </div>
           </div>
 
-          {/* Barra de Pesquisa */}
-          <div className="flex-1 max-w-md relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Buscar produtos, móveis, ferramentas..."
-              className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-transparent focus:border-[#ff6500] rounded-xl pl-10 pr-9 py-2 text-xs sm:text-sm font-medium outline-none transition-all"
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+
 
           {/* Ações e Perfil */}
           <div className="flex items-center gap-2">
