@@ -302,10 +302,10 @@ export default function Landing() {
               </div>
             );
           })()}
-          <div className="header-search">
-            <span className="header-search-icon">🔍</span>
-            <input type="text" placeholder="Buscar notícias, avisos ou empresas..." aria-label="Buscar no bairro" />
-          </div>
+
+
+
+
 
           <div className="header-actions">
 
