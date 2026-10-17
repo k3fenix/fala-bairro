@@ -492,7 +492,7 @@ function MarketplaceContent() {
         <div 
           className="absolute inset-0 z-0 bg-cover bg-right md:bg-right-center pointer-events-none opacity-95"
           style={{
-            backgroundImage: `url('/banner-feira-do-rolo.jpg')`
+            backgroundImage: `url('/banner-feira-do-rolo.jpg?v=20261017b')`
           }}
         />
 
