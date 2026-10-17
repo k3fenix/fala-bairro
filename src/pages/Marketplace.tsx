@@ -513,14 +513,14 @@ function MarketplaceContent() {
 
             {/* Lado Direito: Representação do Rola de Bairro, Americana/SP e Selo Comunitário */}
             <div className="hidden md:flex flex-col items-end gap-2 shrink-0">
-              {/* Badge Rola de Bairro - Americana / SP */}
+              {/* Badge Feira de Rolo - Americana / SP */}
               <div className="bg-slate-950/90 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-lg flex items-center gap-2.5 hover:scale-102 transition-transform">
                 <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xs shadow-xs">
                   🎙️
                 </div>
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-black tracking-tight text-white leading-tight">
-                    ROLA DE BAIRRO
+                    FEIRA DE ROLO
                   </span>
                   <span className="text-[10px] font-bold text-orange-300 leading-tight">
                     Americana — São Paulo
