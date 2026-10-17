@@ -305,148 +305,218 @@ export default function MarketplaceAd() {
           </div>
         )}
 
-        <div className="bg-white rounded-3xl shadow-xs border border-slate-200 overflow-hidden flex flex-col md:flex-row">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden flex flex-col lg:flex-row">
           
-          {/* GALERIA ESQUERDA */}
-          <div className="w-full md:w-1/2 p-4 bg-slate-50/60 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-200">
-            <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-200 flex items-center justify-center">
+          {/* ÁREA DAS FOTOS (ESTILO FACEBOOK MARKETPLACE PREMIUM) */}
+          <div className="w-full lg:w-[58%] p-4 sm:p-6 bg-slate-900 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200">
+            {/* Foto Principal com Proporção Otimizada */}
+            <div className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-black/40 flex items-center justify-center shadow-inner group">
               {currentImage ? (
                 <img 
                   src={currentImage} 
                   alt={ad.title} 
-                  className="w-full h-full object-contain bg-white" 
+                  className="w-full h-full object-contain select-none transition-transform duration-300" 
                 />
               ) : (
                 <div className="text-[80px] opacity-20">📦</div>
               )}
 
-              {/* Badges de tipo */}
-              <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-                <span className="px-3 py-1 bg-black/75 backdrop-blur rounded-lg font-bold text-xs uppercase text-white shadow">
-                  ✨ {ad.condition || 'Usado'}
+              {/* Badges Flutuantes Discretas */}
+              <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+                <span className="px-3 py-1 bg-black/80 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-white shadow-sm border border-white/10">
+                  {ad.condition || 'Usado'}
                 </span>
                 {isTrade && (
-                  <span className="px-3 py-1 bg-purple-600 backdrop-blur rounded-lg font-extrabold text-xs uppercase text-white shadow flex items-center gap-1">
+                  <span className="px-3 py-1 bg-purple-600/90 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-white shadow-sm flex items-center gap-1">
                     <Repeat className="w-3 h-3" /> Aceita Troca
                   </span>
                 )}
+                {isSold && (
+                  <span className="px-3 py-1 bg-red-600/90 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-white shadow-sm">
+                    Vendido
+                  </span>
+                )}
               </div>
+
+              {/* Contador de Fotos */}
+              {galleryImages.length > 1 && (
+                <div className="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-full border border-white/15">
+                  {selectedImageIndex + 1} / {galleryImages.length}
+                </div>
+              )}
             </div>
 
-            {/* Miniaturas de foto */}
+            {/* Miniaturas de foto alinhadas em carrossel */}
             {galleryImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pt-3">
+              <div className="flex items-center gap-2.5 overflow-x-auto pt-4 pb-1 no-scrollbar">
                 {galleryImages.map((img, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`w-16 h-16 shrink-0 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selectedImageIndex === idx ? 'border-[#ff6500] scale-105 shadow-sm' : 'border-slate-200 opacity-60 hover:opacity-100'}`}
+                    className={`relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                      selectedImageIndex === idx 
+                        ? 'border-[#ff6500] ring-2 ring-orange-500/30 scale-102 shadow-md' 
+                        : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/60'
+                    }`}
                   >
-                    <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                    <img src={img} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* DETALHES DIREITA */}
-          <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col">
-            <div className="mb-4">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                {ad.category || 'Classificados do Bairro'}
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-                {ad.title}
-              </h1>
-            </div>
-
-            {/* PREÇO OU MODALIDADE */}
-            <div className="mb-6">
-              {isTrade && isFree ? (
-                <div className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 border border-purple-200 px-4 py-2 rounded-xl font-black text-lg">
-                  <Repeat className="w-5 h-5 text-purple-600" />
-                  <span>Disponível para Troca</span>
-                </div>
-              ) : isFree ? (
-                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl font-black text-lg">
-                  🎁 Doação Grátis
-                </div>
-              ) : (
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-emerald-600">
-                    R$ {Number(ad.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </span>
-                  {isTrade && (
-                    <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
-                      Aceita Troca
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* LOCALIZAÇÃO E DETALHES */}
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
-                <MapPin className="w-4 h-4 text-[#ff6500]" />
-                <span>📍 {ad.neighborhood || 'Mário Covas'}, {ad.city || 'Campinas'}</span>
-              </div>
+          {/* ÁREA DE INFORMAÇÕES (HIERARQUIA VISUAL EM 9 PONTOS) */}
+          <div className="w-full lg:w-[42%] p-6 sm:p-8 flex flex-col justify-between bg-white">
+            <div className="space-y-6">
               
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                <h3 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wider">
-                  Descrição do Produto
-                </h3>
-                <p className="text-slate-700 whitespace-pre-wrap text-sm leading-relaxed">
-                  {ad.description || 'Sem descrição cadastrada pelo anunciante.'}
-                </p>
+              {/* 1. CATEGORIA OU IDENTIFICAÇÃO DO ANÚNCIO */}
+              <div>
+                <span className="inline-block text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-[#ff6500] bg-orange-50 px-2.5 py-1 rounded-md mb-2">
+                  {ad.category || 'Classificados do Bairro'}
+                </span>
+                
+                {/* 2. TÍTULO DO PRODUTO (28px a 34px desktop, hierarquia limpa) */}
+                <h1 className="text-2xl sm:text-[28px] lg:text-[32px] font-black text-slate-900 leading-tight tracking-tight">
+                  {ad.title}
+                </h1>
               </div>
-            </div>
 
-            {/* VENDEDOR E NEGOCIAÇÃO */}
-            <div className="mt-auto pt-6 border-t border-slate-200">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  {seller?.avatar_url || seller?.avatar ? (
-                    <img src={seller.avatar_url || seller.avatar} alt="Seller" className="w-11 h-11 rounded-full object-cover border border-slate-200 shadow-xs" />
-                  ) : (
-                    <div className="w-11 h-11 rounded-full bg-orange-100 text-[#ff6500] font-black flex items-center justify-center text-base">
-                      👤
+              {/* 3. PREÇO EM DESTAQUE (30px a 36px, semibold/bold) */}
+              {/* 4. INFORMAÇÃO DE VENDA OU TROCA */}
+              <div className="py-3 border-y border-slate-100">
+                {isTrade && isFree ? (
+                  <div className="inline-flex items-center gap-2 text-purple-700 bg-purple-50 border border-purple-200/80 px-4 py-2 rounded-2xl font-black text-xl sm:text-2xl">
+                    <Repeat className="w-6 h-6 text-purple-600" />
+                    <span>Disponível para Troca</span>
+                  </div>
+                ) : isFree ? (
+                  <div className="inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-4 py-2 rounded-2xl font-black text-2xl sm:text-3xl">
+                    🎁 Doação Grátis
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-baseline gap-3">
+                    <span className="text-3xl sm:text-[34px] lg:text-[36px] font-black text-emerald-600 tracking-tight">
+                      R$ {Number(ad.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                    {isTrade && (
+                      <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 flex items-center gap-1">
+                        <Repeat className="w-3.5 h-3.5" /> Aceita Troca
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 5. LOCALIZAÇÃO DO PRODUTO */}
+              <div className="flex items-center gap-2 text-slate-600 font-semibold text-sm sm:text-[15px]">
+                <MapPin className="w-4 h-4 text-[#ff6500] shrink-0" />
+                <span>Publicado em {ad.neighborhood || 'Mário Covas'}, {ad.city || 'Campinas'}</span>
+              </div>
+
+              {/* 6. DESCRIÇÃO DO ANÚNCIO (15px a 17px, leitura confortável) */}
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">
+                  Descrição
+                </h3>
+                <div className="bg-slate-50/80 p-4 sm:p-5 rounded-2xl border border-slate-100 text-slate-700 text-[15px] sm:text-[16px] leading-relaxed whitespace-pre-wrap">
+                  {ad.description || 'O anunciante não incluiu uma descrição detalhada para este item.'}
+                </div>
+              </div>
+
+              {/* 7. CARACTERÍSTICAS E ESPECIFICAÇÕES (14px a 16px) */}
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2.5">
+                  Detalhes do Produto
+                </h3>
+                <div className="grid grid-cols-2 gap-2.5 text-xs sm:text-[14px]">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <span className="text-[11px] text-slate-400 block font-bold uppercase">Condição</span>
+                    <strong className="text-slate-800 font-extrabold">{ad.condition || 'Usado'}</strong>
+                  </div>
+
+                  {ad.brand && (
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-[11px] text-slate-400 block font-bold uppercase">Marca</span>
+                      <strong className="text-slate-800 font-extrabold truncate block">{ad.brand}</strong>
                     </div>
                   )}
-                  <div>
-                    <p className="font-extrabold text-slate-900 text-sm">{seller?.name || seller?.full_name || ad.seller_name || 'Morador do Bairro'}</p>
-                    <p className="text-xs text-slate-400">Anunciante verificado • {ad.neighborhood || 'Bairro Local'}</p>
+
+                  {ad.model && (
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-[11px] text-slate-400 block font-bold uppercase">Modelo</span>
+                      <strong className="text-slate-800 font-extrabold truncate block">{ad.model}</strong>
+                    </div>
+                  )}
+
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <span className="text-[11px] text-slate-400 block font-bold uppercase">Modalidade</span>
+                    <strong className="text-slate-800 font-extrabold">{isTrade ? 'Troca / Venda' : (isFree ? 'Doação' : 'Venda')}</strong>
                   </div>
                 </div>
-
-                {/* Botão de Denúncia */}
-                <button
-                  onClick={() => setShowReportModal(true)}
-                  className="text-slate-400 hover:text-red-500 transition-colors p-2 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                  title="Denunciar este anúncio"
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                  <span className="hidden sm:inline">Denunciar</span>
-                </button>
               </div>
 
+              {/* 8. INFORMAÇÕES DO ANUNCIANTE (legíveis e discretas) */}
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {seller?.avatar_url || seller?.avatar ? (
+                      <img 
+                        src={seller.avatar_url || seller.avatar} 
+                        alt="Anunciante" 
+                        className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 shadow-xs" 
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-orange-100 text-[#ff6500] font-black flex items-center justify-center text-lg">
+                        👤
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-extrabold text-slate-900 text-[15px] sm:text-base leading-snug">
+                        {seller?.name || seller?.full_name || ad.seller_name || 'Morador do Bairro'}
+                      </p>
+                      <p className="text-xs text-slate-400 font-medium">
+                        Morador verificado • {ad.neighborhood || 'Bairro Local'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowReportModal(true)}
+                    className="text-slate-400 hover:text-red-500 transition-colors p-2 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    title="Denunciar este anúncio"
+                  >
+                    <ShieldAlert className="w-4 h-4" />
+                    <span className="hidden sm:inline">Denunciar</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* 9. BOTÃO PRINCIPAL DE CONTATO */}
+            <div className="pt-6 mt-6 border-t border-slate-100">
               {isSold ? (
-                <div className="w-full bg-slate-100 border border-slate-200 text-slate-500 font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm shadow-inner">
+                <div className="w-full bg-slate-100 border border-slate-200 text-slate-500 font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm sm:text-base shadow-inner">
                   🔒 Este anúncio foi finalizado (Produto Vendido)
                 </div>
               ) : ad.whatsapp ? (
                 <button 
+                  type="button"
                   onClick={openWhatsApp} 
-                  className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md shadow-green-500/20 text-base cursor-pointer"
+                  className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-green-500/20 text-base sm:text-lg cursor-pointer hover:scale-[1.01]"
                 >
-                  <MessageCircle className="w-5 h-5" /> Conversar no WhatsApp
+                  <MessageCircle className="w-6 h-6" /> Conversar no WhatsApp
                 </button>
               ) : (
-                <div className="text-center text-xs text-slate-400 py-2">
+                <div className="text-center text-xs text-slate-400 py-3 bg-slate-50 rounded-xl">
                   Nenhum telefone de contato informado pelo anunciante.
                 </div>
               )}
             </div>
+
           </div>
         </div>
       </main>
