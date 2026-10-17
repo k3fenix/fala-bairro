@@ -487,11 +487,11 @@ function MarketplaceContent() {
       {/* 2. BANNER PRINCIPAL FEIRA DO ROLO — DESIGN EXATO DA REFERÊNCIA */}
       <section className="relative w-full overflow-hidden bg-slate-50 border-b border-slate-200">
         
-        {/* Fundo Paisagem Oficial Limpo (com altura compacta de 240px a 300px no desktop) */}
+        {/* Fundo Paisagem Oficial - Enquadrado para destacar o monumento 'FEIRA DO ROLO' e o microfone */}
         <div 
-          className="relative w-full h-[240px] sm:h-[270px] md:h-[300px] bg-cover bg-[center_35%] flex flex-col justify-between"
+          className="relative w-full h-[320px] sm:h-[350px] md:h-[380px] bg-cover bg-[right_center] md:bg-[right_bottom] flex flex-col justify-between"
           style={{
-            backgroundImage: "url('/banner-feira-do-rolo.jpg?v=20261017d')"
+            backgroundImage: "url('/banner-feira-do-rolo.jpg?v=20261017e')"
           }}
         >
           {/* Conteúdo HTML Real (Títulos, Subtítulos e Botões sem textos fixos na imagem) */}
