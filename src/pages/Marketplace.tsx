@@ -487,16 +487,16 @@ function MarketplaceContent() {
       {/* 2. BANNER PRINCIPAL FEIRA DO ROLO — DESIGN EXATO DA REFERÊNCIA */}
       <section className="relative w-full overflow-hidden bg-slate-50 border-b border-slate-200">
         
-        {/* Banner Gráfico Oficial (Arte completa: Céu, Monumento, Logo Fala do Bairro, Feira do Rolo, Slogan, Sol) */}
-        <div className="relative w-full">
+        {/* Banner Gráfico Oficial Mais Fino e Elegante (com altura reduzida para não ocupar muito espaço vertical) */}
+        <div className="relative w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[340px] overflow-hidden">
           <img 
-            src="/banner-feira-do-rolo.jpg?v=20261017b" 
+            src="/banner-feira-do-rolo.jpg?v=20261017c" 
             alt="Feira do Rolo - Fala do Bairro" 
-            className="w-full h-auto block select-none"
+            className="w-full h-full object-cover object-[center_28%] block select-none"
           />
 
-          {/* Barra de Filtros Funcionais (Todos os Itens, Vendas, Trocas, Doações) cobrindo e dando vida aos botões do banner */}
-          <div className="absolute left-[2.5%] sm:left-[3.5%] bottom-[5%] sm:bottom-[7.2%] z-20">
+          {/* Barra de Filtros Funcionais (Todos os Itens, Vendas, Trocas, Doações) */}
+          <div className="absolute left-[2.5%] sm:left-[3.5%] bottom-3 sm:bottom-4 z-20">
             <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar">
               {[
                 { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
@@ -509,7 +509,7 @@ function MarketplaceContent() {
                   <button
                     key={tab.id}
                     onClick={() => setTypeFilter(tab.id as any)}
-                    className={`h-[34px] sm:h-[42px] px-3.5 sm:px-5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2 shadow-sm ${
+                    className={`h-[34px] sm:h-[38px] px-3.5 sm:px-4.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2 shadow-sm ${
                       active
                         ? 'bg-[#ff6500] text-white shadow-orange-500/30 ring-2 ring-white/80'
                         : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 shadow-xs'
