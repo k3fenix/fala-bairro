@@ -517,6 +517,63 @@ function MarketplaceContent() {
             </div>
           </div>
 
+          {/* BARRA DE PESQUISA INTEGRADA COM BAIRROS E ORDENAÇÃO (EXATAMENTE COMO NA IMAGEM DE REFERÊNCIA) */}
+          <div className="bg-white/95 backdrop-blur-md p-1.5 sm:p-2 rounded-full border border-slate-200/90 shadow-md flex flex-col md:flex-row items-stretch gap-2 mb-4">
+            
+            {/* Campo de Busca Principal */}
+            <div className="relative flex-1">
+              <Search className="w-5 h-5 text-slate-400 absolute left-4.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Digite o que você procura..."
+                className="w-full bg-transparent border-0 rounded-full pl-12 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  title="Limpar busca"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Filtro por Bairro e Ordenação */}
+            <div className="flex items-center gap-2 px-2 pb-1 md:pb-0">
+              <div className="relative flex-1 sm:w-48 border-t md:border-t-0 md:border-l border-slate-200 pl-2">
+                <MapPin className="w-4 h-4 text-[#ff6500] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <select
+                  value={selectedNeighborhood}
+                  onChange={e => setSelectedNeighborhood(e.target.value)}
+                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold pl-8 pr-6 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+                >
+                  <option value="all">📍 Todos os Bairros</option>
+                  {availableNeighborhoods.map(b => (
+                    <option key={b} value={b}>📍 {b}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Ordenação */}
+              <div className="relative sm:w-44 border-l border-slate-200 pl-2">
+                <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value as any)}
+                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold px-3 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+                >
+                  <option value="recent">⏱️ Mais Recentes</option>
+                  <option value="price_asc">💲 Menor Preço</option>
+                  <option value="price_desc">💎 Maior Preço</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+
           {/* BOTÕES DE MODALIDADE: Todos os Itens, Vendas, Trocas, Doações */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
             {[
