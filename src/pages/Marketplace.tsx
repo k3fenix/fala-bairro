@@ -4,7 +4,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   Repeat, RefreshCw, LogOut, Package, 
   Heart, X, PlusCircle, User as UserIcon, AlertCircle, ShoppingBag,
-  Search, MapPin, SlidersHorizontal, ArrowUpDown, Sparkles
+  Search, MapPin, SlidersHorizontal, ArrowUpDown, Sparkles,
+  Flame, Tag, Grid, ShieldCheck, Users, TrendingUp, ChevronRight
 } from 'lucide-react';
 import { getAuthUserSync } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
@@ -402,7 +403,7 @@ function MarketplaceContent() {
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/marketplace/anunciar"
-              className="bg-[#ff6500] hover:bg-[#e95600] active:scale-98 text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shadow-md shadow-orange-500/20 transition-all cursor-pointer shrink-0"
+              className="bg-[#ff6500] hover:bg-[#e95600] active:scale-98 text-white px-4 sm:px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shadow-sm transition-all cursor-pointer shrink-0"
               title="Criar novo anúncio"
             >
               <PlusCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
@@ -413,7 +414,7 @@ function MarketplaceContent() {
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   to="/marketplace/favoritos"
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Meus Favoritos"
                 >
                   <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
@@ -421,7 +422,7 @@ function MarketplaceContent() {
 
                 <Link
                   to="/marketplace/meus-anuncios"
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Meus Anúncios"
                 >
                   <Package className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
@@ -429,7 +430,7 @@ function MarketplaceContent() {
 
                 <Link
                   to="/marketplace/perfil"
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-slate-200 shadow-xs cursor-pointer flex items-center justify-center bg-slate-100 hover:ring-2 hover:ring-orange-500/30 transition-all"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-slate-200 shadow-xs cursor-pointer flex items-center justify-center bg-slate-100 hover:ring-2 hover:ring-orange-500/30 transition-all"
                   title="Minha Conta"
                 >
                   {activeUser.avatar ? (
@@ -451,7 +452,7 @@ function MarketplaceContent() {
                       navigate('/marketplace');
                     }
                   }}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border border-red-200/80"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border border-red-200/80"
                   title="Sair da Conta"
                 >
                   <LogOut className="w-4 h-4" />
@@ -460,45 +461,66 @@ function MarketplaceContent() {
             ) : (
               <Link
                 to="/login?redirect=/marketplace"
-                className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm shrink-0"
+                className="bg-[#1e293b] hover:bg-slate-900 text-white px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 shrink-0"
               >
-                Entrar
+                <UserIcon className="w-4 h-4" />
+                <span>Entrar</span>
               </Link>
             )}
           </div>
         </div>
       </header>
 
-      {/* 2. BANNER PRINCIPAL ACOLHEDOR COM ELEMENTO VISUAL DO BAIRRO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-white via-orange-50/40 to-slate-50 border-b border-slate-200/80 py-6 sm:py-9">
-        {/* Detalhe estético de fundo com casas/bairro em SVG sutil */}
-        <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none select-none hidden md:block max-w-[340px]">
-          <svg viewBox="0 0 400 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto text-slate-800">
-            <path d="M20 160V90L70 50L120 90V160H20Z" fill="currentColor" />
-            <path d="M110 160V100L160 60L210 100V160H110Z" fill="currentColor" opacity="0.8" />
-            <path d="M200 160V80L255 35L310 80V160H200Z" fill="currentColor" opacity="0.6" />
-            <path d="M300 160V95L350 55L400 95V160H300Z" fill="currentColor" opacity="0.4" />
-          </svg>
-        </div>
+      {/* 2. BANNER PRINCIPAL COM IMAGEM DE BAIRRO NO FUNDO E BUSCA INTEGRADA */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-orange-50 via-amber-50/50 to-sky-50 border-b border-slate-200/80 py-8 sm:py-12">
+        {/* Imagem de Fundo Panorâmica de Bairro / Cidade acolhedora */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-bottom opacity-25 mix-blend-multiply pointer-events-none"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1600&q=80')`
+          }}
+        />
+        {/* Gradiente suave para manter a legibilidade perfeita dos textos */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none" />
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10">
-          <div className="max-w-2xl mb-4 sm:mb-6">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-[#ff6500] text-[11px] sm:text-xs font-black uppercase tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              Comércio Local do Bairro
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
+            
+            {/* Lado Esquerdo: Textos do Banner */}
+            <div className="max-w-xl">
+              <span className="text-[11px] sm:text-xs font-black text-[#ff6500] uppercase tracking-wider block mb-1">
+                MARKETPLACE FALA DO BAIRRO
+              </span>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-[1.1]">
+                O que você está <br className="hidden sm:block" />
+                <span className="text-[#ff6500]">procurando</span> hoje?
+              </h1>
+              <p className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-2 leading-relaxed">
+                Aqui tem de tudo: venda, troca e doação.<br className="hidden xs:block" />
+                Tudo no seu bairro, de pessoas da sua comunidade.
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-              O que você está procurando hoje?
-            </h1>
-            <p className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-1.5 leading-relaxed">
-              Aqui tem de tudo: venda, troca e doação. Encontre oportunidades perto de você.
-            </p>
+
+            {/* Lado Direito: Carimbo/Selo Visual "Juntos fortalecemos o nosso bairro!" */}
+            <div className="hidden md:flex items-center gap-3 bg-white/85 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-orange-200/80 shadow-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-lg shadow-sm">
+                📍
+              </div>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-sm text-[#ff6500] tracking-tight leading-tight">
+                  Juntos fortalecemos
+                </span>
+                <span className="font-black text-sm text-slate-800 tracking-tight leading-tight">
+                  o nosso bairro!
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* BARRA DE BUSCA E FILTROS INTEGRADOS */}
-          <div className="bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-stretch gap-2">
+          {/* BARRA DE PESQUISA INTEGRADA COM BAIRROS E ORDENAÇÃO */}
+          <div className="bg-white/95 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md flex flex-col md:flex-row items-stretch gap-2 mb-4">
             
-            {/* Campo de Busca Principal com o placeholder solicitado */}
+            {/* Campo de Busca Principal */}
             <div className="relative flex-1">
               <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
@@ -506,7 +528,7 @@ function MarketplaceContent() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Digite o que você procura..."
-                className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200/80 focus:border-[#ff6500] focus:ring-2 focus:ring-orange-500/10 rounded-xl sm:rounded-2xl pl-11 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all placeholder:text-slate-400"
+                className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border-0 rounded-xl sm:rounded-2xl pl-11 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all placeholder:text-slate-400"
               />
               {searchQuery && (
                 <button
@@ -527,7 +549,7 @@ function MarketplaceContent() {
                 <select
                   value={selectedNeighborhood}
                   onChange={e => setSelectedNeighborhood(e.target.value)}
-                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold pl-9 pr-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border border-slate-200/80 appearance-none focus:border-[#ff6500] focus:bg-white transition-all"
+                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold pl-9 pr-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border-0 appearance-none focus:bg-white transition-all"
                 >
                   <option value="all">📍 Todos os Bairros</option>
                   {availableNeighborhoods.map(b => (
@@ -541,7 +563,7 @@ function MarketplaceContent() {
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as any)}
-                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold px-3.5 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border border-slate-200/80 appearance-none focus:border-[#ff6500] focus:bg-white transition-all"
+                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold px-3.5 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border-0 appearance-none focus:bg-white transition-all"
                 >
                   <option value="recent">⏱️ Mais Recentes</option>
                   <option value="price_asc">💲 Menor Preço</option>
@@ -551,110 +573,116 @@ function MarketplaceContent() {
             </div>
 
           </div>
+
+          {/* BOTÕES DE MODALIDADE: Todos os Itens, Vendas, Trocas, Doações */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            {[
+              { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-4 h-4" /> },
+              { id: 'Venda', label: 'Vendas', icon: <Tag className="w-4 h-4" /> },
+              { id: 'Troca', label: 'Trocas', icon: <Repeat className="w-4 h-4" /> },
+              { id: 'Gratis', label: 'Doações', icon: <Package className="w-4 h-4" /> },
+            ].map(tab => {
+              const active = typeFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setTypeFilter(tab.id as any)}
+                  className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-xs ${
+                    active
+                      ? 'bg-[#ff6500] text-white shadow-orange-500/25 scale-102'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
+                  }`}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
         </div>
       </section>
 
-      {/* 3. FILTROS PRINCIPAIS: Todos os itens, Vendas, Trocas, Doações */}
-      <section className="bg-white border-b border-slate-200/80 sticky top-[70px] z-30 shadow-xs">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {[
-            { id: 'all', label: 'Todos os itens', icon: '📦' },
-            { id: 'Venda', label: 'Vendas', icon: '💰' },
-            { id: 'Troca', label: 'Trocas', icon: '🔄' },
-            { id: 'Gratis', label: 'Doações', icon: '🎁' },
-          ].map(tab => {
-            const active = typeFilter === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setTypeFilter(tab.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                  active
-                    ? 'bg-[#ff6500] text-white shadow-sm shadow-orange-500/20 scale-102'
-                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+      {/* 3. BARRA DE CATEGORIAS ESTILO ÍCONES CIRCULARES (CONFORME A IMAGEM DE REFERÊNCIA) */}
+      <section className="bg-white border-b border-slate-200/80 py-4 shadow-2xs">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar pb-1">
+            
+            {/* Botão de Categorias Geral */}
+            <button
+              onClick={() => setActiveCategory('all')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-black shrink-0 transition-all cursor-pointer ${
+                activeCategory === 'all'
+                  ? 'bg-orange-50 text-[#ff6500] border-2 border-[#ff6500]'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+            >
+              <Grid className="w-4 h-4 text-[#ff6500]" />
+              <span>Categorias</span>
+            </button>
+
+            <div className="h-6 w-px bg-slate-200 shrink-0" />
+
+            {/* Ícones de cada Categoria */}
+            {categories.map(c => {
+              const isSelected = activeCategory === c.id.toString();
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCategory(isSelected ? 'all' : c.id.toString())}
+                  className={`flex flex-col items-center gap-1.5 px-3 py-1.5 rounded-xl shrink-0 transition-all cursor-pointer group ${
+                    isSelected ? 'scale-105' : 'hover:scale-102'
+                  }`}
+                >
+                  <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-lg sm:text-xl transition-all shadow-xs ${
+                    isSelected
+                      ? 'bg-[#ff6500] text-white ring-2 ring-orange-500/30 shadow-orange-500/20'
+                      : 'bg-slate-100 text-slate-700 group-hover:bg-orange-100 group-hover:text-[#ff6500]'
+                  }`}>
+                    {c.icon || '📦'}
+                  </div>
+                  <span className={`text-[11px] font-bold whitespace-nowrap ${
+                    isSelected ? 'text-[#ff6500] font-black' : 'text-slate-600 group-hover:text-slate-900'
+                  }`}>
+                    {c.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 mt-6">
         
-        {/* 4. BARRA DE CATEGORIAS MODERNA COM ÍCONES CONSISTENTES */}
-        {categories.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2.5">
-              <h2 className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-wider">
-                Navegar por Categorias
-              </h2>
-              {activeCategory !== 'all' && (
-                <button
-                  onClick={() => setActiveCategory('all')}
-                  className="text-xs font-bold text-[#ff6500] hover:underline cursor-pointer"
-                >
-                  Ver todas
-                </button>
-              )}
-            </div>
-
-            <div className="overflow-x-auto no-scrollbar pb-1">
-              <div className="flex items-center gap-2 sm:gap-2.5">
-                <button
-                  onClick={() => setActiveCategory('all')}
-                  className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                    activeCategory === 'all'
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <span>📦</span>
-                  <span>Todas</span>
-                </button>
-
-                {categories.map(c => {
-                  const isSelected = activeCategory === c.id.toString();
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => setActiveCategory(isSelected ? 'all' : c.id.toString())}
-                      className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                        isSelected
-                          ? 'bg-[#ff6500] text-white shadow-xs'
-                          : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
-                      }`}
-                    >
-                      <span>{c.icon || '🏷️'}</span>
-                      <span>{c.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 5. SEÇÃO DE DESTAQUES: "OFERTAS EM DESTAQUE" (Os melhores anúncios da sua região) */}
+        {/* 4. SEÇÃO "DESTAGUES DO MARKETPLACE" (CONFORME A IMAGEM DE REFERÊNCIA) */}
         {!searchQuery && activeCategory === 'all' && typeFilter === 'all' && selectedNeighborhood === 'all' && listings.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-5 bg-[#ff6500] rounded-full"></div>
+                  <Flame className="w-6 h-6 text-[#ff6500] fill-orange-500" />
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Ofertas em Destaque
+                    Destaques do Marketplace
                   </h2>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 ml-4">
+                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 ml-8">
                   Os melhores anúncios da sua região
                 </p>
               </div>
+
+              <button
+                onClick={() => {
+                  window.scrollTo({ top: 600, behavior: 'smooth' });
+                }}
+                className="text-xs sm:text-sm font-bold text-[#ff6500] hover:text-[#e95600] flex items-center gap-1 cursor-pointer"
+              >
+                <span>Ver todos</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
 
-            {/* Grid de 4 a 5 Destaques */}
+            {/* Grid de Destaques */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
               {listings.slice(0, 5).map(ad => {
                 const rawPrice = Number(ad.price);
@@ -668,13 +696,8 @@ function MarketplaceContent() {
                   <div
                     key={`featured-${ad.id}`}
                     onClick={() => navigate(`/marketplace/anuncio/${ad.id}`)}
-                    className="bg-white border-2 border-orange-200/80 hover:border-[#ff6500] rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group flex flex-col relative cursor-pointer shadow-sm"
+                    className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group flex flex-col relative cursor-pointer shadow-xs"
                   >
-                    {/* Badge Destaque */}
-                    <div className="absolute top-2.5 left-2.5 z-10 bg-[#ff6500] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
-                      <Sparkles className="w-2.5 h-2.5" /> Destaque
-                    </div>
-
                     <div className="aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center">
                       {ad.image_url ? (
                         <img
@@ -686,9 +709,16 @@ function MarketplaceContent() {
                       ) : (
                         <div className="text-4xl opacity-20">📦</div>
                       )}
-                      <span className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md">
+                      
+                      {/* Selo Condição */}
+                      <span className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
                         {ad.condition || 'Usado'}
                       </span>
+
+                      {/* Botão de Favorito decorativo */}
+                      <div className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/80 backdrop-blur-md text-slate-600 flex items-center justify-center shadow-xs">
+                        <Heart className="w-3.5 h-3.5" />
+                      </div>
                     </div>
 
                     <div className="p-3.5 sm:p-4 flex flex-col flex-1">
@@ -868,6 +898,49 @@ function MarketplaceContent() {
             )}
           </>
         )}
+
+        {/* 9. RODAPÉ DE DIFERENCIAIS COMUNITÁRIOS (IDÊNTICO À IMAGEM DE REFERÊNCIA) */}
+        <div className="mt-16 pt-8 border-t border-slate-200/90 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#ff6500] flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-900 leading-tight">Compre e venda no seu bairro</h4>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-snug">Mais perto de você e da sua comunidade.</p>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#ff6500] flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-900 leading-tight">É fácil e seguro</h4>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-snug">Anúncios verificados pela comunidade.</p>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#ff6500] flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-900 leading-tight">Conecte-se com pessoas reais</h4>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-snug">Negócios entre vizinhos.</p>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#ff6500] flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-900 leading-tight">Mais economia</h4>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-snug">Encontre ótimas ofertas e faça bons negócios.</p>
+            </div>
+          </div>
+        </div>
 
       </main>
 
