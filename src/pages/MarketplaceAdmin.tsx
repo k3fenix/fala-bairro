@@ -112,14 +112,17 @@ export default function MarketplaceAdmin() {
 
   const updateListingStatus = async (id: string, newStatus: string) => {
     try {
-      const [resListings, resItems] = await Promise.all([
-        supabaseMarketplace.from('marketplace_listings').update({ status: newStatus }).eq('id', id),
-        supabase.from('marketplace_items').update({ status: newStatus === 'approved' ? 'Ativo' : newStatus }).eq('id', id)
-      ]);
+      // 1. Tabela oficial do Marketplace: marketplace_listings
+      const { error: errOfficial } = await supabaseMarketplace
+        .from('marketplace_listings')
+        .update({ status: newStatus })
+        .eq('id', id);
 
-      if (resListings.error && resItems.error) {
-        alert('Não foi possível atualizar o status no banco: ' + (resListings.error.message || resItems.error.message));
-        return;
+      // 2. Se falhar, tenta na tabela legada silenciosamente caso exista
+      if (errOfficial) {
+        try {
+          await supabase.from('marketplace_items').update({ status: newStatus === 'approved' ? 'Ativo' : newStatus }).eq('id', id);
+        } catch (_) {}
       }
 
       setListings(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
@@ -134,25 +137,28 @@ export default function MarketplaceAdmin() {
   const deleteListing = async (id: string) => {
     if (confirm('Confirma a remoção definitiva deste anúncio?')) {
       try {
-        // Exclui com verificação em ambas as tabelas (marketplace_listings e marketplace_items)
-        const [resListings, resItems] = await Promise.all([
-          supabaseMarketplace.from('marketplace_listings').delete().eq('id', id),
-          supabase.from('marketplace_items').delete().eq('id', id)
-        ]);
-
-        if (resListings.error && resItems.error) {
-          alert('Erro ao excluir do banco de dados: ' + (resListings.error.message || resItems.error.message));
-          return;
-        }
-
-        // Remover imagens filhas caso existam
+        // 1. Remover imagens filhas vinculadas ao anúncio oficial
         try {
           await supabaseMarketplace.from('marketplace_listing_images').delete().eq('listing_id', id);
         } catch (_) {}
 
+        // 2. Excluir da tabela oficial do Marketplace
+        const { error: errOfficial } = await supabaseMarketplace
+          .from('marketplace_listings')
+          .delete()
+          .eq('id', id);
+
+        // 3. Se houver falha, tenta na tabela legada (apenas se existir)
+        if (errOfficial) {
+          try {
+            await supabase.from('marketplace_items').delete().eq('id', id);
+          } catch (_) {}
+        }
+
+        // 4. Atualizar lista na interface imediatamente
         setListings(prev => prev.filter(l => l.id !== id));
 
-        // Limpar cache local para sincronizar imediatamente com o Marketplace público
+        // 5. Limpar cache local para sincronizar na hora com todo o Marketplace
         try {
           localStorage.removeItem('cache_marketplace_listings');
         } catch (_) {}
