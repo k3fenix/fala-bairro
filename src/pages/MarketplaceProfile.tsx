@@ -165,6 +165,16 @@ export default function MarketplaceProfile() {
             {currentUser.email && (
               <p className="text-[11px] text-slate-400 mt-0.5">{currentUser.email}</p>
             )}
+
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="py-1.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 font-black rounded-xl text-xs flex items-center gap-1.5 border border-red-200 transition-colors cursor-pointer shadow-xs"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Sair da Conta
+              </button>
+            </div>
           </div>
         </div>
 

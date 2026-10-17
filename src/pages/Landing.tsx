@@ -1185,13 +1185,35 @@ export default function Landing() {
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setDrawerOpen(false)}
-                className="landing-drawer-close-btn"
-                title="Fechar Menu"
-              >
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {currentUser && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (confirm('Deseja realmente sair da sua conta?')) {
+                        await supabase.auth.signOut();
+                        localStorage.removeItem('fala_bairro_user');
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('user_auth');
+                        localStorage.removeItem('impersonatedUser');
+                        setCurrentUser(null);
+                        setDrawerOpen(false);
+                      }
+                    }}
+                    className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-colors cursor-pointer border border-red-200/80"
+                    title="Sair da Conta"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                )}
+                <button 
+                  onClick={() => setDrawerOpen(false)}
+                  className="landing-drawer-close-btn"
+                  title="Fechar Menu"
+                >
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
+              </div>
             </div>
 
             {/* Ações Rápidas no Topo do Menu */}

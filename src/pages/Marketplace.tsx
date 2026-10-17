@@ -368,6 +368,20 @@ export default function Marketplace() {
                     <UserIcon className="w-4 h-4 text-slate-600" />
                   )}
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (confirm('Deseja realmente sair da sua conta?')) {
+                      if (logout) await logout();
+                      navigate('/marketplace');
+                    }
+                  }}
+                  className="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border border-red-200/80"
+                  title="Sair da Conta"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             ) : (
               <Link
