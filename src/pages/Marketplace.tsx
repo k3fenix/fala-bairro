@@ -291,10 +291,9 @@ function MarketplaceContent() {
               status: item.status || 'Ativo',
               created_at: item.created_at || new Date().toISOString()
             });
-          }
-        });
-      }
-    } catch (e) {
+          });
+        }
+      } catch (e) {
       console.error("Erro geral em fetchListings:", e);
     } finally {
       setListings(combinedListings);
