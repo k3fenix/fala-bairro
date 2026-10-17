@@ -307,32 +307,32 @@ export default function MarketplaceAd() {
 
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden flex flex-col lg:flex-row">
           
-          {/* ÁREA DAS FOTOS (ESTILO FACEBOOK MARKETPLACE PREMIUM) */}
-          <div className="w-full lg:w-[58%] p-4 sm:p-6 bg-slate-900 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200">
-            {/* Foto Principal com Proporção Otimizada */}
-            <div className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-black/40 flex items-center justify-center shadow-inner group">
+          {/* ÁREA DAS FOTOS (FUNDO CLARO, MODERNO E HARMONIOSO) */}
+          <div className="w-full lg:w-[56%] p-4 sm:p-7 bg-gradient-to-b from-slate-50 via-slate-100/60 to-slate-50 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200/80">
+            {/* Foto Principal com Fundo Claro e Moldura Sofisticada */}
+            <div className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-white border border-slate-200/90 shadow-sm flex items-center justify-center group">
               {currentImage ? (
                 <img 
                   src={currentImage} 
                   alt={ad.title} 
-                  className="w-full h-full object-contain select-none transition-transform duration-300" 
+                  className="w-full h-full object-contain select-none transition-transform duration-300 group-hover:scale-[1.02]" 
                 />
               ) : (
                 <div className="text-[80px] opacity-20">📦</div>
               )}
 
-              {/* Badges Flutuantes Discretas */}
+              {/* Badges Flutuantes com Visual Glassmorphism Claro */}
               <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-                <span className="px-3 py-1 bg-black/80 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-white shadow-sm border border-white/10">
+                <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-slate-800 shadow-xs border border-slate-200">
                   {ad.condition || 'Usado'}
                 </span>
                 {isTrade && (
-                  <span className="px-3 py-1 bg-purple-600/90 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-white shadow-sm flex items-center gap-1">
+                  <span className="px-3 py-1 bg-purple-600 text-white rounded-lg font-black text-[11px] uppercase tracking-wider shadow-xs flex items-center gap-1">
                     <Repeat className="w-3 h-3" /> Aceita Troca
                   </span>
                 )}
                 {isSold && (
-                  <span className="px-3 py-1 bg-red-600/90 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-white shadow-sm">
+                  <span className="px-3 py-1 bg-red-600 text-white rounded-lg font-black text-[11px] uppercase tracking-wider shadow-xs">
                     Vendido
                   </span>
                 )}
@@ -340,13 +340,13 @@ export default function MarketplaceAd() {
 
               {/* Contador de Fotos */}
               {galleryImages.length > 1 && (
-                <div className="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-full border border-white/15">
+                <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-slate-700 text-xs font-bold px-2.5 py-1 rounded-full border border-slate-200 shadow-xs">
                   {selectedImageIndex + 1} / {galleryImages.length}
                 </div>
               )}
             </div>
 
-            {/* Miniaturas de foto alinhadas em carrossel */}
+            {/* Miniaturas de foto alinhadas em carrossel elegante */}
             {galleryImages.length > 1 && (
               <div className="flex items-center gap-2.5 overflow-x-auto pt-4 pb-1 no-scrollbar">
                 {galleryImages.map((img, idx) => (
@@ -354,10 +354,10 @@ export default function MarketplaceAd() {
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                    className={`relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-white ${
                       selectedImageIndex === idx 
-                        ? 'border-[#ff6500] ring-2 ring-orange-500/30 scale-102 shadow-md' 
-                        : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/60'
+                        ? 'border-[#ff6500] ring-2 ring-orange-500/30 scale-102 shadow-sm' 
+                        : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-400'
                     }`}
                   >
                     <img src={img} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
@@ -367,8 +367,8 @@ export default function MarketplaceAd() {
             )}
           </div>
 
-          {/* ÁREA DE INFORMAÇÕES (HIERARQUIA VISUAL EM 9 PONTOS) */}
-          <div className="w-full lg:w-[42%] p-6 sm:p-8 flex flex-col justify-between bg-white">
+          {/* ÁREA DE INFORMAÇÕES (ORGANIZADA, LIMPA E MODERNA) */}
+          <div className="w-full lg:w-[44%] p-6 sm:p-8 flex flex-col justify-between bg-white">
             <div className="space-y-6">
               
               {/* 1. CATEGORIA OU IDENTIFICAÇÃO DO ANÚNCIO */}
