@@ -488,11 +488,11 @@ function MarketplaceContent() {
       {/* 2. BANNER PRINCIPAL FEIRA DO ROLO — COMPOSIÇÃO SOLAR COM CÉU AZUL E MONUMENTO ILUMINADO */}
       <section className="relative overflow-hidden bg-gradient-to-r from-white via-sky-50/50 to-amber-50/40 border-b border-slate-200/80 py-7 sm:py-10 min-h-[310px] sm:min-h-[350px] flex flex-col justify-center">
         
-        {/* Imagem de Fundo Solar Panorâmica: Céu Azul, Monumento Iluminado e Vegetação */}
+        {/* Imagem de Fundo Oficial com 'FEIRA DO ROLO' no monumento */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-right md:bg-right-center pointer-events-none opacity-95"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1800&q=85')`
+            backgroundImage: `url('/banner-feira-do-rolo.jpg')`
           }}
         />
 
