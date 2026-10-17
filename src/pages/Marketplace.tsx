@@ -517,63 +517,6 @@ function MarketplaceContent() {
             </div>
           </div>
 
-          {/* BARRA DE PESQUISA INTEGRADA COM BAIRROS E ORDENAÇÃO */}
-          <div className="bg-white/95 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md flex flex-col md:flex-row items-stretch gap-2 mb-4">
-            
-            {/* Campo de Busca Principal */}
-            <div className="relative flex-1">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Digite o que você procura..."
-                className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border-0 rounded-xl sm:rounded-2xl pl-11 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all placeholder:text-slate-400"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                  title="Limpar busca"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Filtro por Bairro */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 sm:w-52">
-                <MapPin className="w-4 h-4 text-[#ff6500] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <select
-                  value={selectedNeighborhood}
-                  onChange={e => setSelectedNeighborhood(e.target.value)}
-                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold pl-9 pr-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border-0 appearance-none focus:bg-white transition-all"
-                >
-                  <option value="all">📍 Todos os Bairros</option>
-                  {availableNeighborhoods.map(b => (
-                    <option key={b} value={b}>📍 {b}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Ordenação */}
-              <div className="relative sm:w-44">
-                <select
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value as any)}
-                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold px-3.5 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border-0 appearance-none focus:bg-white transition-all"
-                >
-                  <option value="recent">⏱️ Mais Recentes</option>
-                  <option value="price_asc">💲 Menor Preço</option>
-                  <option value="price_desc">💎 Maior Preço</option>
-                </select>
-              </div>
-            </div>
-
-          </div>
-
           {/* BOTÕES DE MODALIDADE: Todos os Itens, Vendas, Trocas, Doações */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
             {[
