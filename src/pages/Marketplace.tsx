@@ -495,21 +495,21 @@ function MarketplaceContent() {
             className="w-full h-auto block select-none"
           />
 
-          {/* Barra de Filtros Funcionais (Todos os Itens, Vendas, Trocas, Doações) posicionada na área dos botões */}
-          <div className="hidden lg:block absolute left-[3.2%] bottom-[7.5%] z-20">
-            <div className="flex items-center gap-2.5">
+          {/* Barra de Filtros Funcionais (Todos os Itens, Vendas, Trocas, Doações) cobrindo e dando vida aos botões do banner */}
+          <div className="absolute left-[2.5%] sm:left-[3.5%] bottom-[5%] sm:bottom-[7.2%] z-20">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar">
               {[
-                { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-4 h-4" /> },
-                { id: 'Venda', label: 'Vendas', icon: <Tag className="w-4 h-4" /> },
-                { id: 'Troca', label: 'Trocas', icon: <Repeat className="w-4 h-4" /> },
-                { id: 'Gratis', label: 'Doações', icon: <Package className="w-4 h-4" /> },
+                { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+                { id: 'Venda', label: 'Vendas', icon: <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+                { id: 'Troca', label: 'Trocas', icon: <Repeat className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+                { id: 'Gratis', label: 'Doações', icon: <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
               ].map(tab => {
                 const active = typeFilter === tab.id;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setTypeFilter(tab.id as any)}
-                    className={`h-[42px] px-5 rounded-2xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 shadow-sm ${
+                    className={`h-[34px] sm:h-[42px] px-3.5 sm:px-5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2 shadow-sm ${
                       active
                         ? 'bg-[#ff6500] text-white shadow-orange-500/30 ring-2 ring-white/80'
                         : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 shadow-xs'
@@ -524,65 +524,36 @@ function MarketplaceContent() {
           </div>
         </div>
 
-        {/* Barra de Controles Móvel / Responsiva (para telas menores e seleção de Bairros/Ordem) */}
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 bg-white/95 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-          
-          {/* Botões de Modalidade visíveis em telas menores */}
-          <div className="flex lg:hidden items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
-            {[
-              { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-3.5 h-3.5" /> },
-              { id: 'Venda', label: 'Vendas', icon: <Tag className="w-3.5 h-3.5" /> },
-              { id: 'Troca', label: 'Trocas', icon: <Repeat className="w-3.5 h-3.5" /> },
-              { id: 'Gratis', label: 'Doações', icon: <Package className="w-3.5 h-3.5" /> },
-            ].map(tab => {
-              const active = typeFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setTypeFilter(tab.id as any)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shadow-xs ${
-                    active
-                      ? 'bg-[#ff6500] text-white shadow-orange-500/25'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+        {/* Barra Limpa: apenas Seletores de Bairros e Ordenação */}
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-2.5 bg-white/95 border-t border-slate-100 flex items-center justify-end gap-2.5">
+          {/* Botão Seletor de Bairros */}
+          <div className="relative bg-slate-50 hover:bg-white text-slate-800 rounded-xl border border-slate-200 shadow-xs transition-all">
+            <MapPin className="w-3.5 h-3.5 text-[#ff6500] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={selectedNeighborhood}
+              onChange={e => setSelectedNeighborhood(e.target.value)}
+              className="bg-transparent text-slate-800 text-xs font-bold pl-8 pr-7 py-2 outline-none cursor-pointer border-0 appearance-none"
+            >
+              <option value="all">📍 Todos os Bairros</option>
+              {availableNeighborhoods.map(b => (
+                <option key={b} value={b}>📍 {b}</option>
+              ))}
+            </select>
           </div>
 
-          {/* Seletores de Bairros e Ordenação */}
-          <div className="flex items-center gap-2.5 ml-auto">
-            {/* Botão Seletor de Bairros */}
-            <div className="relative bg-slate-50 hover:bg-white text-slate-800 rounded-xl border border-slate-200 shadow-xs transition-all">
-              <MapPin className="w-3.5 h-3.5 text-[#ff6500] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <select
-                value={selectedNeighborhood}
-                onChange={e => setSelectedNeighborhood(e.target.value)}
-                className="bg-transparent text-slate-800 text-xs font-bold pl-8 pr-7 py-2 outline-none cursor-pointer border-0 appearance-none"
-              >
-                <option value="all">📍 Todos os Bairros</option>
-                {availableNeighborhoods.map(b => (
-                  <option key={b} value={b}>📍 {b}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Botão Seletor de Ordenação */}
-            <div className="relative bg-slate-50 hover:bg-white text-slate-800 rounded-xl border border-slate-200 shadow-xs transition-all">
-              <select
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value as any)}
-                className="bg-transparent text-slate-800 text-xs font-bold px-3 py-2 outline-none cursor-pointer border-0 appearance-none"
-              >
-                <option value="recent">⏱️ Mais Recentes</option>
-                <option value="price_asc">💲 Menor Preço</option>
-                <option value="price_desc">💎 Maior Preço</option>
-              </select>
-            </div>
+          {/* Botão Seletor de Ordenação */}
+          <div className="relative bg-slate-50 hover:bg-white text-slate-800 rounded-xl border border-slate-200 shadow-xs transition-all">
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as any)}
+              className="bg-transparent text-slate-800 text-xs font-bold px-3 py-2 outline-none cursor-pointer border-0 appearance-none"
+            >
+              <option value="recent">⏱️ Mais Recentes</option>
+              <option value="price_asc">💲 Menor Preço</option>
+              <option value="price_desc">💎 Maior Preço</option>
+            </select>
           </div>
+        </div>
 
         </div>
       </section>
