@@ -29,10 +29,167 @@ export default function MarketplaceAd() {
   const [reportSending, setReportSending] = useState(false);
   const [reportSent, setReportSent] = useState(false);
 
+  // Zoom de imagem em tela cheia
+  const [showImageZoom, setShowImageZoom] = useState(false);
+
+  // Interações: Curtidas & Comentários
+  const [likesCount, setLikesCount] = useState<number>(0);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentSending, setCommentSending] = useState(false);
+
   useEffect(() => {
     fetchAd();
     checkUser();
+    loadInteractions();
   }, [id]);
+
+  const loadInteractions = async () => {
+    if (!id) return;
+    const idStr = id.toString();
+
+    // 1. Carregar contagem de curtidas
+    try {
+      const storedLikes = localStorage.getItem('marketplace_likes_counts');
+      if (storedLikes) {
+        const parsed = JSON.parse(storedLikes);
+        if (typeof parsed[idStr] === 'number') setLikesCount(parsed[idStr]);
+      }
+      const storedUserLikes = localStorage.getItem('marketplace_user_likes');
+      if (storedUserLikes) {
+        const parsed = JSON.parse(storedUserLikes);
+        if (Array.isArray(parsed) && parsed.includes(idStr)) setIsLiked(true);
+      }
+    } catch (_) {}
+
+    // 2. Tentar buscar comentários no banco de dados Supabase
+    try {
+      const { data: dbComments, error } = await supabase
+        .from('marketplace_comments')
+        .select('*')
+        .eq('listing_id', id)
+        .order('created_at', { ascending: true });
+
+      if (!error && dbComments) {
+        setComments(dbComments);
+        updateCommentsCountCache(idStr, dbComments.length);
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback sincronizado para comentários locais persistidos
+    try {
+      const storedLocal = localStorage.getItem(`comments_ad_${idStr}`);
+      if (storedLocal) {
+        const parsed = JSON.parse(storedLocal);
+        setComments(parsed);
+        updateCommentsCountCache(idStr, parsed.length);
+      }
+    } catch (_) {}
+  };
+
+  const updateCommentsCountCache = (listingId: string, count: number) => {
+    try {
+      const allCounts = JSON.parse(localStorage.getItem('marketplace_comments_counts') || '{}');
+      allCounts[listingId] = count;
+      localStorage.setItem('marketplace_comments_counts', JSON.stringify(allCounts));
+    } catch (_) {}
+  };
+
+  const toggleLike = () => {
+    if (!currentUser) {
+      alert("Faça login na sua conta para curtir anúncios!");
+      navigate(`/login?redirect=/marketplace/anuncio/${id}`);
+      return;
+    }
+    const idStr = id ? id.toString() : '';
+    const newLikedState = !isLiked;
+    const newCount = newLikedState ? likesCount + 1 : Math.max(0, likesCount - 1);
+
+    setIsLiked(newLikedState);
+    setLikesCount(newCount);
+
+    try {
+      // Salvar contagem global
+      const allCounts = JSON.parse(localStorage.getItem('marketplace_likes_counts') || '{}');
+      allCounts[idStr] = newCount;
+      localStorage.setItem('marketplace_likes_counts', JSON.stringify(allCounts));
+
+      // Salvar curtidas do usuário
+      const userLikes: string[] = JSON.parse(localStorage.getItem('marketplace_user_likes') || '[]');
+      let updatedUserLikes = [...userLikes];
+      if (newLikedState) {
+        if (!updatedUserLikes.includes(idStr)) updatedUserLikes.push(idStr);
+      } else {
+        updatedUserLikes = updatedUserLikes.filter(x => x !== idStr);
+      }
+      localStorage.setItem('marketplace_user_likes', JSON.stringify(updatedUserLikes));
+    } catch (_) {}
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    if (!currentUser) {
+      alert("Faça login na sua conta para publicar um comentário!");
+      navigate(`/login?redirect=/marketplace/anuncio/${id}`);
+      return;
+    }
+
+    setCommentSending(true);
+    const idStr = id ? id.toString() : '';
+    const commentObj = {
+      id: 'cmt_' + Date.now(),
+      listing_id: id,
+      user_id: currentUser.id,
+      user_name: currentUser.name || 'Morador do Bairro',
+      user_avatar: currentUser.avatar || null,
+      content: newComment.trim(),
+      created_at: new Date().toISOString()
+    };
+
+    // Tentar persistir no Supabase se existir a tabela
+    try {
+      await supabase.from('marketplace_comments').insert([
+        {
+          listing_id: id,
+          user_id: currentUser.id,
+          user_name: currentUser.name || 'Morador do Bairro',
+          user_avatar: currentUser.avatar || null,
+          content: newComment.trim(),
+          created_at: new Date().toISOString()
+        }
+      ]);
+    } catch (_) {}
+
+    // Sempre persistir no armazenamento local para exibição instantânea garantida
+    const updated = [...comments, commentObj];
+    setComments(updated);
+    setNewComment('');
+    setCommentSending(false);
+
+    try {
+      localStorage.setItem(`comments_ad_${idStr}`, JSON.stringify(updated));
+      updateCommentsCountCache(idStr, updated.length);
+    } catch (_) {}
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm("Deseja realmente excluir este comentário?")) return;
+    const idStr = id ? id.toString() : '';
+    try {
+      await supabase.from('marketplace_comments').delete().eq('id', commentId);
+    } catch (_) {}
+
+    const updated = comments.filter(c => c.id !== commentId);
+    setComments(updated);
+    try {
+      localStorage.setItem(`comments_ad_${idStr}`, JSON.stringify(updated));
+      updateCommentsCountCache(idStr, updated.length);
+    } catch (_) {}
+  };
 
   const checkUser = async () => {
     const user = contextUser || (await getAuthUser());
@@ -219,8 +376,12 @@ export default function MarketplaceAd() {
     (currentUser.name && ad.seller_name && currentUser.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase())
   );
 
-  const isAdmin = (currentUser && ((currentUser as any).role === 'admin' || (currentUser as any).is_admin === true)) || 
-    localStorage.getItem('marketplace_admin_auth') === 'true';
+  // Somente o Administrador AUTENTICADO pode ver os botões de Excluir Anúncio e Banir Usuário
+  const isAdmin = (
+    localStorage.getItem('admin_auth') === 'true' ||
+    localStorage.getItem('marketplace_admin_auth') === 'true' ||
+    (currentUser && ((currentUser as any).role === 'admin' || (currentUser as any).is_admin === true))
+  );
 
   const handleDeleteByAdmin = async () => {
     if (!confirm('⚠️ AÇÃO DO ADMINISTRADOR:\nDeseja realmente EXCLUIR DEFINITIVAMENTE este anúncio?')) return;
@@ -319,15 +480,11 @@ export default function MarketplaceAd() {
           </div>
         )}
 
-        {/* BARRA DE GESTÃO DO ADMINISTRADOR OU DO PROPRIETÁRIO */}
-        {(isOwner || isAdmin) && (
-          <div className={`mb-4 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs border ${
-            isAdmin ? 'bg-red-50/80 border-red-200' : 'bg-orange-50 border-orange-200'
-          }`}>
-            <span className={`text-xs sm:text-sm font-black flex items-center gap-2 ${
-              isAdmin ? 'text-red-950' : 'text-orange-950'
-            }`}>
-              <span>{isAdmin ? '🛡️ PAINEL DO ADMINISTRADOR:' : '⚙️ Você é o anunciante deste produto:'}</span>
+        {/* BARRA EXCLUSIVA DO ADMINISTRADOR GERAL */}
+        {isAdmin && (
+          <div className="mb-4 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs border bg-red-50/90 border-red-200">
+            <span className="text-xs sm:text-sm font-black flex items-center gap-2 text-red-950">
+              🛡️ PAINEL DO ADMINISTRADOR:
             </span>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -354,24 +511,54 @@ export default function MarketplaceAd() {
                 </button>
               )}
 
-              {isAdmin && (
-                <>
-                  <button 
-                    onClick={handleDeleteByAdmin}
-                    className="bg-red-600 hover:bg-red-700 text-white text-xs font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-                    title="Excluir este anúncio do Marketplace"
-                  >
-                    🗑️ Excluir Anúncio
-                  </button>
+              <button 
+                onClick={handleDeleteByAdmin}
+                className="bg-red-600 hover:bg-red-700 text-white text-xs font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                title="Excluir este anúncio do Marketplace"
+              >
+                🗑️ Excluir Anúncio
+              </button>
 
-                  <button 
-                    onClick={handleBanUserByAdmin}
-                    className="bg-slate-900 hover:bg-black text-amber-300 text-xs font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs border border-amber-400/40"
-                    title="Banir usuário para sempre"
-                  >
-                    🚫 Banir Usuário
-                  </button>
-                </>
+              <button 
+                onClick={handleBanUserByAdmin}
+                className="bg-slate-900 hover:bg-black text-amber-300 text-xs font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs border border-amber-400/40"
+                title="Banir usuário para sempre"
+              >
+                🚫 Banir Usuário
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* BARRA DO ANUNCIANTE COMUM (NÃO-ADMIN): Apenas editar seu próprio produto */}
+        {!isAdmin && isOwner && (
+          <div className="mb-4 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs border bg-orange-50 border-orange-200">
+            <span className="text-xs sm:text-sm font-black flex items-center gap-2 text-orange-950">
+              ⚙️ Você é o anunciante deste produto:
+            </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                to={`/marketplace/editar/${ad.id}`}
+                className="bg-white border border-slate-300 hover:border-orange-500 text-slate-800 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-[#ff6500]" /> Editar Meu Anúncio
+              </Link>
+
+              {!isSold ? (
+                <button 
+                  onClick={handleMarkAsSold} 
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                >
+                  <CheckCircle className="w-3.5 h-3.5" /> Marcar como Vendido
+                </button>
+              ) : (
+                <button 
+                  onClick={handleReactivate} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                >
+                  <PlayCircle className="w-3.5 h-3.5" /> Reativar Meu Anúncio
+                </button>
               )}
             </div>
           </div>
@@ -381,8 +568,12 @@ export default function MarketplaceAd() {
           
           {/* ÁREA DAS FOTOS (FUNDO CLARO, MODERNO E HARMONIOSO) */}
           <div className="w-full lg:w-[56%] p-4 sm:p-7 bg-gradient-to-b from-slate-50 via-slate-100/60 to-slate-50 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200/80">
-            {/* Foto Principal com Fundo Claro e Moldura Sofisticada */}
-            <div className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-white border border-slate-200/90 shadow-sm flex items-center justify-center group">
+            {/* Foto Principal com Fundo Claro, Moldura Sofisticada e Clique para Ampliar */}
+            <div 
+              onClick={() => currentImage && setShowImageZoom(true)}
+              className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-white border border-slate-200/90 shadow-sm flex items-center justify-center group cursor-zoom-in"
+              title="Clique para ver a foto ampliada em tela cheia"
+            >
               {currentImage ? (
                 <img 
                   src={currentImage} 
@@ -392,6 +583,11 @@ export default function MarketplaceAd() {
               ) : (
                 <div className="text-[80px] opacity-20">📦</div>
               )}
+
+              {/* Dica visual de zoom ao passar o mouse */}
+              <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                🔍 Clique para ampliar
+              </div>
 
               {/* Badges Flutuantes com Visual Glassmorphism Claro */}
               <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
@@ -591,7 +787,204 @@ export default function MarketplaceAd() {
 
           </div>
         </div>
+
+        {/* 10. BARRA DE INTERAÇÕES SOCIAIS: CURTIR, FAVORITAR, COMENTAR, COMPARTILHAR */}
+        <div className="mt-5 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Botão Curtir com coração animado */}
+            <button
+              type="button"
+              onClick={toggleLike}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer shadow-xs border ${
+                isLiked
+                  ? 'bg-red-50 text-red-600 border-red-200 ring-2 ring-red-400/20'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+              }`}
+            >
+              <span className="text-base sm:text-lg">❤️</span>
+              <span>{isLiked ? 'Curtido' : 'Curtir'}</span>
+              <span className="bg-white/80 px-2 py-0.5 rounded-full text-xs font-black ml-1 text-slate-900 border border-slate-200">
+                {likesCount}
+              </span>
+            </button>
+
+            {/* Botão Favoritar / Salvar */}
+            <button
+              type="button"
+              onClick={toggleFavorite}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer shadow-xs border ${
+                isFavorite
+                  ? 'bg-orange-50 text-[#ff6500] border-orange-200 ring-2 ring-orange-400/20'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-[#ff6500] text-[#ff6500]' : 'text-slate-600'}`} />
+              <span>{isFavorite ? 'Salvo nos Favoritos' : 'Favoritar'}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('marketplace-comments-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-colors cursor-pointer"
+            >
+              <span className="text-sm">💬</span>
+              <span>{comments.length} {comments.length === 1 ? 'comentário' : 'comentários'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-colors cursor-pointer"
+            >
+              <Share2 className="w-3.5 h-3.5 text-slate-600" />
+              <span>Compartilhar</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 11. SISTEMA COMPLETO DE COMENTÁRIOS E DÚVIDAS */}
+        <div id="marketplace-comments-section" className="mt-5 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-[#0f172a] tracking-tight flex items-center gap-2">
+                <span>Perguntas e Comentários</span>
+                <span className="bg-orange-100 text-[#ff6500] text-xs font-black px-2.5 py-0.5 rounded-full">
+                  {comments.length}
+                </span>
+              </h2>
+              <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                Tire dúvidas sobre o produto diretamente com o vendedor e vizinhos
+              </p>
+            </div>
+          </div>
+
+          {/* Formulário de Envio de Comentário */}
+          <form onSubmit={handleAddComment} className="mb-8">
+            <div className="flex gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center border border-slate-200">
+                {currentUser?.avatar ? (
+                  <img src={currentUser.avatar} alt="Seu avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm font-black text-[#ff6500]">
+                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : '👤'}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1 flex flex-col gap-2">
+                <textarea
+                  rows={2}
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Escreva uma pergunta ou comentário sobre este anúncio..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-[#ff6500] focus:ring-2 focus:ring-orange-500/20 outline-none transition-all resize-none"
+                />
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400">
+                    Seja respeitoso e siga as regras do bairro
+                  </span>
+
+                  <button
+                    type="submit"
+                    disabled={commentSending || !newComment.trim()}
+                    className="bg-[#ff6500] hover:bg-[#e95600] disabled:opacity-50 text-white font-extrabold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm hover:scale-102 flex items-center gap-1.5"
+                  >
+                    <span>{commentSending ? 'Enviando...' : 'Publicar Pergunta'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          {/* Lista de Comentários */}
+          {comments.length === 0 ? (
+            <div className="bg-slate-50/80 rounded-2xl p-8 text-center border border-dashed border-slate-200">
+              <div className="text-3xl mb-2">💬</div>
+              <p className="text-sm font-bold text-slate-700 mb-1">Nenhuma pergunta ainda</p>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                Seja o primeiro a perguntar sobre o estado do produto, valor, formas de entrega ou troca!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 divide-y divide-slate-100">
+              {comments.map((cmt) => {
+                const isAuthor = currentUser && currentUser.id === cmt.user_id;
+                const isAdminUser = currentUser && ((currentUser as any).role === 'admin' || (currentUser as any).is_admin);
+
+                return (
+                  <div key={cmt.id} className="pt-4 first:pt-0 flex items-start gap-3.5">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center border border-slate-200">
+                      {cmt.user_avatar ? (
+                        <img src={cmt.user_avatar} alt={cmt.user_name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-black text-slate-600">
+                          {cmt.user_name ? cmt.user_name.charAt(0).toUpperCase() : '👤'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-xs sm:text-sm text-slate-900">
+                            {cmt.user_name || 'Vizinho'}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {cmt.created_at ? new Date(cmt.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Recente'}
+                          </span>
+                        </div>
+
+                        {(isAuthor || isAdminUser) && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteComment(cmt.id)}
+                            className="text-[11px] font-bold text-red-500 hover:text-red-700 transition-colors p-1"
+                            title="Excluir este comentário"
+                          >
+                            Excluir
+                          </button>
+                        )}
+                      </div>
+
+                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+                        {cmt.content}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* MODAL DE ZOOM DE IMAGEM AMPLIADA */}
+      {showImageZoom && currentImage && (
+        <div 
+          onClick={() => setShowImageZoom(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-zoom-out"
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center">
+            <button
+              onClick={() => setShowImageZoom(false)}
+              className="absolute -top-12 right-0 bg-white/20 hover:bg-white text-white hover:text-black w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={currentImage}
+              alt={ad.title}
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
 
       {/* MODAL DE DENÚNCIA */}
       {showReportModal && (

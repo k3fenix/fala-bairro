@@ -131,6 +131,12 @@ function MarketplaceContent() {
   // Paginação progressiva
   const [visibleCount, setVisibleCount] = useState<number>(12);
 
+  // Favoritos e curtidas do usuário
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [likesMap, setLikesMap] = useState<Record<string, number>>({});
+  const [userLikedIds, setUserLikedIds] = useState<Set<string>>(new Set());
+  const [commentsCountMap, setCommentsCountMap] = useState<Record<string, number>>({});
+
   // Normalização de busca para remover acentos e case
   const normalize = (str: any) => {
     if (!str || typeof str !== 'string') return '';
@@ -139,6 +145,92 @@ function MarketplaceContent() {
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .trim();
+  };
+
+  useEffect(() => {
+    loadUserInteractions();
+  }, [activeUser]);
+
+  const loadUserInteractions = async () => {
+    // 1. Carregar favoritos do usuário
+    if (activeUser?.id) {
+      try {
+        const { data } = await supabase
+          .from('marketplace_favorites')
+          .select('listing_id')
+          .eq('user_id', activeUser.id);
+        if (data) {
+          setFavoriteIds(new Set(data.map(f => f.listing_id?.toString())));
+        }
+      } catch (_) {}
+    }
+
+    // 2. Carregar curtidas salvas no localStorage como fallback rápido e sincronizado
+    try {
+      const storedLikes = localStorage.getItem('marketplace_likes_counts');
+      if (storedLikes) setLikesMap(JSON.parse(storedLikes));
+
+      const storedUserLikes = localStorage.getItem('marketplace_user_likes');
+      if (storedUserLikes) setUserLikedIds(new Set(JSON.parse(storedUserLikes)));
+
+      const storedComments = localStorage.getItem('marketplace_comments_counts');
+      if (storedComments) setCommentsCountMap(JSON.parse(storedComments));
+    } catch (_) {}
+  };
+
+  const handleToggleFavoriteCard = async (e: React.MouseEvent, listingId: any) => {
+    e.stopPropagation();
+    if (!activeUser) {
+      alert("Faça login na sua conta para salvar seus anúncios favoritos!");
+      navigate(`/login?redirect=/marketplace`);
+      return;
+    }
+    const idStr = listingId.toString();
+    const isFav = favoriteIds.has(idStr);
+    const updated = new Set(favoriteIds);
+
+    if (isFav) {
+      updated.delete(idStr);
+      setFavoriteIds(updated);
+      try {
+        await supabase.from('marketplace_favorites').delete().eq('user_id', activeUser.id).eq('listing_id', listingId);
+      } catch (_) {}
+    } else {
+      updated.add(idStr);
+      setFavoriteIds(updated);
+      try {
+        await supabase.from('marketplace_favorites').insert({ user_id: activeUser.id, listing_id: listingId });
+      } catch (_) {}
+    }
+  };
+
+  const handleToggleLikeCard = (e: React.MouseEvent, listingId: any) => {
+    e.stopPropagation();
+    if (!activeUser) {
+      alert("Faça login na sua conta para curtir anúncios!");
+      navigate(`/login?redirect=/marketplace`);
+      return;
+    }
+    const idStr = listingId.toString();
+    const alreadyLiked = userLikedIds.has(idStr);
+    const newLikedSet = new Set(userLikedIds);
+    const currentCount = likesMap[idStr] || 0;
+    const newCount = alreadyLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+
+    if (alreadyLiked) {
+      newLikedSet.delete(idStr);
+    } else {
+      newLikedSet.add(idStr);
+    }
+
+    const updatedLikesMap = { ...likesMap, [idStr]: newCount };
+    setUserLikedIds(newLikedSet);
+    setLikesMap(updatedLikesMap);
+
+    try {
+      localStorage.setItem('marketplace_likes_counts', JSON.stringify(updatedLikesMap));
+      localStorage.setItem('marketplace_user_likes', JSON.stringify(Array.from(newLikedSet)));
+    } catch (_) {}
   };
 
   useEffect(() => {
@@ -630,16 +722,24 @@ function MarketplaceContent() {
         
         {/* CATÁLOGO GERAL DE PRODUTOS */}
 
-        {/* 6. TÍTULO DO CATÁLOGO GERAL DE PRODUTOS */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        {/* 6. TÍTULO DO CATÁLOGO GERAL DE PRODUTOS MODERNIZADO */}
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-6 pb-2 border-b border-slate-200/80">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ff6500] animate-pulse"></span>
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#ff6500]">
+                Oportunidades no Bairro
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0f172a] tracking-tight">
               Todos os Anúncios do Bairro
             </h2>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5">
-              Exibindo <span className="text-[#ff6500] font-black">{displayedListings.length}</span> de <span className="font-bold text-slate-700">{filteredListings.length}</span> {filteredListings.length === 1 ? 'anúncio disponível' : 'anúncios disponíveis'}
-              {typeFilter !== 'all' ? ` em ${typeFilter}` : ''}
-              {selectedNeighborhood !== 'all' ? ` • ${selectedNeighborhood}` : ''}
+            <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1 flex items-center gap-2">
+              <span>Encontre oportunidades perto de você.</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-slate-900 font-black bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">
+                {filteredListings.length} {filteredListings.length === 1 ? 'anúncio encontrado' : 'anúncios encontrados'}
+              </span>
             </p>
           </div>
 
@@ -651,7 +751,7 @@ function MarketplaceContent() {
                 setSelectedNeighborhood('all');
                 setSearchQuery('');
               }}
-              className="text-xs font-bold text-[#ff6500] hover:text-[#e95600] bg-orange-50 hover:bg-orange-100/80 px-3 py-1.5 rounded-xl border border-orange-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="text-xs font-bold text-[#ff6500] hover:text-[#e95600] bg-orange-50 hover:bg-orange-100 px-3.5 py-2 rounded-xl border border-orange-200 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
             >
               <X className="w-3.5 h-3.5" /> Limpar Filtros
             </button>
@@ -660,11 +760,11 @@ function MarketplaceContent() {
 
         {/* 7. GRADE DE PRODUTOS (CARDS MODERNOS COM IDENTIDADE PRÓPRIA) */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
-              <div key={i} className="bg-white rounded-3xl border border-slate-200/80 p-3 sm:p-3.5 animate-pulse shadow-2xs">
-                <div className="aspect-square bg-slate-200/80 rounded-2xl mb-3"></div>
-                <div className="h-5 bg-slate-200 rounded w-1/2 mb-2"></div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <div key={i} className="bg-white rounded-3xl border border-slate-200 p-4 animate-pulse shadow-sm">
+                <div className="aspect-4/3 bg-slate-200 rounded-2xl mb-3"></div>
+                <div className="h-6 bg-slate-200 rounded w-1/2 mb-2"></div>
                 <div className="h-4 bg-slate-200 rounded w-4/5 mb-3"></div>
                 <div className="h-3 bg-slate-200 rounded w-1/3"></div>
               </div>
@@ -694,8 +794,9 @@ function MarketplaceContent() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6">
               {displayedListings.map(ad => {
+                const idStr = ad.id.toString();
                 const rawPrice = Number(ad.price);
                 const isFree = isNaN(rawPrice) || rawPrice === 0 || ad.type === 'Gratis';
                 const isTrade = ad.accepts_trade || ad.type === 'Troca';
@@ -704,69 +805,117 @@ function MarketplaceContent() {
                   ? `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
                   : 'Grátis';
 
+                const isFav = favoriteIds.has(idStr);
+                const isLiked = userLikedIds.has(idStr);
+                const likesCount = likesMap[idStr] || 0;
+                const commentsCount = commentsCountMap[idStr] || 0;
+
                 return (
                   <div
                     key={ad.id}
                     onClick={() => navigate(`/marketplace/anuncio/${ad.id}`)}
-                    className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-3xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group flex flex-col relative cursor-pointer shadow-2xs"
+                    className="bg-white border border-slate-200/90 hover:border-orange-300 rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col relative cursor-pointer shadow-xs"
                   >
-                    {/* 1. Foto principal com boa proporção e qualidade */}
-                    <div className="aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center">
+                    {/* 1. Foto principal em proporção 4:3 com destaque e moldura suave */}
+                    <div className="aspect-4/3 w-full bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
                       {ad.image_url ? (
                         <img
                           src={ad.image_url}
                           alt={ad.title || 'Anúncio'}
                           loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="text-4xl opacity-20">📦</div>
+                        <div className="text-5xl opacity-20">📦</div>
                       )}
 
-                      {/* 2. Selos discretos: Novo / Usado */}
-                      <span className="absolute top-2.5 right-2.5 bg-black/65 backdrop-blur-md text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
+                      {/* Selo Novo / Usado */}
+                      <span className="absolute top-3 left-3 bg-white/95 backdrop-blur-md text-slate-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-xs">
                         {ad.condition || 'Usado'}
                       </span>
 
-                      {/* 3. Selo de Troca / Doação / Vendido */}
-                      {isSold ? (
-                        <span className="absolute bottom-2.5 left-2.5 bg-slate-900/95 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs">
-                          Vendido
-                        </span>
-                      ) : isTrade ? (
-                        <span className="absolute bottom-2.5 left-2.5 bg-purple-600/95 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
-                          <Repeat className="w-2.5 h-2.5" /> Troca
-                        </span>
-                      ) : isFree ? (
-                        <span className="absolute bottom-2.5 left-2.5 bg-emerald-600/95 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs">
-                          Doação
-                        </span>
-                      ) : null}
+                      {/* Botão de Favorito Rápido */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleFavoriteCard(e, ad.id)}
+                        className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-md shadow-xs cursor-pointer ${
+                          isFav 
+                            ? 'bg-red-500 text-white scale-110' 
+                            : 'bg-white/90 text-slate-600 hover:text-red-500 hover:bg-white hover:scale-110'
+                        }`}
+                        title={isFav ? "Remover dos favoritos" : "Salvar nos favoritos"}
+                      >
+                        <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+                      </button>
+
+                      {/* Selos de Modalidade: Troca, Doação, Vendido */}
+                      <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
+                        {isSold ? (
+                          <span className="bg-slate-900/95 backdrop-blur-md text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-xs">
+                            Vendido
+                          </span>
+                        ) : isTrade ? (
+                          <span className="bg-purple-600/95 backdrop-blur-md text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1">
+                            <Repeat className="w-3 h-3" /> Troca
+                          </span>
+                        ) : isFree ? (
+                          <span className="bg-emerald-600/95 backdrop-blur-md text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-xs">
+                            Doação
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
 
                     {/* Informações do Produto */}
-                    <div className="p-3.5 sm:p-4 flex flex-col flex-1">
-                      
-                      {/* 4. Preço em destaque */}
-                      <div className="text-base sm:text-lg lg:text-xl font-black text-emerald-600 mb-1 tracking-tight leading-none">
-                        {isFree ? '🎁 Doação Grátis' : formattedPrice}
+                    <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between">
+                      <div>
+                        {/* Categoria */}
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#ff6500] bg-orange-50 px-2 py-0.5 rounded-md inline-block mb-1.5">
+                          {ad.category || 'Classificados'}
+                        </span>
+
+                        {/* Preço em destaque */}
+                        <div className="text-xl sm:text-2xl font-black text-emerald-600 mb-1.5 tracking-tight leading-none">
+                          {isFree ? '🎁 Doação Grátis' : formattedPrice}
+                        </div>
+
+                        {/* Título legível com até 2 linhas confortáveis */}
+                        <h3 className="font-bold text-[#0f172a] text-sm sm:text-base line-clamp-2 leading-snug group-hover:text-[#ff6500] transition-colors mb-2">
+                          {ad.title}
+                        </h3>
                       </div>
 
-                      {/* 5. Título legível com limite visual */}
-                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-snug mb-2 group-hover:text-[#ff6500] transition-colors">
-                        {ad.title}
-                      </h3>
+                      <div>
+                        {/* Faixa de Localização */}
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-3">
+                          <MapPin className="w-3.5 h-3.5 text-[#ff6500] shrink-0" />
+                          <span className="truncate">{ad.neighborhood || 'Mário Covas'}, {ad.city || 'Campinas'}</span>
+                        </div>
 
-                      {/* 6. Localização do produto & Informações complementares */}
-                      <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                        <span className="truncate flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#ff6500] shrink-0" />
-                          <span className="truncate">{ad.neighborhood || 'Mário Covas'}</span>
-                        </span>
-                        <span className="text-[10px] text-slate-400 shrink-0 font-semibold">
-                          {ad.city || 'Campinas'}
-                        </span>
+                        {/* Faixa Discreta de Interação: Curtidas e Comentários */}
+                        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-bold">
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleLikeCard(e, ad.id)}
+                            className={`flex items-center gap-1.5 transition-colors cursor-pointer py-1 px-1.5 rounded-md ${
+                              isLiked ? 'text-red-600' : 'hover:text-red-500 text-slate-500'
+                            }`}
+                            title="Curtir anúncio"
+                          >
+                            <span className="text-sm">❤️</span>
+                            <span className="text-[11px] font-black">{likesCount}</span>
+                          </button>
+
+                          <div 
+                            className="flex items-center gap-1.5 text-slate-400 group-hover:text-slate-600 transition-colors"
+                            title="Comentários no anúncio"
+                          >
+                            <span className="text-sm">💬</span>
+                            <span className="text-[11px] font-black">{commentsCount}</span>
+                          </div>
+                        </div>
                       </div>
+
                     </div>
                   </div>
                 );
