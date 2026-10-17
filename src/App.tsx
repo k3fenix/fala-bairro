@@ -11,6 +11,7 @@ import MarketplaceNew from './pages/MarketplaceNew';
 import MarketplaceAd from './pages/MarketplaceAd';
 import MarketplaceMyAds from './pages/MarketplaceMyAds';
 import MarketplaceFavorites from './pages/MarketplaceFavorites';
+import MarketplaceProfile from './pages/MarketplaceProfile';
 import MarketplaceAdmin from './pages/MarketplaceAdmin';
 import BottomNav from './components/BottomNav';
 
@@ -35,13 +36,16 @@ function App() {
             <Route path="/feed" element={<Feed />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            
+            {/* Rotas Modernizadas do Marketplace */}
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/marketplace/anunciar" element={<MarketplaceNew />} />
+            <Route path="/marketplace/editar/:id" element={<MarketplaceNew />} />
             <Route path="/marketplace/anuncio/:id" element={<MarketplaceAd />} />
             <Route path="/marketplace/meus-anuncios" element={<MarketplaceMyAds />} />
             <Route path="/marketplace/favoritos" element={<MarketplaceFavorites />} />
+            <Route path="/marketplace/perfil" element={<MarketplaceProfile />} />
             <Route path="/marketplace/admin" element={<MarketplaceAdmin />} />
-            {/* Add more routes here */}
           </Routes>
           <NavigationWrapper />
         </div>

@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
-import { ArrowLeft, UploadCloud, X, CheckCircle, Repeat, Star } from 'lucide-react';
+import { 
+  ArrowLeft, UploadCloud, X, CheckCircle, Repeat, Sparkles, 
+  MapPin, Phone, AlertCircle, Info, Trash2, Camera
+} from 'lucide-react';
 import { getAuthUser, type UserSession } from '../lib/authHelper';
 import { compressImage } from '../lib/imageUtils';
 import { useAuth } from '../context/AuthContext';
 
 export default function MarketplaceNew() {
   const navigate = useNavigate();
+  const { id: editId } = useParams<{ id?: string }>();
+  const isEditing = Boolean(editId);
+
   const { user: contextUser } = useAuth();
   const [currentUser, setCurrentUser] = useState<UserSession | null>(contextUser);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(isEditing);
   const [categories, setCategories] = useState<any[]>([]);
   const [success, setSuccess] = useState(false);
   
@@ -21,7 +28,7 @@ export default function MarketplaceNew() {
   const [formData, setFormData] = useState({
     title: '',
     category_id: '',
-    ad_type: 'Venda', // 'Venda', 'Troca', 'Gratis'
+    ad_type: 'Venda' as 'Venda' | 'Troca' | 'Gratis',
     price: '',
     condition: 'Usado',
     accepts_trade: 'nao', // 'sim' ou 'nao'
@@ -36,28 +43,99 @@ export default function MarketplaceNew() {
   });
 
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuthAndData = async () => {
       const user = contextUser || (await getAuthUser());
       if (!user) {
-        alert('🔒 Atenção: É necessário estar conectado na sua conta para anunciar produtos no Marketplace!');
-        navigate('/login');
+        alert('🔒 É necessário estar conectado na sua conta para anunciar ou gerenciar produtos!');
+        navigate(`/login?redirect=${encodeURIComponent(isEditing ? `/marketplace/editar/${editId}` : '/marketplace/anunciar')}`);
         return;
       }
       setCurrentUser(user);
-      setFormData(prev => ({
-        ...prev,
-        neighborhood: user.neighborhood || prev.neighborhood || 'Mário Covas',
-        whatsapp: user.whatsapp || prev.whatsapp || ''
-      }));
-      fetchCategories();
-    };
-    initAuth();
-  }, [navigate, contextUser]);
 
-  const fetchCategories = async () => {
-    const { data } = await supabase.from('marketplace_categories').select('*').eq('is_active', true).order('order_index');
-    if (data) setCategories(data);
-  };
+      // Carregar categorias
+      const { data: catData } = await supabase
+        .from('marketplace_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index');
+      if (catData) setCategories(catData);
+
+      // Se for edição, carregar anúncio existente
+      if (isEditing && editId) {
+        try {
+          const { data: ad, error } = await supabase
+            .from('marketplace_listings')
+            .select('*')
+            .eq('id', editId)
+            .single();
+
+          if (error || !ad) {
+            alert('Anúncio não encontrado para edição.');
+            navigate('/marketplace/meus-anuncios');
+            return;
+          }
+
+          // Verificação de segurança: autorizar apenas o dono do anúncio
+          if (ad.user_id && user.id && ad.user_id !== user.id && ad.seller_name !== user.name) {
+            alert('Acesso negado: Você só pode editar os seus próprios anúncios.');
+            navigate('/marketplace/meus-anuncios');
+            return;
+          }
+
+          const rawPrice = Number(ad.price);
+          const isFree = rawPrice === 0;
+          const isTrade = ad.accepts_trade === true || ad.type === 'Troca';
+          const inferredType: 'Venda' | 'Troca' | 'Gratis' = isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda');
+
+          setFormData({
+            title: ad.title || '',
+            category_id: ad.category_id ? String(ad.category_id) : '',
+            ad_type: inferredType,
+            price: isFree || isTrade ? '' : (rawPrice ? String(rawPrice) : ''),
+            condition: ad.condition || 'Usado',
+            accepts_trade: isTrade ? 'sim' : 'nao',
+            description: ad.description || '',
+            brand: ad.brand || '',
+            model: ad.model || '',
+            state: ad.state || 'SP',
+            city: ad.city || 'Campinas',
+            neighborhood: ad.neighborhood || user.neighborhood || 'Mário Covas',
+            zip_code: ad.zip_code || '',
+            whatsapp: ad.whatsapp || user.whatsapp || ''
+          });
+
+          // Carregar imagens do anúncio
+          const { data: imgs } = await supabase
+            .from('marketplace_listing_images')
+            .select('*')
+            .eq('listing_id', editId)
+            .order('order_index');
+
+          if (imgs && imgs.length > 0) {
+            setImagePreviews(imgs.map(i => i.image_url));
+            const pIdx = imgs.findIndex(i => i.is_primary);
+            if (pIdx >= 0) setPrimaryIndex(pIdx);
+          } else if (ad.image_url || ad.image) {
+            setImagePreviews([ad.image_url || ad.image]);
+          }
+        } catch (err) {
+          console.error('Erro ao carregar anúncio:', err);
+          alert('Erro ao carregar dados do anúncio.');
+          navigate('/marketplace/meus-anuncios');
+        } finally {
+          setInitialLoading(false);
+        }
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          neighborhood: user.neighborhood || prev.neighborhood || 'Mário Covas',
+          whatsapp: user.whatsapp || prev.whatsapp || ''
+        }));
+      }
+    };
+
+    initAuthAndData();
+  }, [navigate, contextUser, isEditing, editId]);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -80,8 +158,8 @@ export default function MarketplaceNew() {
   const handleImageChange = async (e: any) => {
     if (e.target.files) {
       const files = Array.from(e.target.files) as File[];
-      if (imageFiles.length + files.length > 5) {
-        alert('Você pode enviar no máximo 5 fotos.');
+      if (imagePreviews.length + files.length > 5) {
+        alert('Você pode enviar no máximo 5 fotos por anúncio.');
         return;
       }
 
@@ -98,13 +176,15 @@ export default function MarketplaceNew() {
   };
 
   const removeImage = (index: number) => {
-    const newFiles = [...imageFiles];
-    newFiles.splice(index, 1);
-    setImageFiles(newFiles);
-
     const newPreviews = [...imagePreviews];
     newPreviews.splice(index, 1);
     setImagePreviews(newPreviews);
+
+    const newFiles = [...imageFiles];
+    if (newFiles.length > index) {
+      newFiles.splice(index, 1);
+      setImageFiles(newFiles);
+    }
 
     if (primaryIndex === index) {
       setPrimaryIndex(0);
@@ -115,6 +195,18 @@ export default function MarketplaceNew() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    if (loading) return; // Prevenção de duplicidade por duplo clique
+
+    if (!formData.title.trim()) {
+      alert('Por favor, informe o título do produto.');
+      return;
+    }
+
+    if (imagePreviews.length === 0) {
+      alert('Por favor, adicione pelo menos uma foto para o seu anúncio.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -126,62 +218,62 @@ export default function MarketplaceNew() {
 
       const priceNum = parseFloat(String(formData.price).replace(',', '.'));
       const finalPrice = isGratis ? 0 : (isNaN(priceNum) ? 0 : priceNum);
-      const acceptsTradeBool = isTroca;
+      const effectiveType = isGratis ? 'Gratis' : (isTroca ? 'Troca' : 'Venda');
 
-      const effectiveType = isGratis ? 'Grátis' : (formData.ad_type === 'Troca' ? 'Troca' : 'Venda');
+      const primaryImage = imagePreviews[primaryIndex] || imagePreviews[0] || '';
 
-      // Seleciona a imagem principal
-      const primaryImage = imagePreviews[primaryIndex] || imagePreviews[0] || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80';
+      const listingPayload: any = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        price: finalPrice,
+        type: effectiveType,
+        condition: formData.condition,
+        category_id: formData.category_id ? parseInt(formData.category_id) : null,
+        accepts_trade: isTroca,
+        state: formData.state || 'SP',
+        city: formData.city || 'Campinas',
+        neighborhood: formData.neighborhood.trim() || 'Mário Covas',
+        seller_name: user?.name || 'Vendedor do Bairro',
+        whatsapp: formData.whatsapp.trim(),
+        status: 'approved'
+      };
 
-      const selectedCategoryObj = categories.find(c => c.id.toString() === formData.category_id);
-      const categoryName = selectedCategoryObj?.name || 'Outros';
+      if (userId) {
+        listingPayload.user_id = userId;
+      }
 
-      let listingsSaved = false;
-      let lastErrorMessage = '';
+      let targetId = editId;
 
-      // Inserir em marketplace_listings (tabela oficial da plataforma independente)
-      try {
-        const listingPayload: any = {
-          title: formData.title.trim(),
-          description: formData.description.trim(),
-          price: finalPrice,
-          type: effectiveType,
-          condition: formData.condition,
-          category_id: formData.category_id ? parseInt(formData.category_id) : null,
-          state: formData.state || 'SP',
-          city: formData.city || 'Campinas',
-          neighborhood: formData.neighborhood.trim(),
-          seller_name: user?.name || 'Vendedor do Bairro',
-          whatsapp: formData.whatsapp.trim(),
-          status: 'approved'
-        };
+      if (isEditing && editId) {
+        // Atualizar anúncio existente
+        const { error: updateError } = await supabase
+          .from('marketplace_listings')
+          .update(listingPayload)
+          .eq('id', editId);
 
-        if (userId) {
-          listingPayload.user_id = userId;
+        if (updateError) throw updateError;
+
+        // Atualizar imagens
+        await supabase.from('marketplace_listing_images').delete().eq('listing_id', editId);
+        if (imagePreviews.length > 0) {
+          const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
+            listing_id: editId,
+            image_url: imgUrl,
+            is_primary: idx === primaryIndex,
+            order_index: idx
+          }));
+          await supabase.from('marketplace_listing_images').insert(imagesPayload);
         }
-
+      } else {
+        // Criar novo anúncio
         const { data: newListing, error: listingError } = await supabase
           .from('marketplace_listings')
           .insert(listingPayload)
           .select()
           .single();
 
-        if (!listingError && newListing?.id) {
-          listingsSaved = true;
-          if (imagePreviews.length > 0) {
-            const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
-              listing_id: newListing.id,
-              image_url: imgUrl,
-              is_primary: idx === primaryIndex,
-              order_index: idx
-            }));
-            await supabase.from('marketplace_listing_images').insert(imagesPayload);
-          }
-        } else if (listingError) {
-          console.warn("Aviso ao salvar marketplace_listings:", listingError);
-          lastErrorMessage = listingError.message || listingError.details || JSON.stringify(listingError);
-          
-          // Se falhou com user_id (ex: profile ainda não sincronizado no novo banco), tenta sem user_id
+        if (listingError) {
+          // Fallback seguro caso user_id tenha restrição de chave estrangeira
           if (listingPayload.user_id) {
             delete listingPayload.user_id;
             const { data: retryListing, error: retryErr } = await supabase
@@ -190,40 +282,45 @@ export default function MarketplaceNew() {
               .select()
               .single();
 
-            if (!retryErr && retryListing?.id) {
-              listingsSaved = true;
-              if (imagePreviews.length > 0) {
-                const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
-                  listing_id: retryListing.id,
-                  image_url: imgUrl,
-                  is_primary: idx === primaryIndex,
-                  order_index: idx
-                }));
-                await supabase.from('marketplace_listing_images').insert(imagesPayload);
-              }
-            } else if (retryErr) {
-              lastErrorMessage = retryErr.message || retryErr.details || lastErrorMessage;
-            }
+            if (retryErr) throw retryErr;
+            targetId = retryListing.id;
+          } else {
+            throw listingError;
           }
+        } else {
+          targetId = newListing.id;
         }
-      } catch (errListings: any) {
-        console.error("Erro na requisição marketplace_listings:", errListings);
-        lastErrorMessage = errListings.message || String(errListings);
-      }
 
-      if (!listingsSaved) {
-        throw new Error(lastErrorMessage || 'Falha na comunicação com o banco de dados. Verifique as permissões ou sua conexão.');
+        if (targetId && imagePreviews.length > 0) {
+          const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
+            listing_id: targetId,
+            image_url: imgUrl,
+            is_primary: idx === primaryIndex,
+            order_index: idx
+          }));
+          await supabase.from('marketplace_listing_images').insert(imagesPayload);
+        }
       }
 
       setSuccess(true);
-      setTimeout(() => navigate(`/marketplace?refresh=${Date.now()}`), 1200);
+      setTimeout(() => {
+        navigate(`/marketplace/anuncio/${targetId}?refresh=${Date.now()}`);
+      }, 1200);
 
     } catch (err: any) {
-      alert('Erro ao publicar anúncio: ' + (err.message || 'Tente novamente.'));
+      alert('Erro ao salvar anúncio: ' + (err.message || 'Tente novamente.'));
     } finally {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#ff6500]"></div>
+      </div>
+    );
+  }
 
   if (success) {
     return (
@@ -231,99 +328,80 @@ export default function MarketplaceNew() {
         <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
           <CheckCircle className="w-12 h-12" />
         </div>
-        <h1 className="text-3xl font-black text-slate-800 mb-2">Anúncio Publicado com Sucesso!</h1>
-        <p className="text-slate-600 max-w-sm mb-6 leading-relaxed">
-          Seu produto já está visível para os moradores no Marketplace do Fala do Bairro.
+        <h1 className="text-3xl font-black text-slate-800 mb-2">
+          {isEditing ? 'Anúncio Atualizado!' : 'Anúncio Publicado com Sucesso!'}
+        </h1>
+        <p className="text-slate-600 max-w-sm mb-6 leading-relaxed text-sm">
+          {isEditing 
+            ? 'As alterações foram salvas e seu produto já está atualizado no Marketplace.'
+            : 'Seu produto já está visível para todos os moradores no Marketplace do Fala do Bairro.'}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] text-[#1d2433] pb-16">
-      <header className="bg-white border-b border-[#e7e7e7] sticky top-0 z-50 shadow-sm">
-        <div className="max-w-[800px] mx-auto min-h-[64px] flex items-center justify-between px-4">
+    <div className="min-h-screen bg-[#f8fafc] text-[#1e293b] pb-24">
+      {/* Top Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+        <div className="max-w-[760px] mx-auto h-[64px] flex items-center justify-between px-4">
           <button 
             type="button" 
-            onClick={() => navigate('/marketplace')} 
-            className="flex items-center gap-2 text-slate-600 font-bold hover:text-[#ff6500] transition-colors"
+            onClick={() => navigate(-1)} 
+            className="flex items-center gap-2 text-slate-600 font-bold hover:text-[#ff6500] transition-colors cursor-pointer text-sm"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Voltar
+            <ArrowLeft className="w-5 h-5" /> Cancelar
           </button>
-          <div className="font-black text-lg sm:text-xl text-slate-900 tracking-tight">Anunciar Produto</div>
-          {currentUser ? (
-            <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full text-xs font-bold text-orange-900 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span className="truncate max-w-[120px]">{currentUser.name}</span>
-            </div>
-          ) : (
-            <div className="w-16"></div>
-          )}
+          <div className="font-extrabold text-slate-900 text-base">
+            {isEditing ? 'Editar Anúncio' : 'Criar Novo Anúncio'}
+          </div>
+          <div className="w-16"></div>
         </div>
       </header>
 
-      <main className="max-w-[800px] mx-auto p-4 sm:p-6 mt-2">
-        {currentUser && (
-          <div className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 text-emerald-900 p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white font-black flex items-center justify-center text-sm shadow-sm shrink-0">
-                ✓
-              </div>
-              <div>
-                <p className="font-extrabold text-slate-800 text-sm">
-                  Publicando como: <span className="text-emerald-700">{currentUser.name}</span>
-                </p>
-                <p className="text-xs text-slate-500">
-                  📍 {currentUser.neighborhood || 'Bairro'} • Anúncio publicado diretamente pela sua conta
-                </p>
-              </div>
-            </div>
-            <span className="bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider hidden sm:inline-block">
-              Conta Conectada
-            </span>
-          </div>
-        )}
+      <main className="max-w-[760px] mx-auto p-4 sm:p-6 mt-2">
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          {/* FOTOS DO PRODUTO */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Fotos do Produto</h2>
-                <p className="text-xs text-slate-500">Envie até 5 fotos reais do seu item.</p>
-              </div>
-              <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+          {/* SEÇÃO 1: FOTOS */}
+          <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Camera className="w-4 h-4 text-[#ff6500]" /> Fotos do Produto
+              </label>
+              <span className="text-xs font-bold text-slate-400">
                 {imagePreviews.length}/5 fotos
               </span>
             </div>
+            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+              Dica: Anúncios com boas fotos vendem até 3x mais rápido. A primeira foto será a capa principal.
+            </p>
 
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {imagePreviews.map((preview, idx) => (
-                <div key={idx} className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden border-2 border-slate-200 group">
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+            {/* Grid de previews */}
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
+              {imagePreviews.map((preview, index) => (
+                <div 
+                  key={index} 
+                  className={`relative aspect-square rounded-2xl overflow-hidden border-2 cursor-pointer transition-all ${
+                    primaryIndex === index ? 'border-[#ff6500] ring-2 ring-orange-400/30 shadow-md' : 'border-slate-200'
+                  }`}
+                  onClick={() => setPrimaryIndex(index)}
+                  title="Clique para definir como foto de capa"
+                >
+                  <img src={preview} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
                   
-                  {/* Badge de Foto Capa */}
-                  {primaryIndex === idx ? (
-                    <span className="absolute bottom-1 left-1 bg-[#ff6500] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow">
+                  {primaryIndex === index && (
+                    <span className="absolute bottom-1.5 left-1.5 bg-[#ff6500] text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow">
                       Capa
                     </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setPrimaryIndex(idx)}
-                      className="absolute bottom-1 left-1 bg-black/60 hover:bg-[#ff6500] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      Tornar Capa
-                    </button>
                   )}
 
-                  {/* Botão Remover */}
-                  <button 
-                    type="button" 
-                    onClick={() => removeImage(idx)} 
-                    className="absolute top-1 right-1 w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
-                    title="Remover foto"
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(index);
+                    }}
+                    className="absolute top-1.5 right-1.5 bg-black/70 hover:bg-red-600 text-white rounded-full p-1 transition-colors shadow"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -331,226 +409,225 @@ export default function MarketplaceNew() {
               ))}
 
               {imagePreviews.length < 5 && (
-                <label className="w-28 h-28 shrink-0 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-500 cursor-pointer hover:bg-orange-50/50 hover:border-[#ff6500] hover:text-[#ff6500] transition-all">
-                  <UploadCloud className="w-7 h-7 mb-1" />
-                  <span className="text-xs font-bold">Adicionar</span>
-                  <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                <label className="aspect-square rounded-2xl border-2 border-dashed border-slate-300 hover:border-[#ff6500] bg-slate-50 hover:bg-orange-50/40 flex flex-col items-center justify-center cursor-pointer transition-colors text-slate-400 hover:text-[#ff6500] p-2 text-center">
+                  <UploadCloud className="w-6 h-6 mb-1" />
+                  <span className="text-[11px] font-bold leading-tight">Adicionar foto</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    multiple 
+                    onChange={handleImageChange} 
+                    className="hidden" 
+                  />
                 </label>
               )}
             </div>
-          </section>
+          </div>
 
-          {/* INFORMAÇÕES DO PRODUTO */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">Informações Principais</h2>
-            
+          {/* SEÇÃO 2: TIPO DO ANÚNCIO (VENDA / TROCA / DOAÇÃO) */}
+          <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-xs">
+            <label className="block text-sm font-black text-slate-900 uppercase tracking-wider mb-3">
+              Modalidade do Anúncio
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { id: 'Venda', label: 'Venda', icon: '💰', desc: 'Preço definido' },
+                { id: 'Troca', label: 'Troca', icon: '🔄', desc: 'Permuta ou troca' },
+                { id: 'Gratis', label: 'Doação', icon: '🎁', desc: '100% Gratuito' }
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ 
+                    ...prev, 
+                    ad_type: opt.id as any,
+                    accepts_trade: opt.id === 'Troca' ? 'sim' : prev.accepts_trade 
+                  }))}
+                  className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
+                    formData.ad_type === opt.id
+                      ? 'border-[#ff6500] bg-orange-50/50 text-[#ff6500] font-black shadow-xs'
+                      : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-xl mb-1">{opt.icon}</div>
+                  <div className="text-xs sm:text-sm font-bold">{opt.label}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* SEÇÃO 3: INFORMAÇÕES BÁSICAS */}
+          <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-1">
+              Informações do Produto
+            </h3>
+
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Título do Anúncio *</label>
-              <input 
-                required 
-                name="title" 
-                value={formData.title} 
-                onChange={handleChange} 
-                placeholder="Ex: Celular Samsung Galaxy S21 Ultra 256GB" 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white transition-colors" 
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                Título do Anúncio *
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Ex: Sofá retrátil 3 lugares cinza impecável"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:border-[#ff6500] outline-none transition-colors"
+                maxLength={90}
+                required
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Categoria *</label>
-                <select 
-                  required 
-                  name="category_id" 
-                  value={formData.category_id} 
-                  onChange={handleChange} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white transition-colors"
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  Categoria *
+                </label>
+                <select
+                  name="category_id"
+                  value={formData.category_id}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:border-[#ff6500] outline-none transition-colors cursor-pointer"
+                  required
                 >
-                  <option value="">Selecione uma categoria...</option>
+                  <option value="">Selecione a categoria</option>
                   {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon || '📦'} {cat.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Condição do Item *</label>
-                <select 
-                  name="condition" 
-                  value={formData.condition} 
-                  onChange={handleChange} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white transition-colors font-medium"
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  Estado de Conservação
+                </label>
+                <select
+                  name="condition"
+                  value={formData.condition}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:border-[#ff6500] outline-none transition-colors cursor-pointer"
                 >
-                  <option value="Novo">✨ Novo</option>
-                  <option value="Usado">👌 Usado em bom estado</option>
-                  <option value="Seminovo">🌟 Seminovo (pouco uso)</option>
-                  <option value="Recondicionado">🛠️ Recondicionado / Revisado</option>
+                  <option value="Novo">✨ Novo (Lacrado / Sem uso)</option>
+                  <option value="Excelente">⭐ Excelente (Pouco uso)</option>
+                  <option value="Usado">👍 Bom estado (Usado)</option>
+                  <option value="Marcas de Uso">🔧 Com detalhes de uso</option>
                 </select>
               </div>
             </div>
 
-            {/* MODALIDADE DO ANÚNCIO: VENDA / TROCA / DOAÇÃO */}
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-              <label className="block text-sm font-bold text-slate-800">
-                O que você deseja fazer com este item? *
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, ad_type: 'Venda' }))}
-                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${formData.ad_type === 'Venda' ? 'bg-[#ff6500] text-white border-[#ff6500] shadow-md shadow-orange-500/20' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
-                >
-                  <span className="text-lg">🏷️</span>
-                  <span>Vender</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, ad_type: 'Troca', accepts_trade: 'sim' }))}
-                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${formData.ad_type === 'Troca' ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
-                >
-                  <span className="text-lg">🔄</span>
-                  <span>Trocar</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, ad_type: 'Gratis', price: '0' }))}
-                  className={`py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${formData.ad_type === 'Gratis' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-500/20' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
-                >
-                  <span className="text-lg">🎁</span>
-                  <span>Doar (Grátis)</span>
-                </button>
-              </div>
-            </div>
-
-            {/* OPÇÃO DE TROCA SE FOR VENDA */}
             {formData.ad_type === 'Venda' && (
-              <div className="p-4 bg-orange-50/60 border border-orange-200 rounded-2xl">
-                <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                  <Repeat className="w-4 h-4 text-[#ff6500]" />
-                  Além da venda, você também aceita proposta de troca?
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  Preço de Venda (R$) *
                 </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 text-sm">
-                    <input 
-                      type="radio" 
-                      name="accepts_trade" 
-                      value="sim" 
-                      checked={formData.accepts_trade === 'sim'} 
-                      onChange={handleChange} 
-                      className="w-4 h-4 accent-[#ff6500]" 
-                    />
-                    <span>Sim, aceito analisar trocas</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700 text-sm">
-                    <input 
-                      type="radio" 
-                      name="accepts_trade" 
-                      value="nao" 
-                      checked={formData.accepts_trade === 'nao'} 
-                      onChange={handleChange} 
-                      className="w-4 h-4 accent-[#ff6500]" 
-                    />
-                    <span>Não, somente venda</span>
-                  </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-3.5 text-sm font-black text-slate-400">R$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    placeholder="0,00"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-base font-black text-emerald-700 focus:bg-white focus:border-emerald-500 outline-none transition-colors"
+                    required={formData.ad_type === 'Venda'}
+                  />
                 </div>
               </div>
             )}
 
-            {/* PREÇO OU AVISO DE GRATUIDADE / TROCA */}
-            {formData.ad_type === 'Gratis' ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 flex items-center gap-3">
-                <span className="text-2xl">🎁</span>
-                <div>
-                  <strong className="block text-sm font-bold">Anúncio Gratuito / Doação</strong>
-                  <span className="text-xs text-emerald-700">Este item será exibido sem custo na aba "Grátis / Doação" para quem precisar no bairro.</span>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">
-                  {formData.ad_type === 'Troca' ? 'Valor Estimado para Troca (R$) - Opcional' : 'Preço de Venda (R$) *'}
-                </label>
-                <input 
-                  required={formData.ad_type === 'Venda'} 
-                  type="number" 
-                  step="0.01" 
-                  name="price" 
-                  value={formData.price} 
-                  onChange={handleChange} 
-                  placeholder="0.00" 
-                  className="w-full sm:w-1/2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white text-xl font-bold text-slate-900 transition-colors" 
+            {formData.ad_type === 'Venda' && (
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="trade_check"
+                  checked={formData.accepts_trade === 'sim'}
+                  onChange={e => setFormData(prev => ({ ...prev, accepts_trade: e.target.checked ? 'sim' : 'nao' }))}
+                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
                 />
+                <label htmlFor="trade_check" className="text-xs font-bold text-slate-700 cursor-pointer flex items-center gap-1.5">
+                  <Repeat className="w-3.5 h-3.5 text-purple-600" /> Também aceito propostas de troca por outros itens
+                </label>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Descrição do Anúncio *</label>
-              <textarea 
-                required 
-                name="description" 
-                value={formData.description} 
-                onChange={handleChange} 
-                placeholder="Descreva detalhes como estado de conservação, motivo da venda, tempo de uso, etc." 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white min-h-[120px] transition-colors leading-relaxed" 
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                Descrição Completa *
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+                placeholder="Descreva detalhes como medidas, funcionamento, tempo de uso e motivo da venda ou troca..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:border-[#ff6500] outline-none transition-colors"
+                required
               />
             </div>
-          </section>
+          </div>
 
-          {/* LOCALIZAÇÃO E CONTATO */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">Localização e Contato</h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* SEÇÃO 4: LOCALIZAÇÃO E CONTATO */}
+          <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-1 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#ff6500]" /> Localização & Contato
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Cidade *</label>
-                <select 
-                  required 
-                  name="city" 
-                  value={formData.city} 
-                  onChange={handleChange} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white font-semibold cursor-pointer"
-                >
-                  <option value="Campinas">Campinas - SP</option>
-                  <option value="Santa Bárbara d'Oeste">Santa Bárbara d'Oeste - SP</option>
-                  <option value="Americana">Americana - SP</option>
-                  <option value="Sumaré">Sumaré - SP</option>
-                  <option value="Nova Odessa">Nova Odessa - SP</option>
-                  <option value="Hortolândia">Hortolândia - SP</option>
-                  <option value="Piracicaba">Piracicaba - SP</option>
-                  <option value="Limeira">Limeira - SP</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Bairro / Região *</label>
-                <input 
-                  required 
-                  name="neighborhood" 
-                  value={formData.neighborhood} 
-                  onChange={handleChange} 
-                  placeholder="Ex: Mário Covas" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white" 
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  Bairro *
+                </label>
+                <input
+                  type="text"
+                  name="neighborhood"
+                  value={formData.neighborhood}
+                  onChange={handleChange}
+                  placeholder="Ex: Mário Covas"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:border-[#ff6500] outline-none transition-colors"
+                  required
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">WhatsApp para Contato *</label>
-                <input 
-                  required 
-                  name="whatsapp" 
-                  value={formData.whatsapp} 
-                  onChange={handleChange} 
-                  placeholder="(19) 99999-9999" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#ff6500] focus:bg-white font-bold" 
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  WhatsApp para Contato *
+                </label>
+                <input
+                  type="tel"
+                  name="whatsapp"
+                  value={formData.whatsapp}
+                  onChange={handleChange}
+                  placeholder="DDD + Número (Ex: 19999999999)"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:border-[#ff6500] outline-none transition-colors"
+                  required
                 />
               </div>
             </div>
-          </section>
+            <p className="text-[11px] text-slate-400 flex items-center gap-1">
+              <Info className="w-3.5 h-3.5 text-blue-500" /> 
+              Os compradores iniciarão a conversa direto no seu WhatsApp ao clicarem no anúncio.
+            </p>
+          </div>
 
-          <button 
-            type="submit" 
-            disabled={loading} 
-            className="w-full bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold text-lg py-4 rounded-2xl transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-50 cursor-pointer"
+          {/* SUBMIT BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#ff6500] hover:bg-[#e95600] disabled:bg-orange-300 text-white font-black py-4 px-6 rounded-2xl shadow-lg shadow-orange-500/20 text-base flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            {loading ? 'Publicando Anúncio...' : '🚀 Publicar Anúncio no Marketplace'}
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Salvando Anúncio...</span>
+              </>
+            ) : (
+              <span>{isEditing ? 'Salvar Alterações' : 'Publicar Anúncio Agora'}</span>
+            )}
           </button>
         </form>
       </main>
