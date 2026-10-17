@@ -3,7 +3,8 @@ import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   Repeat, RefreshCw, LogOut, Package, 
-  Heart, X, PlusCircle, User as UserIcon, AlertCircle, ShoppingBag
+  Heart, X, PlusCircle, User as UserIcon, AlertCircle, ShoppingBag,
+  Search, MapPin, SlidersHorizontal, ArrowUpDown, Sparkles
 } from 'lucide-react';
 import { getAuthUserSync } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
@@ -376,58 +377,59 @@ function MarketplaceContent() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#1e293b] pb-24">
       
-      {/* HEADER SUPERIOR DO MARKETPLACE */}
+      {/* 1. CABEÇALHO PRINCIPAL DO MARKETPLACE COM A LOGO OFICIAL */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-        <div className="max-w-[1250px] mx-auto px-4 sm:px-6 h-[64px] flex items-center justify-between gap-3">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-[70px] flex items-center justify-between gap-3">
           
-          {/* Logo e Título */}
-          <div className="flex items-center gap-3">
-            <Link to="/feed" className="w-10 h-10 rounded-xl bg-[#ff6500] text-white flex items-center justify-center font-black text-lg shadow-sm">
-              FB
-            </Link>
-            <div className="hidden sm:block">
-              <Link to="/marketplace" className="text-base font-black text-slate-900 leading-none block hover:text-[#ff6500] transition-colors">
-                Marketplace
-              </Link>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                Classificados do Bairro
+          {/* Logo Oficial Fala do Bairro e Identidade "Venda e Troca" */}
+          <Link to="/marketplace" className="flex items-center gap-3 group shrink-0" title="Fala do Bairro - Venda e Troca">
+            <img 
+              src="/logo-fala-bairro.svg" 
+              alt="Fala do Bairro" 
+              className="h-9 sm:h-11 w-auto object-contain transition-transform group-hover:scale-102" 
+            />
+            <div className="flex flex-col">
+              <span className="text-base sm:text-lg font-black text-slate-900 leading-none tracking-tight group-hover:text-[#ff6500] transition-colors">
+                Venda e Troca
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold tracking-normal mt-0.5 hidden xs:block">
+                Compre, venda e troque no seu bairro
               </span>
             </div>
-          </div>
+          </Link>
 
-
-
-          {/* Ações e Perfil */}
-          <div className="flex items-center gap-2">
+          {/* Ações Principais: Anunciar + Entrar/Perfil */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/marketplace/anunciar"
-              className="bg-[#ff6500] hover:bg-[#e95600] text-white px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition-all cursor-pointer shrink-0"
+              className="bg-[#ff6500] hover:bg-[#e95600] active:scale-98 text-white px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 shadow-md shadow-orange-500/20 transition-all cursor-pointer shrink-0"
+              title="Criar novo anúncio"
             >
-              <PlusCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Anunciar</span>
+              <PlusCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              <span>Anunciar</span>
             </Link>
 
             {activeUser ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   to="/marketplace/favoritos"
-                  className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Meus Favoritos"
                 >
-                  <Heart className="w-4 h-4" />
+                  <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </Link>
 
                 <Link
                   to="/marketplace/meus-anuncios"
-                  className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Meus Anúncios"
                 >
-                  <Package className="w-4 h-4" />
+                  <Package className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </Link>
 
                 <Link
                   to="/marketplace/perfil"
-                  className="w-9 h-9 rounded-xl overflow-hidden border border-slate-200 shadow-xs cursor-pointer ml-1 flex items-center justify-center bg-slate-100"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-slate-200 shadow-xs cursor-pointer flex items-center justify-center bg-slate-100 hover:ring-2 hover:ring-orange-500/30 transition-all"
                   title="Minha Conta"
                 >
                   {activeUser.avatar ? (
@@ -449,7 +451,7 @@ function MarketplaceContent() {
                       navigate('/marketplace');
                     }
                   }}
-                  className="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border border-red-200/80"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border border-red-200/80"
                   title="Sair da Conta"
                 >
                   <LogOut className="w-4 h-4" />
@@ -458,7 +460,7 @@ function MarketplaceContent() {
             ) : (
               <Link
                 to="/login?redirect=/marketplace"
-                className="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold text-xs transition-colors shrink-0"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm shrink-0"
               >
                 Entrar
               </Link>
@@ -467,106 +469,146 @@ function MarketplaceContent() {
         </div>
       </header>
 
-      {/* SUB-HEADER: ABAS DE MODALIDADE E FILTROS */}
-      <div className="bg-white border-b border-slate-200/80 sticky top-[64px] z-30 shadow-xs">
-        <div className="max-w-[1250px] mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
-          
-          {/* Tabs: Todos, Venda, Troca, Doação */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {[
-              { id: 'all', label: 'Todos os Itens' },
-              { id: 'Venda', label: 'Venda 💰' },
-              { id: 'Troca', label: 'Trocas 🔄' },
-              { id: 'Gratis', label: 'Doações 🎁' },
-            ].map(tab => (
+      {/* 2. ÁREA DE PESQUISA MODERNA E LOCALIZAÇÃO */}
+      <section className="bg-gradient-to-b from-white to-slate-50/70 border-b border-slate-200/80 py-4 sm:py-6 shadow-2xs">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3">
+            
+            {/* Campo de Busca Amplo */}
+            <div className="relative flex-1">
+              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="O que você está procurando hoje?"
+                className="w-full bg-white border border-slate-200/90 hover:border-slate-300 focus:border-[#ff6500] focus:ring-2 focus:ring-orange-500/10 rounded-2xl pl-11 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none shadow-xs transition-all placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  title="Limpar busca"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Filtro por Bairro ou Localização */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 sm:w-56">
+                <MapPin className="w-4 h-4 text-[#ff6500] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <select
+                  value={selectedNeighborhood}
+                  onChange={e => setSelectedNeighborhood(e.target.value)}
+                  className="w-full bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold pl-9 pr-8 py-3 sm:py-3.5 rounded-2xl outline-none cursor-pointer shadow-xs appearance-none focus:border-[#ff6500]"
+                >
+                  <option value="all">📍 Todos os Bairros</option>
+                  {availableNeighborhoods.map(b => (
+                    <option key={b} value={b}>📍 {b}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Ordenação */}
+              <div className="relative sm:w-48">
+                <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value as any)}
+                  className="w-full bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold px-3.5 py-3 sm:py-3.5 rounded-2xl outline-none cursor-pointer shadow-xs appearance-none focus:border-[#ff6500]"
+                >
+                  <option value="recent">⏱️ Mais Recentes</option>
+                  <option value="price_asc">💲 Menor Preço</option>
+                  <option value="price_desc">💎 Maior Preço</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 3. FILTROS DE VENDAS, TROCAS E DOAÇÕES */}
+      <section className="bg-white border-b border-slate-200/80 sticky top-[70px] z-30 shadow-xs">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+          {[
+            { id: 'all', label: 'Todos os itens', icon: '📦' },
+            { id: 'Venda', label: 'Vendas', icon: '💰' },
+            { id: 'Troca', label: 'Trocas', icon: '🔄' },
+            { id: 'Gratis', label: 'Doações', icon: '🎁' },
+          ].map(tab => {
+            const active = typeFilter === tab.id;
+            return (
               <button
                 key={tab.id}
                 onClick={() => setTypeFilter(tab.id as any)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                  typeFilter === tab.id
-                    ? 'bg-[#ff6500] text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  active
+                    ? 'bg-[#ff6500] text-white shadow-sm shadow-orange-500/20 scale-101'
+                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
                 }`}
               >
-                {tab.label}
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
               </button>
-            ))}
-          </div>
-
-          {/* Filtros de Ordenação e Bairro */}
-          <div className="flex items-center gap-2 shrink-0 ml-auto">
-            
-            {/* Filtro por Bairro */}
-            {availableNeighborhoods.length > 0 && (
-              <select
-                value={selectedNeighborhood}
-                onChange={e => setSelectedNeighborhood(e.target.value)}
-                className="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-xl outline-none cursor-pointer"
-              >
-                <option value="all">📍 Todos os Bairros</option>
-                {availableNeighborhoods.map(b => (
-                  <option key={b} value={b}>📍 {b}</option>
-                ))}
-              </select>
-            )}
-
-            {/* Ordenação */}
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
-              className="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-xl outline-none cursor-pointer"
-            >
-              <option value="recent">⏱️ Mais Recentes</option>
-              <option value="price_asc">💲 Menor Preço</option>
-              <option value="price_desc">💎 Maior Preço</option>
-            </select>
-          </div>
-
+            );
+          })}
         </div>
-      </div>
+      </section>
 
-      <main className="max-w-[1250px] mx-auto px-4 sm:px-6 mt-4">
+      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 mt-5">
         
-        {/* CARROSSEL DE CATEGORIAS */}
+        {/* 4. CATEGORIAS MAIS BONITAS */}
         {categories.length > 0 && (
           <div className="mb-6 overflow-x-auto no-scrollbar pb-1">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveCategory('all')}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
                   activeCategory === 'all'
                     ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+                    : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
                 }`}
               >
                 <span>📦</span>
                 <span>Todas as Categorias</span>
               </button>
 
-              {categories.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveCategory(activeCategory === c.id.toString() ? 'all' : c.id.toString())}
-                  className={`px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activeCategory === c.id.toString()
-                      ? 'bg-[#ff6500] text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <span>{c.icon || '🏷️'}</span>
-                  <span>{c.name}</span>
-                </button>
-              ))}
+              {categories.map(c => {
+                const isSelected = activeCategory === c.id.toString();
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setActiveCategory(isSelected ? 'all' : c.id.toString())}
+                    className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                      isSelected
+                        ? 'bg-[#ff6500] text-white shadow-xs'
+                        : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
+                    }`}
+                  >
+                    <span>{c.icon || '🏷️'}</span>
+                    <span>{c.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* CONTADOR DE RESULTADOS */}
-        <div className="flex items-center justify-between mb-4 text-xs font-bold text-slate-500">
-          <span>
-            Exibindo {displayedListings.length} de {filteredListings.length} produtos
-            {typeFilter !== 'all' ? ` em ${typeFilter}` : ''}
-          </span>
+        {/* 5. TÍTULO DA SEÇÃO DE PRODUTOS & 6. QUANTIDADE DE ANÚNCIOS ENCONTRADOS */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+              Ofertas e Oportunidades do Bairro
+            </h2>
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+              Exibindo <span className="text-[#ff6500] font-black">{displayedListings.length}</span> de <span className="font-bold text-slate-700">{filteredListings.length}</span> {filteredListings.length === 1 ? 'anúncio encontrado' : 'anúncios encontrados'}
+              {typeFilter !== 'all' ? ` em ${typeFilter}` : ''}
+              {selectedNeighborhood !== 'all' ? ` • ${selectedNeighborhood}` : ''}
+            </p>
+          </div>
 
           {(activeCategory !== 'all' || typeFilter !== 'all' || selectedNeighborhood !== 'all' || searchQuery) && (
             <button
@@ -576,31 +618,34 @@ function MarketplaceContent() {
                 setSelectedNeighborhood('all');
                 setSearchQuery('');
               }}
-              className="text-[#ff6500] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#ff6500] hover:text-[#e95600] bg-orange-50 hover:bg-orange-100/80 px-3 py-1.5 rounded-xl border border-orange-200 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" /> Limpar Filtros
             </button>
           )}
         </div>
 
-        {/* GRID DE ANÚNCIOS */}
+        {/* 7. GRADE DE PRODUTOS (CARDS MODERNOS COM IDENTIDADE PRÓPRIA) */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-3 animate-pulse">
-                <div className="aspect-square bg-slate-200 rounded-xl mb-3"></div>
-                <div className="h-4 bg-slate-200 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-slate-200 rounded w-3/4 mb-3"></div>
+              <div key={i} className="bg-white rounded-3xl border border-slate-200/80 p-3 sm:p-3.5 animate-pulse shadow-2xs">
+                <div className="aspect-square bg-slate-200/80 rounded-2xl mb-3"></div>
+                <div className="h-5 bg-slate-200 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-slate-200 rounded w-4/5 mb-3"></div>
                 <div className="h-3 bg-slate-200 rounded w-1/3"></div>
               </div>
             ))}
           </div>
         ) : filteredListings.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-200 p-12 sm:p-16 text-center max-w-md mx-auto shadow-xs my-8">
-            <div className="text-5xl mb-4">🔍</div>
-            <h3 className="text-lg font-black text-slate-800 mb-1">Nenhum produto encontrado</h3>
-            <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-              Não encontramos anúncios com os filtros selecionados. Tente buscar com outros termos ou limpe os filtros.
+          /* 9. ESTADOS DE AUSÊNCIA DE RESULTADOS */
+          <div className="bg-white rounded-3xl border border-slate-200 p-10 sm:p-16 text-center max-w-lg mx-auto shadow-xs my-8">
+            <div className="w-16 h-16 bg-orange-50 text-[#ff6500] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 border border-orange-100">
+              🔍
+            </div>
+            <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1">Nenhum produto encontrado</h3>
+            <p className="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed max-w-md mx-auto">
+              Não encontramos nenhum anúncio com os termos ou filtros selecionados. Tente buscar por outros termos ou explore todos os produtos do bairro.
             </p>
             <button
               onClick={() => {
@@ -609,14 +654,14 @@ function MarketplaceContent() {
                 setSelectedNeighborhood('all');
                 setSearchQuery('');
               }}
-              className="bg-[#ff6500] hover:bg-[#e95600] text-white px-5 py-2.5 rounded-xl font-bold text-xs inline-flex items-center gap-2 transition-colors cursor-pointer"
+              className="bg-[#ff6500] hover:bg-[#e95600] text-white px-6 py-3 rounded-xl font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
             >
               Ver todos os anúncios
             </button>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5">
               {displayedListings.map(ad => {
                 const rawPrice = Number(ad.price);
                 const isFree = isNaN(rawPrice) || rawPrice === 0 || ad.type === 'Gratis';
@@ -630,55 +675,64 @@ function MarketplaceContent() {
                   <div
                     key={ad.id}
                     onClick={() => navigate(`/marketplace/anuncio/${ad.id}`)}
-                    className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all group flex flex-col relative cursor-pointer"
+                    className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-3xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group flex flex-col relative cursor-pointer shadow-2xs"
                   >
-                    {/* Imagem de Capa */}
+                    {/* 1. Foto principal com boa proporção e qualidade */}
                     <div className="aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center">
                       {ad.image_url ? (
                         <img
                           src={ad.image_url}
                           alt={ad.title || 'Anúncio'}
                           loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                         />
                       ) : (
                         <div className="text-4xl opacity-20">📦</div>
                       )}
 
-                      {/* Selos Flutuantes */}
+                      {/* 2. Selos discretos: Novo / Usado */}
+                      <span className="absolute top-2.5 right-2.5 bg-black/65 backdrop-blur-md text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
+                        {ad.condition || 'Usado'}
+                      </span>
+
+                      {/* 3. Selo de Troca / Doação / Vendido */}
                       {isSold ? (
-                        <span className="absolute bottom-2 left-2 bg-slate-900/95 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
+                        <span className="absolute bottom-2.5 left-2.5 bg-slate-900/95 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs">
                           Vendido
                         </span>
                       ) : isTrade ? (
-                        <span className="absolute bottom-2 left-2 bg-purple-600/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow flex items-center gap-1">
+                        <span className="absolute bottom-2.5 left-2.5 bg-purple-600/95 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
                           <Repeat className="w-2.5 h-2.5" /> Troca
                         </span>
                       ) : isFree ? (
-                        <span className="absolute bottom-2 left-2 bg-emerald-600/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
+                        <span className="absolute bottom-2.5 left-2.5 bg-emerald-600/95 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs">
                           Doação
                         </span>
                       ) : null}
-
-                      {/* Estado do item */}
-                      <span className="absolute top-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">
-                        {ad.condition || 'Usado'}
-                      </span>
                     </div>
 
                     {/* Informações do Produto */}
-                    <div className="p-3.5 flex flex-col flex-1">
-                      <div className="text-base sm:text-lg font-black text-emerald-600 mb-1 leading-none">
+                    <div className="p-3.5 sm:p-4 flex flex-col flex-1">
+                      
+                      {/* 4. Preço em destaque */}
+                      <div className="text-base sm:text-lg lg:text-xl font-black text-emerald-600 mb-1 tracking-tight leading-none">
                         {isFree ? '🎁 Doação Grátis' : formattedPrice}
                       </div>
 
-                      <h3 className="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2 leading-tight mb-2">
+                      {/* 5. Título legível com limite visual */}
+                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-snug mb-2 group-hover:text-[#ff6500] transition-colors">
                         {ad.title}
                       </h3>
 
-                      <div className="mt-auto pt-2 flex items-center justify-between text-[11px] text-slate-400">
-                        <span className="truncate">📍 {ad.neighborhood || 'Mário Covas'}</span>
-                        <span className="text-[10px] text-slate-400 font-medium">Campinas</span>
+                      {/* 6. Localização do produto & Informações complementares */}
+                      <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                        <span className="truncate flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#ff6500] shrink-0" />
+                          <span className="truncate">{ad.neighborhood || 'Mário Covas'}</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 shrink-0 font-semibold">
+                          {ad.city || 'Campinas'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -686,14 +740,14 @@ function MarketplaceContent() {
               })}
             </div>
 
-            {/* BOTÃO CARREGAR MAIS (PAGINAÇÃO PROGRESSIVA) */}
+            {/* 8. PAGINAÇÃO / CARREGAMENTO ADICIONAL */}
             {hasMore && (
-              <div className="text-center mt-8">
+              <div className="text-center mt-10 mb-4">
                 <button
                   onClick={() => setVisibleCount(prev => prev + 12)}
-                  className="bg-white hover:bg-slate-50 text-slate-700 font-bold px-6 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm shadow-xs transition-colors cursor-pointer inline-flex items-center gap-2"
+                  className="bg-white hover:bg-slate-50 text-slate-800 font-extrabold px-6 py-3.5 rounded-2xl border border-slate-200 text-xs sm:text-sm shadow-xs hover:shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
                 >
-                  <RefreshCw className="w-4 h-4 text-[#ff6500]" /> Carregar mais produtos ({filteredListings.length - visibleCount} restantes)
+                  <RefreshCw className="w-4 h-4 text-[#ff6500]" /> Carregar mais anúncios ({filteredListings.length - visibleCount} restantes)
                 </button>
               </div>
             )}
