@@ -487,16 +487,35 @@ function MarketplaceContent() {
       {/* 2. BANNER PRINCIPAL FEIRA DO ROLO — DESIGN EXATO DA REFERÊNCIA */}
       <section className="relative w-full overflow-hidden bg-slate-50 border-b border-slate-200">
         
-        {/* Banner Gráfico Oficial Mais Fino e Elegante (com altura reduzida para não ocupar muito espaço vertical) */}
-        <div className="relative w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[340px] overflow-hidden">
-          <img 
-            src="/banner-feira-do-rolo.jpg?v=20261017c" 
-            alt="Feira do Rolo - Fala do Bairro" 
-            className="w-full h-full object-cover object-[center_28%] block select-none"
-          />
+        {/* Fundo Paisagem Oficial Limpo (com altura compacta de 240px a 300px no desktop) */}
+        <div 
+          className="relative w-full h-[240px] sm:h-[270px] md:h-[300px] bg-cover bg-[center_35%] flex flex-col justify-between"
+          style={{
+            backgroundImage: "url('/banner-feira-do-rolo.jpg?v=20261017d')"
+          }}
+        >
+          {/* Conteúdo HTML Real (Títulos, Subtítulos e Botões sem textos fixos na imagem) */}
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 w-full pt-4 sm:pt-6 relative z-10">
+            <div className="max-w-xl">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[10px] sm:text-xs font-black text-[#ff6500] uppercase tracking-wider bg-white/90 backdrop-blur-xs border border-orange-200/80 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
+                  <MapPin className="w-3 h-3 text-[#ff6500]" />
+                  MARKETPLACE FALA DO BAIRRO
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#0f172a] tracking-tight leading-[1.1]">
+                O que você está <br className="hidden sm:block" />
+                <span className="text-[#ff6500]">procurando</span> hoje?
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-700 font-bold mt-1 leading-snug drop-shadow-2xs">
+                Compre, venda, troque e encontre oportunidades perto de você!
+              </p>
+            </div>
+          </div>
 
           {/* Barra de Filtros Funcionais (Todos os Itens, Vendas, Trocas, Doações) */}
-          <div className="absolute left-[2.5%] sm:left-[3.5%] bottom-3 sm:bottom-4 z-20">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 w-full pb-3.5 sm:pb-4 relative z-10">
             <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar">
               {[
                 { id: 'all', label: 'Todos os Itens', icon: <Grid className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
@@ -509,7 +528,7 @@ function MarketplaceContent() {
                   <button
                     key={tab.id}
                     onClick={() => setTypeFilter(tab.id as any)}
-                    className={`h-[34px] sm:h-[38px] px-3.5 sm:px-4.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2 shadow-sm ${
+                    className={`h-[36px] sm:h-[40px] px-3.5 sm:px-5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 sm:gap-2 shadow-sm ${
                       active
                         ? 'bg-[#ff6500] text-white shadow-orange-500/30 ring-2 ring-white/80'
                         : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 shadow-xs'
