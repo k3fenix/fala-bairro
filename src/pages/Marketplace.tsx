@@ -574,7 +574,6 @@ function MarketplaceContent() {
           </div>
         </div>
 
-        </div>
       </section>
 
       {/* 3. BARRA DE CATEGORIAS ESTILO ÍCONES CIRCULARES (CONFORME A IMAGEM DE REFERÊNCIA) */}
