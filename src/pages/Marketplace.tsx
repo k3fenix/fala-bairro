@@ -473,47 +473,46 @@ function MarketplaceContent() {
         </div>
       </header>
 
-      {/* 2. BANNER PRINCIPAL FEIRA DO ROLO COM ALTURA COMPACTA (300-360px) E MONUMENTO ROLA DE BAIRRO */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-white via-orange-50/70 to-sky-50 border-b border-slate-200/80 py-6 sm:py-8 min-h-[300px] sm:min-h-[340px] flex flex-col justify-center">
+      {/* 2. BANNER PRINCIPAL FEIRA DO ROLO SEM SOMBRA BRANCA COM IMAGEM NÍTIDA E FILTROS */}
+      <section className="relative overflow-hidden bg-slate-900 border-b border-slate-200/80 py-7 sm:py-9 min-h-[300px] sm:min-h-[340px] flex flex-col justify-center">
         
-        {/* Camada de Fundo Temática Panorâmica de Céu e Cidade */}
+        {/* Imagem de Fundo Panorâmica viva e nítida sem sombra/véu branco */}
         <div 
-          className="absolute inset-0 z-0 bg-cover bg-right sm:bg-center opacity-25 mix-blend-multiply pointer-events-none"
+          className="absolute inset-0 z-0 bg-cover bg-right sm:bg-center pointer-events-none opacity-90"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1600&q=80')`
           }}
         />
 
-        {/* Gradiente degradê branco / claro sobre a área do texto para garantir leitura cristalina */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-white via-white/95 sm:via-white/85 to-transparent pointer-events-none" />
+        {/* Gradiente escuro muito sutil apenas para garantir legibilidade dos textos sem esbranquiçar */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-transparent pointer-events-none" />
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10 w-full">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-5">
             
-            {/* Lado Esquerdo: Textos do Banner (Feira do Rolo + O que você está procurando hoje?) */}
-            <div className="max-w-xl">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] sm:text-xs font-black text-[#ff6500] uppercase tracking-wider bg-orange-100/90 px-2.5 py-0.5 rounded-md flex items-center gap-1">
+            {/* Lado Esquerdo: Textos do Banner */}
+            <div className="max-w-xl text-white">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] sm:text-xs font-black text-[#ff6500] uppercase tracking-wider bg-white/90 backdrop-blur-md px-2.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
                   <MapPin className="w-3 h-3 text-[#ff6500]" />
                   MARKETPLACE FALA DO BAIRRO
                 </span>
-                <span className="text-xs font-black text-slate-800 tracking-tight">
+                <span className="text-xs font-black text-white/90 tracking-tight bg-black/40 backdrop-blur-md px-2.5 py-0.5 rounded-md">
                   FEIRA DO ROLO
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-[1.15]">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-[1.15] drop-shadow-sm">
                 O que você está <br className="hidden sm:block" />
                 <span className="text-[#ff6500]">procurando</span> hoje?
               </h1>
-              <p className="text-xs sm:text-sm md:text-base text-slate-600 font-semibold mt-1.5 leading-snug">
+              <p className="text-xs sm:text-sm md:text-base text-slate-200 font-semibold mt-1.5 leading-snug drop-shadow-xs">
                 “Compre, venda, troque e encontre oportunidades perto de você!”
               </p>
             </div>
 
-            {/* Lado Direito: Representação do Rola de Bairro, Americana/SP e Selo Comunitário */}
+            {/* Lado Direito: Badge Feira do Rolo Americana e Selo */}
             <div className="hidden md:flex flex-col items-end gap-2 shrink-0">
-              {/* Badge Feira do Rolo - Americana / SP */}
               <div className="bg-slate-950/90 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-lg flex items-center gap-2.5 hover:scale-102 transition-transform">
                 <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xs shadow-xs">
                   🎙️
@@ -528,8 +527,7 @@ function MarketplaceContent() {
                 </div>
               </div>
 
-              {/* Selo Juntos fortalecemos o nosso bairro */}
-              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-orange-200/90 shadow-2xs">
+              <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-orange-200/90 shadow-2xs">
                 <span className="text-xs">🤝</span>
                 <span className="text-xs font-extrabold text-[#ff6500] italic">
                   Juntos fortalecemos o nosso bairro!
@@ -539,59 +537,35 @@ function MarketplaceContent() {
 
           </div>
 
-          {/* BARRA DE PESQUISA INTEGRADA COM BAIRROS E ORDENAÇÃO */}
-          <div className="bg-white/95 backdrop-blur-md p-1.5 sm:p-2 rounded-full border border-slate-200/90 shadow-md flex flex-col md:flex-row items-stretch gap-2 mb-3 max-w-4xl">
+          {/* BOTÕES DE SELEÇÃO: TODOS OS BAIRROS E MAIS RECENTES (SEM A BARRA DE DIGITAÇÃO) */}
+          <div className="flex flex-wrap items-center gap-2.5 mb-4">
             
-            {/* Campo de Busca Principal */}
-            <div className="relative flex-1">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Digite o que você procura..."
-                className="w-full bg-transparent border-0 rounded-full pl-12 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-900 font-medium outline-none placeholder:text-slate-400"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                  title="Limpar busca"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+            {/* Botão Seletor de Bairros */}
+            <div className="relative bg-white/95 hover:bg-white text-slate-800 rounded-2xl border border-white/40 shadow-md backdrop-blur-md transition-all">
+              <MapPin className="w-4 h-4 text-[#ff6500] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <select
+                value={selectedNeighborhood}
+                onChange={e => setSelectedNeighborhood(e.target.value)}
+                className="bg-transparent text-slate-800 text-xs sm:text-sm font-extrabold pl-9 pr-8 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+              >
+                <option value="all">📍 Todos os Bairros</option>
+                {availableNeighborhoods.map(b => (
+                  <option key={b} value={b}>📍 {b}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Filtro por Bairro e Ordenação */}
-            <div className="flex items-center gap-2 px-2 pb-1 md:pb-0">
-              <div className="relative flex-1 sm:w-48 border-t md:border-t-0 md:border-l border-slate-200 pl-2">
-                <MapPin className="w-4 h-4 text-[#ff6500] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <select
-                  value={selectedNeighborhood}
-                  onChange={e => setSelectedNeighborhood(e.target.value)}
-                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold pl-8 pr-6 py-2 outline-none cursor-pointer border-0 appearance-none"
-                >
-                  <option value="all">📍 Todos os Bairros</option>
-                  {availableNeighborhoods.map(b => (
-                    <option key={b} value={b}>📍 {b}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Ordenação */}
-              <div className="relative sm:w-44 border-l border-slate-200 pl-2">
-                <select
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value as any)}
-                  className="w-full bg-transparent text-slate-700 text-xs sm:text-sm font-bold px-3 py-2 outline-none cursor-pointer border-0 appearance-none"
-                >
-                  <option value="recent">⏱️ Mais Recentes</option>
-                  <option value="price_asc">💲 Menor Preço</option>
-                  <option value="price_desc">💎 Maior Preço</option>
-                </select>
-              </div>
+            {/* Botão Seletor de Ordenação */}
+            <div className="relative bg-white/95 hover:bg-white text-slate-800 rounded-2xl border border-white/40 shadow-md backdrop-blur-md transition-all">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as any)}
+                className="bg-transparent text-slate-800 text-xs sm:text-sm font-extrabold px-4 py-2.5 outline-none cursor-pointer border-0 appearance-none"
+              >
+                <option value="recent">⏱️ Mais Recentes</option>
+                <option value="price_asc">💲 Menor Preço</option>
+                <option value="price_desc">💎 Maior Preço</option>
+              </select>
             </div>
 
           </div>
