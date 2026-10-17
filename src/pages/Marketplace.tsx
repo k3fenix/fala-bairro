@@ -469,20 +469,44 @@ function MarketplaceContent() {
         </div>
       </header>
 
-      {/* 2. ÁREA DE PESQUISA MODERNA E LOCALIZAÇÃO */}
-      <section className="bg-gradient-to-b from-white to-slate-50/70 border-b border-slate-200/80 py-4 sm:py-6 shadow-2xs">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3">
+      {/* 2. BANNER PRINCIPAL ACOLHEDOR COM ELEMENTO VISUAL DO BAIRRO */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-white via-orange-50/40 to-slate-50 border-b border-slate-200/80 py-6 sm:py-9">
+        {/* Detalhe estético de fundo com casas/bairro em SVG sutil */}
+        <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none select-none hidden md:block max-w-[340px]">
+          <svg viewBox="0 0 400 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto text-slate-800">
+            <path d="M20 160V90L70 50L120 90V160H20Z" fill="currentColor" />
+            <path d="M110 160V100L160 60L210 100V160H110Z" fill="currentColor" opacity="0.8" />
+            <path d="M200 160V80L255 35L310 80V160H200Z" fill="currentColor" opacity="0.6" />
+            <path d="M300 160V95L350 55L400 95V160H300Z" fill="currentColor" opacity="0.4" />
+          </svg>
+        </div>
+
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 relative z-10">
+          <div className="max-w-2xl mb-4 sm:mb-6">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-[#ff6500] text-[11px] sm:text-xs font-black uppercase tracking-wider mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              Comércio Local do Bairro
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+              O que você está procurando hoje?
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mt-1.5 leading-relaxed">
+              Aqui tem de tudo: venda, troca e doação. Encontre oportunidades perto de você.
+            </p>
+          </div>
+
+          {/* BARRA DE BUSCA E FILTROS INTEGRADOS */}
+          <div className="bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-stretch gap-2">
             
-            {/* Campo de Busca Amplo */}
+            {/* Campo de Busca Principal com o placeholder solicitado */}
             <div className="relative flex-1">
               <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="O que você está procurando hoje?"
-                className="w-full bg-white border border-slate-200/90 hover:border-slate-300 focus:border-[#ff6500] focus:ring-2 focus:ring-orange-500/10 rounded-2xl pl-11 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none shadow-xs transition-all placeholder:text-slate-400"
+                placeholder="Digite o que você procura..."
+                className="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200/80 focus:border-[#ff6500] focus:ring-2 focus:ring-orange-500/10 rounded-xl sm:rounded-2xl pl-11 pr-10 py-3 sm:py-3.5 text-xs sm:text-sm text-slate-900 font-medium outline-none transition-all placeholder:text-slate-400"
               />
               {searchQuery && (
                 <button
@@ -496,14 +520,14 @@ function MarketplaceContent() {
               )}
             </div>
 
-            {/* Filtro por Bairro ou Localização */}
+            {/* Filtro por Bairro */}
             <div className="flex items-center gap-2">
-              <div className="relative flex-1 sm:w-56">
+              <div className="relative flex-1 sm:w-52">
                 <MapPin className="w-4 h-4 text-[#ff6500] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <select
                   value={selectedNeighborhood}
                   onChange={e => setSelectedNeighborhood(e.target.value)}
-                  className="w-full bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold pl-9 pr-8 py-3 sm:py-3.5 rounded-2xl outline-none cursor-pointer shadow-xs appearance-none focus:border-[#ff6500]"
+                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold pl-9 pr-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border border-slate-200/80 appearance-none focus:border-[#ff6500] focus:bg-white transition-all"
                 >
                   <option value="all">📍 Todos os Bairros</option>
                   {availableNeighborhoods.map(b => (
@@ -513,11 +537,11 @@ function MarketplaceContent() {
               </div>
 
               {/* Ordenação */}
-              <div className="relative sm:w-48">
+              <div className="relative sm:w-44">
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as any)}
-                  className="w-full bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold px-3.5 py-3 sm:py-3.5 rounded-2xl outline-none cursor-pointer shadow-xs appearance-none focus:border-[#ff6500]"
+                  className="w-full bg-slate-50 hover:bg-slate-100/70 text-slate-700 text-xs sm:text-sm font-bold px-3.5 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl outline-none cursor-pointer border border-slate-200/80 appearance-none focus:border-[#ff6500] focus:bg-white transition-all"
                 >
                   <option value="recent">⏱️ Mais Recentes</option>
                   <option value="price_asc">💲 Menor Preço</option>
@@ -530,7 +554,7 @@ function MarketplaceContent() {
         </div>
       </section>
 
-      {/* 3. FILTROS DE VENDAS, TROCAS E DOAÇÕES */}
+      {/* 3. FILTROS PRINCIPAIS: Todos os itens, Vendas, Trocas, Doações */}
       <section className="bg-white border-b border-slate-200/80 sticky top-[70px] z-30 shadow-xs">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
           {[
@@ -544,9 +568,9 @@ function MarketplaceContent() {
               <button
                 key={tab.id}
                 onClick={() => setTypeFilter(tab.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   active
-                    ? 'bg-[#ff6500] text-white shadow-sm shadow-orange-500/20 scale-101'
+                    ? 'bg-[#ff6500] text-white shadow-sm shadow-orange-500/20 scale-102'
                     : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
                 }`}
               >
@@ -558,53 +582,144 @@ function MarketplaceContent() {
         </div>
       </section>
 
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 mt-5">
+      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 mt-6">
         
-        {/* 4. CATEGORIAS MAIS BONITAS */}
+        {/* 4. BARRA DE CATEGORIAS MODERNA COM ÍCONES CONSISTENTES */}
         {categories.length > 0 && (
-          <div className="mb-6 overflow-x-auto no-scrollbar pb-1">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveCategory('all')}
-                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                  activeCategory === 'all'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <span>📦</span>
-                <span>Todas as Categorias</span>
-              </button>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2.5">
+              <h2 className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-wider">
+                Navegar por Categorias
+              </h2>
+              {activeCategory !== 'all' && (
+                <button
+                  onClick={() => setActiveCategory('all')}
+                  className="text-xs font-bold text-[#ff6500] hover:underline cursor-pointer"
+                >
+                  Ver todas
+                </button>
+              )}
+            </div>
 
-              {categories.map(c => {
-                const isSelected = activeCategory === c.id.toString();
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => setActiveCategory(isSelected ? 'all' : c.id.toString())}
-                    className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                      isSelected
-                        ? 'bg-[#ff6500] text-white shadow-xs'
-                        : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
-                    }`}
-                  >
-                    <span>{c.icon || '🏷️'}</span>
-                    <span>{c.name}</span>
-                  </button>
-                );
-              })}
+            <div className="overflow-x-auto no-scrollbar pb-1">
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <button
+                  onClick={() => setActiveCategory('all')}
+                  className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeCategory === 'all'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <span>📦</span>
+                  <span>Todas</span>
+                </button>
+
+                {categories.map(c => {
+                  const isSelected = activeCategory === c.id.toString();
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setActiveCategory(isSelected ? 'all' : c.id.toString())}
+                      className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                        isSelected
+                          ? 'bg-[#ff6500] text-white shadow-xs'
+                          : 'bg-white border border-slate-200/90 text-slate-700 hover:border-slate-300'
+                      }`}
+                    >
+                      <span>{c.icon || '🏷️'}</span>
+                      <span>{c.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
 
-        {/* 5. TÍTULO DA SEÇÃO DE PRODUTOS & 6. QUANTIDADE DE ANÚNCIOS ENCONTRADOS */}
+        {/* 5. SEÇÃO DE DESTAQUES: "OFERTAS EM DESTAQUE" (Os melhores anúncios da sua região) */}
+        {!searchQuery && activeCategory === 'all' && typeFilter === 'all' && selectedNeighborhood === 'all' && listings.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-5 bg-[#ff6500] rounded-full"></div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    Ofertas em Destaque
+                  </h2>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 ml-4">
+                  Os melhores anúncios da sua região
+                </p>
+              </div>
+            </div>
+
+            {/* Grid de 4 a 5 Destaques */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
+              {listings.slice(0, 5).map(ad => {
+                const rawPrice = Number(ad.price);
+                const isFree = isNaN(rawPrice) || rawPrice === 0 || ad.type === 'Gratis';
+                const isTrade = ad.accepts_trade || ad.type === 'Troca';
+                const formattedPrice = (!isNaN(rawPrice) && rawPrice > 0)
+                  ? `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                  : 'Grátis';
+
+                return (
+                  <div
+                    key={`featured-${ad.id}`}
+                    onClick={() => navigate(`/marketplace/anuncio/${ad.id}`)}
+                    className="bg-white border-2 border-orange-200/80 hover:border-[#ff6500] rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group flex flex-col relative cursor-pointer shadow-sm"
+                  >
+                    {/* Badge Destaque */}
+                    <div className="absolute top-2.5 left-2.5 z-10 bg-[#ff6500] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" /> Destaque
+                    </div>
+
+                    <div className="aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center">
+                      {ad.image_url ? (
+                        <img
+                          src={ad.image_url}
+                          alt={ad.title || 'Destaque'}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="text-4xl opacity-20">📦</div>
+                      )}
+                      <span className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md">
+                        {ad.condition || 'Usado'}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 sm:p-4 flex flex-col flex-1">
+                      <div className="text-base sm:text-lg font-black text-emerald-600 mb-1 leading-none">
+                        {isFree ? '🎁 Doação Grátis' : (isTrade && !rawPrice ? '🔄 Troca' : formattedPrice)}
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 leading-snug mb-2 group-hover:text-[#ff6500] transition-colors">
+                        {ad.title}
+                      </h3>
+                      <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                        <span className="truncate flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#ff6500] shrink-0" />
+                          <span className="truncate">{ad.neighborhood || 'Mário Covas'}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* 6. TÍTULO DO CATÁLOGO GERAL DE PRODUTOS */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-              Ofertas e Oportunidades do Bairro
+              Todos os Anúncios do Bairro
             </h2>
             <p className="text-xs text-slate-500 font-semibold mt-0.5">
-              Exibindo <span className="text-[#ff6500] font-black">{displayedListings.length}</span> de <span className="font-bold text-slate-700">{filteredListings.length}</span> {filteredListings.length === 1 ? 'anúncio encontrado' : 'anúncios encontrados'}
+              Exibindo <span className="text-[#ff6500] font-black">{displayedListings.length}</span> de <span className="font-bold text-slate-700">{filteredListings.length}</span> {filteredListings.length === 1 ? 'anúncio disponível' : 'anúncios disponíveis'}
               {typeFilter !== 'all' ? ` em ${typeFilter}` : ''}
               {selectedNeighborhood !== 'all' ? ` • ${selectedNeighborhood}` : ''}
             </p>
