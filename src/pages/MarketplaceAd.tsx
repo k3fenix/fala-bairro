@@ -67,11 +67,44 @@ function MarketplaceAdContent() {
   const navigate = useNavigate();
   const { user: contextUser } = useAuth();
   
-  const [ad, setAd] = useState<any>(null);
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  // Cache imediato (0ms): se o anúncio já foi listado na home ou salvo localmente, exibe na mesma hora
+  const cachedInitialAd = (() => {
+    if (!id) return null;
+    try {
+      const cached = localStorage.getItem('cache_marketplace_listings');
+      if (cached) {
+        const list = JSON.parse(cached);
+        const found = list.find((item: any) => String(item.id) === String(id));
+        if (found) return found;
+      }
+    } catch (_) {}
+    return null;
+  })();
+
+  const [ad, setAd] = useState<any>(cachedInitialAd);
+  const [galleryImages, setGalleryImages] = useState<string[]>(() => {
+    if (cachedInitialAd?.image_url || cachedInitialAd?.image) {
+      return [cachedInitialAd.image_url || cachedInitialAd.image];
+    }
+    return [];
+  });
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-  const [seller, setSeller] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(!cachedInitialAd);
+  const [seller, setSeller] = useState<any>(() => {
+    if (cachedInitialAd) {
+      const sellerDisplayName = cachedInitialAd.seller_name || 'Morador do Bairro';
+      let photo = cachedInitialAd.seller_avatar || cachedInitialAd.avatar;
+      if (photo && (photo.includes('pravatar.cc') || photo.includes('i.pravatar'))) photo = null;
+      const avatarUrl = photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(sellerDisplayName)}&background=ff6500&color=fff&bold=true`;
+      return {
+        name: sellerDisplayName,
+        avatar: avatarUrl,
+        avatar_url: avatarUrl,
+        neighborhood: cachedInitialAd.neighborhood || 'Mário Covas'
+      };
+    }
+    return null;
+  });
   const [isFavorite, setIsFavorite] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserSession | null>(contextUser);
 
@@ -95,6 +128,7 @@ function MarketplaceAdContent() {
   const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false);
 
   useEffect(() => {
+    // Dispara em paralelo sem travar a renderização imediata da tela
     fetchAd();
     checkUser();
     loadInteractions();
@@ -384,34 +418,37 @@ function MarketplaceAdContent() {
   };
 
   const fetchAd = async () => {
-    setLoading(true);
+    if (!ad) {
+      setLoading(true);
+    }
 
-    // 1. Tentar buscar em marketplace_listings
-    const { data } = await supabase.from('marketplace_listings').select('*').eq('id', id).single();
-    
-    if (data) {
-      setAd(data);
-      
-      // Incrementar contador de visualizações
-      try {
-        await supabase
-          .from('marketplace_listings')
-          .update({ view_count: (data.view_count || 0) + 1 })
-          .eq('id', id);
-      } catch (_) {}
+    try {
+      // 1. Tentar buscar em marketplace_listings e galeria em paralelo
+      const [listingRes, imagesRes] = await Promise.all([
+        supabase.from('marketplace_listings').select('*').eq('id', id).single(),
+        supabase.from('marketplace_listing_images').select('image_url, is_primary').eq('listing_id', id).order('order_index')
+      ]);
 
-      // Buscar galeria de fotos se existir
-      const { data: imagesData } = await supabase
-        .from('marketplace_listing_images')
-        .select('image_url, is_primary')
-        .eq('listing_id', data.id)
-        .order('order_index');
+      const data = listingRes.data;
+      const imagesData = imagesRes.data;
       
-      if (imagesData && imagesData.length > 0) {
-        setGalleryImages(imagesData.map(i => i.image_url));
-      } else if (data.image_url || data.image) {
-        setGalleryImages([data.image_url || data.image]);
-      }
+      if (data) {
+        setAd(data);
+        setLoading(false); // Libera a tela imediatamente assim que o anúncio estiver pronto!
+
+        if (imagesData && imagesData.length > 0) {
+          setGalleryImages(imagesData.map(i => i.image_url));
+        } else if (data.image_url || data.image) {
+          setGalleryImages([data.image_url || data.image]);
+        }
+
+        // Incrementar contador de visualizações em background sem travar nada
+        try {
+          supabase
+            .from('marketplace_listings')
+            .update({ view_count: (data.view_count || 0) + 1 })
+            .eq('id', id);
+        } catch (_) {}
 
       // Buscar informações públicas e avatar do autor da postagem (funciona para visitantes deslogados)
       let resolvedSeller: any = null;
@@ -575,8 +612,10 @@ function MarketplaceAdContent() {
         sellerObj.avatar_url = finalLegAvatar;
         setSeller(sellerObj);
       }
+    } catch (_) {
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const checkFavorite = async (userId: string) => {

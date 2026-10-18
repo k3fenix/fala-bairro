@@ -364,10 +364,10 @@ export default function MarketplaceNew() {
 
       setSavedAdId(targetId);
       setSuccess(true);
-      // Mantém o usuário na tela de sucesso com o botão direto de retorno ou redireciona após 3s
+      // Redirecionamento rápido e fluido para o anúncio
       setTimeout(() => {
         navigate(`/marketplace/anuncio/${targetId}?refresh=${Date.now()}`);
-      }, 3500);
+      }, 800);
 
     } catch (err: any) {
       alert('Erro ao salvar anúncio: ' + (err.message || 'Tente novamente.'));
