@@ -143,8 +143,8 @@ export default function MarketplaceFavorites() {
               const isPriceDefined = !isNaN(rawPrice) && rawPrice > 0;
               const isPureTrade = ad.type === 'Troca';
               const isPureGratis = ad.type === 'Gratis' || ad.type === 'Doacao' || ad.type === 'Doação';
-              const isTrade = isPureTrade || Boolean(ad.accepts_trade);
-              const isFree = isPureGratis || (!isPureTrade && !isTrade && !isPriceDefined && ad.type !== 'Venda');
+              const isTrade = isPureTrade || ad.accepts_trade === true || ad.accepts_trade === 'sim';
+              const isFree = isPureGratis;
               const isSold = ad.status === 'sold' || ad.status === 'Vendido';
 
               return (

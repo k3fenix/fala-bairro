@@ -289,8 +289,8 @@ export default function MarketplaceMyAds() {
               const isPriceDefined = !isNaN(rawPrice) && rawPrice > 0;
               const isPureTrade = ad.type === 'Troca';
               const isPureGratis = ad.type === 'Gratis' || ad.type === 'Doacao' || ad.type === 'Doação';
-              const isTrade = isPureTrade || Boolean(ad.accepts_trade);
-              const isFree = isPureGratis || (!isPureTrade && !isTrade && !isPriceDefined && ad.type !== 'Venda');
+              const isTrade = isPureTrade || ad.accepts_trade === true || ad.accepts_trade === 'sim';
+              const isFree = isPureGratis;
               const isCurrentSold = ad.status === 'sold' || ad.status === 'Vendido';
               const isPaused = ad.status === 'paused' || ad.status === 'Pausado';
 

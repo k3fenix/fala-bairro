@@ -818,8 +818,8 @@ function MarketplaceAdContent() {
   const isPureGratis = ad?.type === 'Gratis' || ad?.type === 'Doacao' || ad?.type === 'Doação';
   const rawPrice = Number(ad?.price);
   const isPriceDefined = !isNaN(rawPrice) && rawPrice > 0;
-  const isTrade = isPureTrade || Boolean(ad?.accepts_trade);
-  const isFree = isPureGratis || (!isPureTrade && !isTrade && !isPriceDefined && ad?.type !== 'Venda');
+  const isTrade = isPureTrade || ad?.accepts_trade === true || ad?.accepts_trade === 'sim';
+  const isFree = isPureGratis;
   const currentImage = galleryImages[selectedImageIndex] || ad?.image_url || ad?.image || '';
 
   return (

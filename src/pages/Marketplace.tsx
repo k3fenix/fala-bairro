@@ -108,25 +108,8 @@ function MarketplaceContent() {
     return DEFAULT_CATEGORIES;
   });
 
-  const [listings, setListings] = useState<any[]>(() => {
-    try {
-      const cached = localStorage.getItem('cache_marketplace_listings');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (_) {}
-    return [];
-  });
-
-  const [loading, setLoading] = useState(() => {
-    try {
-      const cached = localStorage.getItem('cache_marketplace_listings');
-      return !(cached && JSON.parse(cached).length > 0);
-    } catch (_) {
-      return true;
-    }
-  });
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Paginação progressiva
   const [visibleCount, setVisibleCount] = useState<number>(12);
@@ -324,9 +307,10 @@ function MarketplaceContent() {
 
           const rawPrice = Number(l.price);
           const safePrice = isNaN(rawPrice) ? 0 : rawPrice;
-          const isFree = safePrice === 0 || l.type === 'Gratis';
-          const isTrade = l.accepts_trade === true || l.type === 'Troca';
-          const inferredType = isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda');
+          const isExplicitGratis = l.type === 'Gratis' || l.type === 'Doacao' || l.type === 'Doação';
+          const isExplicitTrade = l.type === 'Troca';
+          const acceptsTrade = l.accepts_trade === true || l.accepts_trade === 'sim' || isExplicitTrade;
+          const resolvedType = isExplicitGratis ? 'Gratis' : (isExplicitTrade ? 'Troca' : 'Venda');
 
           combinedListings.push({
             id: l.id,
@@ -336,8 +320,8 @@ function MarketplaceContent() {
             condition: l.condition || 'Usado',
             category_id: l.category_id ? l.category_id.toString() : null,
             category: catName,
-            accepts_trade: isTrade,
-            type: inferredType,
+            accepts_trade: acceptsTrade,
+            type: resolvedType,
             neighborhood: l.neighborhood || 'Mário Covas',
             city: l.city || 'Campinas',
             whatsapp: l.whatsapp || '',
@@ -362,8 +346,9 @@ function MarketplaceContent() {
           if (titleKey) seenTitles.add(titleKey);
             const rawPrice = Number(item.price);
             const safePrice = isNaN(rawPrice) ? 0 : rawPrice;
-            const isFree = safePrice === 0 || item.type === 'Doação' || item.type === 'Gratis';
-            const isTrade = item.type === 'Troca';
+            const isExplicitGratis = item.type === 'Doação' || item.type === 'Doacao' || item.type === 'Gratis';
+            const isExplicitTrade = item.type === 'Troca';
+            const resolvedType = isExplicitGratis ? 'Gratis' : (isExplicitTrade ? 'Troca' : 'Venda');
 
             combinedListings.push({
               id: item.id,
@@ -373,8 +358,8 @@ function MarketplaceContent() {
               condition: item.condition || 'Usado',
               category_id: null,
               category: item.category || 'Outros',
-              accepts_trade: isTrade,
-              type: isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda'),
+              accepts_trade: isExplicitTrade || item.accepts_trade === true || item.accepts_trade === 'sim',
+              type: resolvedType,
               neighborhood: item.neighborhood || 'Mário Covas',
               city: 'Campinas',
               whatsapp: item.seller_whatsapp || '',
@@ -801,8 +786,8 @@ function MarketplaceContent() {
                 const isPriceDefined = !isNaN(rawPrice) && rawPrice > 0;
                 const isPureTrade = ad.type === 'Troca';
                 const isPureGratis = ad.type === 'Gratis' || ad.type === 'Doacao' || ad.type === 'Doação';
-                const isTrade = isPureTrade || Boolean(ad.accepts_trade);
-                const isFree = isPureGratis || (!isPureTrade && !isTrade && !isPriceDefined && ad.type !== 'Venda');
+                const isTrade = isPureTrade || ad.accepts_trade === true || ad.accepts_trade === 'sim';
+                const isFree = isPureGratis;
                 const isSold = ad.status === 'Vendido' || ad.status === 'sold';
 
                 const isFav = favoriteIds.has(idStr);
