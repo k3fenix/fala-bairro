@@ -269,19 +269,26 @@ export default function MarketplaceNew() {
           throw new Error('Acesso negado: Você não possui permissão para modificar este anúncio.');
         }
 
-        // Atualizar anúncio existente com fallback caso accepts_trade não exista no banco
-        let { error: updateError } = await supabase
-          .from('marketplace_listings')
-          .update(listingPayload)
-          .eq('id', editId);
-
-        if (updateError && updateError.message && updateError.message.includes('accepts_trade')) {
-          delete listingPayload.accepts_trade;
-          const retry = await supabase
+        // Atualizar anúncio existente com fallback automático caso colunas extras não existam no banco
+        const attemptUpdate = async (payload: any) => {
+          return await supabase
             .from('marketplace_listings')
-            .update(listingPayload)
+            .update(payload)
             .eq('id', editId);
-          updateError = retry.error;
+        };
+
+        let { error: updateError } = await attemptUpdate(listingPayload);
+
+        // Se der erro de coluna inexistente no schema cache, remove a coluna causadora e tenta novamente
+        while (updateError && updateError.message && updateError.message.includes("Could not find the '")) {
+          const match = updateError.message.match(/Could not find the '([^']+)' column/);
+          if (match && match[1] && listingPayload[match[1]] !== undefined) {
+            delete listingPayload[match[1]];
+            const retry = await attemptUpdate(listingPayload);
+            updateError = retry.error;
+          } else {
+            break;
+          }
         }
 
         if (updateError) throw updateError;
@@ -299,21 +306,27 @@ export default function MarketplaceNew() {
         }
       } else {
         // Criar novo anúncio com tratamento resiliente de schema
-        let { data: newListing, error: listingError } = await supabase
-          .from('marketplace_listings')
-          .insert(listingPayload)
-          .select()
-          .single();
-
-        if (listingError && listingError.message && listingError.message.includes('accepts_trade')) {
-          delete listingPayload.accepts_trade;
-          const retry = await supabase
+        const attemptInsert = async (payload: any) => {
+          return await supabase
             .from('marketplace_listings')
-            .insert(listingPayload)
+            .insert(payload)
             .select()
             .single();
-          newListing = retry.data;
-          listingError = retry.error;
+        };
+
+        let { data: newListing, error: listingError } = await attemptInsert(listingPayload);
+
+        // Se der erro de coluna inexistente no schema cache, remove e tenta novamente
+        while (listingError && listingError.message && listingError.message.includes("Could not find the '")) {
+          const match = listingError.message.match(/Could not find the '([^']+)' column/);
+          if (match && match[1] && listingPayload[match[1]] !== undefined) {
+            delete listingPayload[match[1]];
+            const retry = await attemptInsert(listingPayload);
+            newListing = retry.data;
+            listingError = retry.error;
+          } else {
+            break;
+          }
         }
 
         if (listingError) {
@@ -321,11 +334,8 @@ export default function MarketplaceNew() {
           if (listingPayload.user_id) {
             delete listingPayload.user_id;
             delete listingPayload.accepts_trade;
-            const { data: retryListing, error: retryErr } = await supabase
-              .from('marketplace_listings')
-              .insert(listingPayload)
-              .select()
-              .single();
+            delete listingPayload.seller_avatar;
+            const { data: retryListing, error: retryErr } = await attemptInsert(listingPayload);
 
             if (retryErr) throw retryErr;
             targetId = retryListing.id;

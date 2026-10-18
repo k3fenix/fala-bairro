@@ -105,20 +105,35 @@ export default function MarketplaceProfile() {
 
       // 3. Atualizar também nos anúncios do usuário para garantir que o avatar apareça imediatamente para todos (mesmo deslogados)
       try {
+        const updateListingPayload: any = {
+          seller_name: updatedUser.name,
+          whatsapp: updatedUser.whatsapp,
+          neighborhood: updatedUser.neighborhood
+        };
+
         if (currentUser.id) {
-          await supabaseMarketplace.from('marketplace_listings').update({
-            seller_name: updatedUser.name,
-            seller_avatar: updatedUser.avatar,
-            whatsapp: updatedUser.whatsapp,
-            neighborhood: updatedUser.neighborhood
-          }).eq('user_id', currentUser.id);
+          try {
+            await supabaseMarketplace.from('marketplace_listings').update({
+              ...updateListingPayload,
+              seller_avatar: updatedUser.avatar
+            }).eq('user_id', currentUser.id);
+          } catch (_) {
+            try {
+              await supabaseMarketplace.from('marketplace_listings').update(updateListingPayload).eq('user_id', currentUser.id);
+            } catch (_) {}
+          }
         }
         if (updatedUser.name) {
-          await supabaseMarketplace.from('marketplace_listings').update({
-            seller_avatar: updatedUser.avatar,
-            whatsapp: updatedUser.whatsapp,
-            neighborhood: updatedUser.neighborhood
-          }).ilike('seller_name', updatedUser.name);
+          try {
+            await supabaseMarketplace.from('marketplace_listings').update({
+              ...updateListingPayload,
+              seller_avatar: updatedUser.avatar
+            }).ilike('seller_name', updatedUser.name);
+          } catch (_) {
+            try {
+              await supabaseMarketplace.from('marketplace_listings').update(updateListingPayload).ilike('seller_name', updatedUser.name);
+            } catch (_) {}
+          }
 
           // Atualizar também na tabela legada se houver
           try {
