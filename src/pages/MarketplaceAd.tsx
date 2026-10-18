@@ -1,15 +1,65 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, Component, type ReactNode } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, AlertTriangle, 
   MapPin, Repeat, CheckCircle, PlayCircle, Edit3, ShieldAlert,
-  Clock, Sparkles, X, ChevronRight, Eye
+  Clock, Sparkles, X, ChevronRight, Eye, PlusCircle, ShieldCheck
 } from 'lucide-react';
 import { getAuthUser, type UserSession } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 
-export default function MarketplaceAd() {
+// Error Boundary para garantir que a tela nunca fique em branco
+class MarketplaceAdErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; errorInfo: string }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, errorInfo: '' };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, errorInfo: error?.message || 'Erro ao carregar detalhes' };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("MarketplaceAd Error Boundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-16 h-16 bg-orange-100 text-[#ff6500] rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
+            🛍️
+          </div>
+          <h2 className="text-xl font-black text-slate-800 mb-2">Detalhes do Anúncio</h2>
+          <p className="text-slate-500 text-sm max-w-sm mb-6">
+            Ocorreu uma instabilidade momentânea ao processar este anúncio.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.reload();
+              }}
+              className="bg-[#ff6500] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow hover:bg-[#e95600] transition-colors cursor-pointer"
+            >
+              Recarregar
+            </button>
+            <a
+              href="/marketplace"
+              className="bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-300 transition-colors"
+            >
+              Voltar ao Marketplace
+            </a>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function MarketplaceAdContent() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: contextUser } = useAuth();
@@ -427,10 +477,10 @@ export default function MarketplaceAd() {
     }
   };
 
-  const isSold = ad.status === 'sold' || ad.status === 'Vendido';
-  const isTrade = ad.accepts_trade || ad.type === 'Troca';
-  const isFree = Number(ad.price) === 0 || ad.type === 'Gratis';
-  const currentImage = galleryImages[selectedImageIndex] || ad.image_url || ad.image;
+  const isSold = ad?.status === 'sold' || ad?.status === 'Vendido';
+  const isTrade = Boolean(ad?.accepts_trade || ad?.type === 'Troca');
+  const isFree = Number(ad?.price) === 0 || ad?.type === 'Gratis';
+  const currentImage = galleryImages[selectedImageIndex] || ad?.image_url || ad?.image || '';
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#1e293b] pb-24">
@@ -1091,5 +1141,13 @@ export default function MarketplaceAd() {
       )}
 
     </div>
+  );
+}
+
+export default function MarketplaceAd() {
+  return (
+    <MarketplaceAdErrorBoundary>
+      <MarketplaceAdContent />
+    </MarketplaceAdErrorBoundary>
   );
 }
