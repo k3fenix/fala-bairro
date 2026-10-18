@@ -473,7 +473,14 @@ function MarketplaceAdContent() {
 
       // 3. Resolver avatar final: busca foto real colocada no perfil do usuário
       const sellerDisplayName = resolvedSeller?.name || resolvedSeller?.full_name || data.seller_name || 'Morador do Bairro';
-      let realProfilePhoto = resolvedSeller?.avatar_url || resolvedSeller?.avatar || data.seller_avatar || data.avatar;
+      let rawAvatar = resolvedSeller?.avatar_url || resolvedSeller?.avatar || data.seller_avatar || data.avatar;
+
+      // Se a URL gravada for de serviços de avatar falso como pravatar.cc, descarta para não exibir pessoa estranha
+      if (rawAvatar && typeof rawAvatar === 'string' && (rawAvatar.includes('pravatar.cc') || rawAvatar.includes('i.pravatar'))) {
+        rawAvatar = null;
+      }
+
+      let realProfilePhoto = rawAvatar;
 
       // Se for o próprio anunciante navegando ou foto no cache do navegador
       if (!realProfilePhoto) {
@@ -481,7 +488,7 @@ function MarketplaceAdContent() {
         if (localUser) {
           try {
             const parsed = JSON.parse(localUser);
-            if (parsed && parsed.avatar && (parsed.id === data.user_id || (parsed.name && parsed.name.toLowerCase() === sellerDisplayName.toLowerCase()))) {
+            if (parsed && parsed.avatar && !parsed.avatar.includes('pravatar.cc') && (parsed.id === data.user_id || (parsed.name && parsed.name.toLowerCase() === sellerDisplayName.toLowerCase()))) {
               realProfilePhoto = parsed.avatar;
             }
           } catch (_) {}
@@ -489,10 +496,12 @@ function MarketplaceAdContent() {
         if (!realProfilePhoto) {
           const savedAvatar = localStorage.getItem('user_avatar');
           const savedName = localStorage.getItem('user_name');
-          if (savedAvatar && savedName && savedName.toLowerCase() === sellerDisplayName.toLowerCase()) {
+          if (savedAvatar && !savedAvatar.includes('pravatar.cc') && savedName && savedName.toLowerCase() === sellerDisplayName.toLowerCase()) {
             realProfilePhoto = savedAvatar;
           }
         }
+      }
+
       // Se não houver foto real cadastrada ainda, gera ícone oficial com as iniciais do morador (nunca foto de terceiros/pravatar)
       const finalAvatar = realProfilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(sellerDisplayName)}&background=ff6500&color=fff&bold=true`;
 

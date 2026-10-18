@@ -35,8 +35,11 @@ export default function MarketplaceProfile() {
       setCurrentUser(u);
       setName(u.name || '');
       setNeighborhood(u.neighborhood || 'Mário Covas');
-      setWhatsapp(u.whatsapp || '');
-      setAvatar(u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Morador')}&background=ff6500&color=fff&bold=true`);
+      let userPhoto = u.avatar || '';
+      if (userPhoto.includes('pravatar.cc') || userPhoto.includes('i.pravatar')) {
+        userPhoto = '';
+      }
+      setAvatar(userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Morador')}&background=ff6500&color=fff&bold=true`);
     };
     initUser();
   }, [contextUser, navigate]);
@@ -87,12 +90,21 @@ export default function MarketplaceProfile() {
 
       // 3. Atualizar também nos anúncios do usuário para garantir que o avatar apareça imediatamente em todos
       try {
-        await supabaseMarketplace.from('marketplace_listings').update({
-          seller_name: updatedUser.name,
-          seller_avatar: updatedUser.avatar,
-          whatsapp: updatedUser.whatsapp,
-          neighborhood: updatedUser.neighborhood
-        }).eq('user_id', currentUser.id);
+        if (currentUser.id) {
+          await supabaseMarketplace.from('marketplace_listings').update({
+            seller_name: updatedUser.name,
+            seller_avatar: updatedUser.avatar,
+            whatsapp: updatedUser.whatsapp,
+            neighborhood: updatedUser.neighborhood
+          }).eq('user_id', currentUser.id);
+        }
+        if (updatedUser.name) {
+          await supabaseMarketplace.from('marketplace_listings').update({
+            seller_avatar: updatedUser.avatar,
+            whatsapp: updatedUser.whatsapp,
+            neighborhood: updatedUser.neighborhood
+          }).ilike('seller_name', updatedUser.name);
+        }
       } catch (_) {}
 
       setSavedSuccess(true);
