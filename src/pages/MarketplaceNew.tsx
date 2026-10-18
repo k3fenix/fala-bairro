@@ -269,11 +269,20 @@ export default function MarketplaceNew() {
           throw new Error('Acesso negado: Você não possui permissão para modificar este anúncio.');
         }
 
-        // Atualizar anúncio existente
-        const { error: updateError } = await supabase
+        // Atualizar anúncio existente com fallback caso accepts_trade não exista no banco
+        let { error: updateError } = await supabase
           .from('marketplace_listings')
           .update(listingPayload)
           .eq('id', editId);
+
+        if (updateError && updateError.message && updateError.message.includes('accepts_trade')) {
+          delete listingPayload.accepts_trade;
+          const retry = await supabase
+            .from('marketplace_listings')
+            .update(listingPayload)
+            .eq('id', editId);
+          updateError = retry.error;
+        }
 
         if (updateError) throw updateError;
 
@@ -289,17 +298,29 @@ export default function MarketplaceNew() {
           await supabase.from('marketplace_listing_images').insert(imagesPayload);
         }
       } else {
-        // Criar novo anúncio
-        const { data: newListing, error: listingError } = await supabase
+        // Criar novo anúncio com tratamento resiliente de schema
+        let { data: newListing, error: listingError } = await supabase
           .from('marketplace_listings')
           .insert(listingPayload)
           .select()
           .single();
 
+        if (listingError && listingError.message && listingError.message.includes('accepts_trade')) {
+          delete listingPayload.accepts_trade;
+          const retry = await supabase
+            .from('marketplace_listings')
+            .insert(listingPayload)
+            .select()
+            .single();
+          newListing = retry.data;
+          listingError = retry.error;
+        }
+
         if (listingError) {
           // Fallback seguro caso user_id tenha restrição de chave estrangeira
           if (listingPayload.user_id) {
             delete listingPayload.user_id;
+            delete listingPayload.accepts_trade;
             const { data: retryListing, error: retryErr } = await supabase
               .from('marketplace_listings')
               .insert(listingPayload)
