@@ -449,10 +449,9 @@ function MarketplaceAdContent() {
             .update({ view_count: (data.view_count || 0) + 1 })
             .eq('id', id);
         } catch (_) {}
-      }
 
-      // Buscar informações públicas e avatar do autor da postagem (funciona para visitantes deslogados)
-      let resolvedSeller: any = null;
+        // Buscar informações públicas e avatar do autor da postagem (funciona para visitantes deslogados)
+        let resolvedSeller: any = null;
 
       // 1. Tentar buscar pelo user_id em ambos os bancos (principal e marketplace)
       if (data.user_id) {

@@ -536,14 +536,14 @@ export default function Landing() {
             SEÇÃO 3: MURAL DO BAIRRO (Comunidade)
             ========================================================================== */}
         <section id="mural" style={{ marginTop: '32px' }}>
-          <div className="mural-header-banner">
-            <div className="mural-banner-text">
+          <div className="business-header-banner">
+            <div className="banner-content">
               <div>
                 <h2>📢 MURAL DO BAIRRO</h2>
                 <p>"Converse com seus vizinhos e compartilhe informações da comunidade."</p>
               </div>
-              <Link to="/feed" className="btn-publish-main" style={{ background: '#fff', color: 'var(--primary)', alignSelf: 'flex-start', marginTop: '8px' }}>
-                + PUBLICAR NO MURAL
+              <Link to="/register?redirect=/feed" className="btn-banner-action">
+                + CADASTRAR NO MURAL
               </Link>
             </div>
           </div>
@@ -656,7 +656,7 @@ export default function Landing() {
                 <h2>🏪 EMPRESÁRIOS LOCAIS & GUIA COMERCIAL</h2>
                 <p>"Fortaleça o comércio da sua comunidade! Encontre comércios, serviços e profissionais da sua cidade e bairro."</p>
             </div>
-            <Link to="/feed" className="btn-banner-action">+ CADASTRAR EMPRESA</Link>
+            <Link to="/register?redirect=/feed" className="btn-banner-action">+ CADASTRAR EMPRESA</Link>
           </div>
           </div>
 
