@@ -449,6 +449,7 @@ function MarketplaceAdContent() {
             .update({ view_count: (data.view_count || 0) + 1 })
             .eq('id', id);
         } catch (_) {}
+      }
 
       // Buscar informações públicas e avatar do autor da postagem (funciona para visitantes deslogados)
       let resolvedSeller: any = null;

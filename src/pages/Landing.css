@@ -247,6 +247,10 @@
 }
 
 .btn-header-menu-drawer {
+  position: relative;
+  z-index: 60;
+  pointer-events: auto;
+  cursor: pointer;
   width: 40px;
   height: 40px;
   border-radius: 12px;
@@ -256,7 +260,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s ease;
   box-shadow: 0 3px 10px rgba(255, 81, 0, 0.25);
@@ -1694,6 +1697,10 @@
   }
 
   .btn-header-menu-drawer {
+    position: relative;
+    z-index: 60;
+    pointer-events: auto;
+    cursor: pointer;
     width: 40px;
     height: 40px;
     border-radius: 12px;
@@ -1824,9 +1831,10 @@
 .landing-drawer-overlay {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 99999999;
   display: flex;
   justify-content: flex-end;
+  pointer-events: auto;
 }
 
 .landing-drawer-backdrop {
@@ -1836,6 +1844,8 @@
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: drawerFadeIn 0.25s ease-out;
+  cursor: pointer;
+  z-index: 1;
 }
 
 .landing-drawer-panel {
@@ -1847,8 +1857,9 @@
   box-shadow: -4px 0 25px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  z-index: 10;
+  z-index: 2;
   animation: drawerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
 
 @keyframes drawerFadeIn {

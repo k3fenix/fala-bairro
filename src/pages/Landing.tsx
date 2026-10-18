@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Menu, X, ChevronRight, User, ShoppingBag, Bell, Newspaper, 
   Store, LogIn, LogOut, MapPin, Heart, Shield, MessageSquare
@@ -1145,7 +1146,7 @@ export default function Landing() {
       {/* =========================================================================
           MENU LATERAL GAVETA NO LADO DIREITO (DRAWER DIREITO ELEGANTE)
           ========================================================================= */}
-      {drawerOpen && (
+      {drawerOpen && typeof document !== 'undefined' && createPortal(
         <div className="landing-drawer-overlay">
           {/* Backdrop escurecido */}
           <div 
@@ -1405,7 +1406,8 @@ export default function Landing() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
