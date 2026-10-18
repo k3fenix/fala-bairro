@@ -20,6 +20,7 @@ export default function MarketplaceNew() {
   const [initialLoading, setInitialLoading] = useState(isEditing);
   const [categories, setCategories] = useState<any[]>([]);
   const [success, setSuccess] = useState(false);
+  const [savedAdId, setSavedAdId] = useState<string | null>(null);
   
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -324,10 +325,12 @@ export default function MarketplaceNew() {
         }
       }
 
+      setSavedAdId(targetId);
       setSuccess(true);
+      // Mantém o usuário na tela de sucesso com o botão direto de retorno ou redireciona após 3s
       setTimeout(() => {
         navigate(`/marketplace/anuncio/${targetId}?refresh=${Date.now()}`);
-      }, 1200);
+      }, 3500);
 
     } catch (err: any) {
       alert('Erro ao salvar anúncio: ' + (err.message || 'Tente novamente.'));
@@ -345,6 +348,7 @@ export default function MarketplaceNew() {
   }
 
   if (success) {
+    const finalAdUrl = `/marketplace/anuncio/${savedAdId || editId}?refresh=${Date.now()}`;
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
@@ -358,6 +362,22 @@ export default function MarketplaceNew() {
             ? 'As alterações foram salvas e seu produto já está atualizado no Marketplace.'
             : 'Seu produto já está visível para todos os moradores no Marketplace do Fala do Bairro.'}
         </p>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs">
+          <button
+            onClick={() => navigate(finalAdUrl)}
+            className="w-full bg-[#ff6500] hover:bg-[#e95600] text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar para o Anúncio
+          </button>
+          <button
+            onClick={() => navigate('/marketplace/meus-anuncios')}
+            className="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold py-3 px-5 rounded-2xl transition-all cursor-pointer text-xs"
+          >
+            Meus Anúncios
+          </button>
+        </div>
       </div>
     );
   }
@@ -369,10 +389,16 @@ export default function MarketplaceNew() {
         <div className="max-w-[760px] mx-auto h-[64px] flex items-center justify-between px-4">
           <button 
             type="button" 
-            onClick={() => navigate(-1)} 
-            className="flex items-center gap-2 text-slate-600 font-bold hover:text-[#ff6500] transition-colors cursor-pointer text-sm"
+            onClick={() => {
+              if (isEditing && editId) {
+                navigate(`/marketplace/anuncio/${editId}`);
+              } else {
+                navigate(-1);
+              }
+            }} 
+            className="flex items-center gap-2 text-slate-600 font-bold hover:text-[#ff6500] transition-colors cursor-pointer text-sm bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl"
           >
-            <ArrowLeft className="w-5 h-5" /> Cancelar
+            <ArrowLeft className="w-4 h-4" /> {isEditing ? 'Voltar para o Anúncio' : 'Cancelar'}
           </button>
           <div className="font-extrabold text-slate-900 text-base">
             {isEditing ? 'Editar Anúncio' : 'Criar Novo Anúncio'}
@@ -637,20 +663,33 @@ export default function MarketplaceNew() {
           </div>
 
           {/* SUBMIT BUTTON */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#ff6500] hover:bg-[#e95600] disabled:bg-orange-300 text-white font-black py-4 px-6 rounded-2xl shadow-lg shadow-orange-500/20 text-base flex items-center justify-center gap-2 transition-all cursor-pointer"
-          >
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Salvando Anúncio...</span>
-              </>
-            ) : (
-              <span>{isEditing ? 'Salvar Alterações' : 'Publicar Anúncio Agora'}</span>
+          <div className="space-y-3">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#ff6500] hover:bg-[#e95600] disabled:bg-orange-300 text-white font-black py-4 px-6 rounded-2xl shadow-lg shadow-orange-500/20 text-base flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Salvando Anúncio...</span>
+                </>
+              ) : (
+                <span>{isEditing ? 'Salvar Alterações' : 'Publicar Anúncio Agora'}</span>
+              )}
+            </button>
+
+            {isEditing && editId && (
+              <button
+                type="button"
+                onClick={() => navigate(`/marketplace/anuncio/${editId}`)}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-2xl transition-colors cursor-pointer text-sm flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Voltar para o Anúncio sem salvar
+              </button>
             )}
-          </button>
+          </div>
         </form>
       </main>
     </div>
