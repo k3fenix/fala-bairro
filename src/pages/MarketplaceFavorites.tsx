@@ -140,8 +140,11 @@ export default function MarketplaceFavorites() {
             {favorites.map((fav) => {
               const ad = fav.ad || fav.marketplace_listings;
               const rawPrice = Number(ad.price);
-              const isFree = rawPrice === 0 || ad.type === 'Gratis';
-              const isTrade = ad.accepts_trade || ad.type === 'Troca';
+              const isPriceDefined = !isNaN(rawPrice) && rawPrice > 0;
+              const isPureTrade = ad.type === 'Troca';
+              const isPureGratis = ad.type === 'Gratis' || ad.type === 'Doacao' || ad.type === 'Doação';
+              const isTrade = isPureTrade || Boolean(ad.accepts_trade);
+              const isFree = isPureGratis || (!isPureTrade && !isTrade && !isPriceDefined && ad.type !== 'Venda');
               const isSold = ad.status === 'sold' || ad.status === 'Vendido';
 
               return (
@@ -179,7 +182,7 @@ export default function MarketplaceFavorites() {
                       <span className="absolute bottom-2 left-2 bg-slate-900/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
                         Vendido
                       </span>
-                    ) : isTrade ? (
+                    ) : isPureTrade ? (
                       <span className="absolute bottom-2 left-2 bg-purple-600/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow flex items-center gap-1">
                         <Repeat className="w-2.5 h-2.5" /> Troca
                       </span>
@@ -187,13 +190,28 @@ export default function MarketplaceFavorites() {
                       <span className="absolute bottom-2 left-2 bg-emerald-600/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow">
                         Doação
                       </span>
+                    ) : isTrade ? (
+                      <span className="absolute bottom-2 left-2 bg-purple-600/90 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow flex items-center gap-1">
+                        <Repeat className="w-2.5 h-2.5" /> Aceita Troca
+                      </span>
                     ) : null}
                   </div>
                   
                   {/* Dados do Anúncio */}
                   <div className="p-3.5 flex flex-col flex-1">
-                    <div className="text-base font-black text-emerald-600 mb-1 leading-none">
-                      {isFree ? '🎁 Doação' : `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                    <div className="text-base font-black mb-1 leading-none">
+                      {isPureTrade ? (
+                        <span className="text-purple-700 flex items-center gap-1">
+                          <Repeat className="w-3.5 h-3.5 text-purple-600 inline" />
+                          {isPriceDefined ? `Troca (R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})` : 'Troca / Permuta'}
+                        </span>
+                      ) : isFree ? (
+                        <span className="text-emerald-600">🎁 Doação</span>
+                      ) : (
+                        <span className="text-emerald-600">
+                          {isPriceDefined ? `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ A Combinar'}
+                        </span>
+                      )}
                     </div>
                     <h3 className="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2 leading-tight mb-2">
                       {ad.title}

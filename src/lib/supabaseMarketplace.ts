@@ -1,24 +1,23 @@
+import { supabase } from './supabase';
 import { createClient } from '@supabase/supabase-js';
 
-// Dedicated Supabase client for Fala do Bairro Marketplace Independent Platform
-// Enables independent database, auth sessions, RLS and image storage.
-const defaultMarketplaceUrl = 'https://ggztxuctokgzycltyoxo.supabase.co';
-const defaultMarketplaceKey = 'sb_publishable_wAHaotl_XNE4veee9QLj_w_PTr2yZUr';
+/**
+ * Cliente Oficial e Unificado para o Fala do Bairro Marketplace.
+ * Reutiliza a instância e sessão de autenticação do Supabase oficial do Fala do Bairro,
+ * garantindo Single Sign-On (login único), sessão integrada e persistência confiável
+ * dos anúncios vinculados ao user_id real do usuário.
+ */
+export const supabaseMarketplace = supabase;
 
-const marketplaceUrl = (import.meta.env.VITE_MARKETPLACE_SUPABASE_URL && import.meta.env.VITE_MARKETPLACE_SUPABASE_URL.trim() !== '')
-  ? import.meta.env.VITE_MARKETPLACE_SUPABASE_URL
-  : defaultMarketplaceUrl;
+// Cliente auxiliar legado caso existam itens legados na base secundária
+const legacyMarketplaceUrl = 'https://ggztxuctokgzycltyoxo.supabase.co';
+const legacyMarketplaceKey = 'sb_publishable_wAHaotl_XNE4veee9QLj_w_PTr2yZUr';
 
-const marketplaceAnonKey = (import.meta.env.VITE_MARKETPLACE_SUPABASE_ANON_KEY && import.meta.env.VITE_MARKETPLACE_SUPABASE_ANON_KEY.trim() !== '')
-  ? import.meta.env.VITE_MARKETPLACE_SUPABASE_ANON_KEY
-  : defaultMarketplaceKey;
-
-// Separate auth storage ensures sessions in Fala do Bairro do not leak or overwrite Marketplace sessions
-export const supabaseMarketplace = createClient(marketplaceUrl, marketplaceAnonKey, {
+export const supabaseLegacyMarketplace = createClient(legacyMarketplaceUrl, legacyMarketplaceKey, {
   auth: {
-    storageKey: 'marketplace_auth_token',
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
+    persistSession: false,
+    autoRefreshToken: false
   }
 });
+
+export default supabaseMarketplace;

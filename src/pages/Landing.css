@@ -241,7 +241,29 @@
   flex-shrink: 0;
 }
 
-.btn-header-marketplace,
+.btn-header-marketplace {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #ff6500 0%, #ff5100 100%);
+  color: #ffffff !important;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  text-decoration: none;
+  box-shadow: 0 3px 12px rgba(255, 81, 0, 0.32);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.btn-header-marketplace:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #e04400 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(255, 81, 0, 0.42);
+}
+
 .btn-header-auth {
   display: none !important;
 }
@@ -1690,8 +1712,14 @@
     flex-shrink: 0;
   }
 
-  /* No celular esconde os botões soltos pois já estão no menu lateral */
-  .header-actions .btn-header-marketplace,
+  /* No celular mantém o botão MARKETPLACE com tamanho compacto */
+  .header-actions .btn-header-marketplace {
+    display: inline-flex !important;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    gap: 4px;
+    border-radius: 9999px;
+  }
   .header-actions .btn-header-auth {
     display: none !important;
   }
@@ -2143,9 +2171,18 @@
   transition: all 0.2s;
 }
 
-.landing-drawer-login-btn:hover {
-  background: linear-gradient(135deg, #ff6500 0%, #ea580c 100%);
+/* ==============================================================================
+   REMOÇÃO DE VITRINES E FUNÇÕES COMERCIAIS DO FALA DO BAIRRO
+   Concentra todo o comércio no Marketplace oficial conforme requisito.
+   ============================================================================== */
+#guia,
+.business-header-banner,
+.guia-search-box,
+.business-grid,
+a[href="#guia"] {
+  display: none !important;
 }
+
 
 
 

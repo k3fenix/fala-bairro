@@ -88,18 +88,26 @@ export default function MarketplaceNew() {
             return;
           }
 
+          // Determinar tipo correto do anúncio existente
+          let inferredType: 'Venda' | 'Troca' | 'Gratis' = 'Venda';
+          if (ad.type === 'Gratis' || ad.type === 'Doacao' || ad.type === 'Doação') {
+            inferredType = 'Gratis';
+          } else if (ad.type === 'Troca') {
+            inferredType = 'Troca';
+          } else {
+            inferredType = 'Venda';
+          }
+
           const rawPrice = Number(ad.price);
-          const isFree = rawPrice === 0;
-          const isTrade = ad.accepts_trade === true || ad.type === 'Troca';
-          const inferredType: 'Venda' | 'Troca' | 'Gratis' = isTrade ? 'Troca' : (isFree ? 'Gratis' : 'Venda');
+          const priceStr = (!isNaN(rawPrice) && rawPrice > 0) ? String(rawPrice) : '';
 
           setFormData({
             title: ad.title || '',
             category_id: ad.category_id ? String(ad.category_id) : '',
             ad_type: inferredType,
-            price: isFree || isTrade ? '' : (rawPrice ? String(rawPrice) : ''),
+            price: inferredType === 'Venda' ? priceStr : (inferredType === 'Troca' && priceStr ? priceStr : ''),
             condition: ad.condition || 'Usado',
-            accepts_trade: isTrade ? 'sim' : 'nao',
+            accepts_trade: (ad.accepts_trade === true || inferredType === 'Troca') ? 'sim' : 'nao',
             description: ad.description || '',
             brand: ad.brand || '',
             model: ad.model || '',
@@ -217,14 +225,41 @@ export default function MarketplaceNew() {
 
     try {
       const user = currentUser || (await getAuthUser());
-      const userId = user?.id || null;
+      if (!user || !user.id) {
+        alert('🔒 Você precisa estar conectado na sua conta para publicar ou editar anúncios.');
+        navigate(`/login?redirect=${encodeURIComponent(isEditing ? `/marketplace/editar/${editId}` : '/marketplace/anunciar')}`);
+        setLoading(false);
+        return;
+      }
+      const userId = user.id;
+
+      // Garantir existência de perfil na tabela profiles para que a chave estrangeira nunca falhe
+      try {
+        await supabase.from('profiles').upsert({
+          id: userId,
+          name: user.name || 'Morador do Bairro',
+          neighborhood: user.neighborhood || formData.neighborhood.trim() || 'Mário Covas',
+          whatsapp: user.whatsapp || formData.whatsapp.trim() || ''
+        }, { onConflict: 'id' });
+      } catch (_) {}
 
       const isGratis = formData.ad_type === 'Gratis';
-      const isTroca = formData.ad_type === 'Troca' || formData.accepts_trade === 'sim';
+      const isTroca = formData.ad_type === 'Troca';
+      const isVenda = formData.ad_type === 'Venda';
+
+      if (isVenda) {
+        const pNum = parseFloat(String(formData.price).replace(',', '.'));
+        if (isNaN(pNum) || pNum <= 0) {
+          alert('Por favor, informe o preço de venda do anúncio.');
+          setLoading(false);
+          return;
+        }
+      }
 
       const priceNum = parseFloat(String(formData.price).replace(',', '.'));
       const finalPrice = isGratis ? 0 : (isNaN(priceNum) ? 0 : priceNum);
-      const effectiveType = isGratis ? 'Gratis' : (isTroca ? 'Troca' : 'Venda');
+      const effectiveType: 'Venda' | 'Troca' | 'Gratis' = isGratis ? 'Gratis' : (isTroca ? 'Troca' : 'Venda');
+      const finalAcceptsTrade = isTroca ? true : (isVenda && formData.accepts_trade === 'sim');
 
       const primaryImage = imagePreviews[primaryIndex] || imagePreviews[0] || '';
 
@@ -235,7 +270,7 @@ export default function MarketplaceNew() {
         type: effectiveType,
         condition: formData.condition,
         category_id: formData.category_id ? parseInt(formData.category_id) : null,
-        accepts_trade: isTroca,
+        accepts_trade: finalAcceptsTrade,
         state: formData.state || 'SP',
         city: formData.city || 'Campinas',
         neighborhood: formData.neighborhood.trim() || 'Mário Covas',
@@ -291,9 +326,16 @@ export default function MarketplaceNew() {
           }
         }
 
-        // Se der erro de restrição de chave estrangeira foreign key constraint no user_id, remove user_id e tenta novamente
+        // Se der erro de restrição de chave estrangeira foreign key constraint no user_id, assegura profiles e tenta novamente COM user_id
         if (updateError && (updateError.message?.includes('foreign key') || updateError.message?.includes('violates foreign key constraint') || updateError.message?.includes('marketplace_listings_user_id_fkey'))) {
-          delete listingPayload.user_id;
+          try {
+            await supabase.from('profiles').upsert({
+              id: userId,
+              name: user?.name || 'Morador do Bairro',
+              neighborhood: user?.neighborhood || formData.neighborhood.trim() || 'Mário Covas',
+              whatsapp: user?.whatsapp || formData.whatsapp.trim() || ''
+            }, { onConflict: 'id' });
+          } catch (_) {}
           const retry = await attemptUpdate(listingPayload);
           updateError = retry.error;
         }
@@ -336,20 +378,23 @@ export default function MarketplaceNew() {
           }
         }
 
-        // Fallback seguro caso user_id tenha restrição de chave estrangeira (foreign key)
-        if (listingError && (listingPayload.user_id || listingError.message?.includes('foreign key') || listingError.message?.includes('violates foreign key constraint') || listingError.message?.includes('marketplace_listings_user_id_fkey'))) {
-          delete listingPayload.user_id;
-          delete listingPayload.accepts_trade;
-          delete listingPayload.seller_avatar;
-          const { data: retryListing, error: retryErr } = await attemptInsert(listingPayload);
-
-          if (retryErr) throw retryErr;
-          targetId = retryListing.id;
-        } else if (listingError) {
-          throw listingError;
-        } else {
-          targetId = newListing.id;
+        // Se houver erro de foreign key constraint, assegura o perfil e tenta novamente mantendo o user_id
+        if (listingError && (listingError.message?.includes('foreign key') || listingError.message?.includes('violates foreign key constraint') || listingError.message?.includes('marketplace_listings_user_id_fkey'))) {
+          try {
+            await supabase.from('profiles').upsert({
+              id: userId,
+              name: user?.name || 'Morador do Bairro',
+              neighborhood: user?.neighborhood || formData.neighborhood.trim() || 'Mário Covas',
+              whatsapp: user?.whatsapp || formData.whatsapp.trim() || ''
+            }, { onConflict: 'id' });
+          } catch (_) {}
+          const retry = await attemptInsert(listingPayload);
+          newListing = retry.data;
+          listingError = retry.error;
         }
+
+        if (listingError) throw listingError;
+        targetId = newListing.id;
 
         if (targetId && imagePreviews.length > 0) {
           const imagesPayload = imagePreviews.slice(0, 5).map((imgUrl, idx) => ({
@@ -361,6 +406,10 @@ export default function MarketplaceNew() {
           await supabase.from('marketplace_listing_images').insert(imagesPayload);
         }
       }
+
+      try {
+        localStorage.removeItem('cache_marketplace_listings');
+      } catch (_) {}
 
       setSavedAdId(targetId);
       setSuccess(true);
@@ -519,26 +568,34 @@ export default function MarketplaceNew() {
                 { id: 'Venda', label: 'Venda', icon: '💰', desc: 'Preço definido' },
                 { id: 'Troca', label: 'Troca', icon: '🔄', desc: 'Permuta ou troca' },
                 { id: 'Gratis', label: 'Doação', icon: '🎁', desc: '100% Gratuito' }
-              ].map(opt => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ 
-                    ...prev, 
-                    ad_type: opt.id as any,
-                    accepts_trade: opt.id === 'Troca' ? 'sim' : prev.accepts_trade 
-                  }))}
-                  className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
-                    formData.ad_type === opt.id
-                      ? 'border-[#ff6500] bg-orange-50/50 text-[#ff6500] font-black shadow-xs'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="text-xl mb-1">{opt.icon}</div>
-                  <div className="text-xs sm:text-sm font-bold">{opt.label}</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</div>
-                </button>
-              ))}
+              ].map(opt => {
+                const isSelected = formData.ad_type === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      ad_type: opt.id as any,
+                      accepts_trade: opt.id === 'Troca' ? 'sim' : (opt.id === 'Gratis' ? 'nao' : prev.accepts_trade),
+                      price: opt.id === 'Gratis' ? '0' : (opt.id === 'Venda' && prev.price === '0' ? '' : prev.price)
+                    }))}
+                    className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
+                      isSelected
+                        ? opt.id === 'Troca' 
+                          ? 'border-purple-500 bg-purple-50/80 text-purple-700 font-black shadow-xs ring-2 ring-purple-400/30'
+                          : opt.id === 'Gratis'
+                          ? 'border-emerald-500 bg-emerald-50/80 text-emerald-700 font-black shadow-xs ring-2 ring-emerald-400/30'
+                          : 'border-[#ff6500] bg-orange-50/80 text-[#ff6500] font-black shadow-xs ring-2 ring-orange-400/30'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xl mb-1">{opt.icon}</div>
+                    <div className="text-xs sm:text-sm font-bold">{opt.label}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -637,6 +694,30 @@ export default function MarketplaceNew() {
                 <label htmlFor="trade_check" className="text-xs font-bold text-slate-700 cursor-pointer flex items-center gap-1.5">
                   <Repeat className="w-3.5 h-3.5 text-purple-600" /> Também aceito propostas de troca por outros itens
                 </label>
+              </div>
+            )}
+
+            {formData.ad_type === 'Troca' && (
+              <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200/80 text-purple-900 text-xs sm:text-sm flex items-start gap-3">
+                <Repeat className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block font-black text-purple-800 mb-0.5">Modalidade Troca Selecionada</strong>
+                  <span className="text-purple-700 text-xs leading-relaxed">
+                    Este item será publicado para <strong>Troca / Permuta</strong>. Lembre-se de descrever na descrição o que você gostaria de receber em troca!
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {formData.ad_type === 'Gratis' && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs sm:text-sm flex items-start gap-3">
+                <span className="text-xl shrink-0">🎁</span>
+                <div>
+                  <strong className="block font-black text-emerald-800 mb-0.5">Modalidade Doação Grátis Selecionada</strong>
+                  <span className="text-emerald-700 text-xs leading-relaxed">
+                    Este item será publicado como <strong>100% gratuito (Doação)</strong> para moradores da comunidade.
+                  </span>
+                </div>
               </div>
             )}
 

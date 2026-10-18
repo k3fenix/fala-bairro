@@ -312,15 +312,13 @@ export default function Landing() {
 
 
 
-            <a 
-              href={import.meta.env.VITE_MARKETPLACE_URL || "/marketplace"} 
+            <Link 
+              to="/marketplace" 
               className="btn-header-marketplace"
               title="Acessar Fala do Bairro Marketplace"
-              target={import.meta.env.VITE_MARKETPLACE_URL ? "_blank" : "_self"}
-              rel="noopener noreferrer"
             >
               🛒 <span>MARKETPLACE</span>
-            </a>
+            </Link>
 
             <Link 
               to="/login" 

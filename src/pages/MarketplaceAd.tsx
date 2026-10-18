@@ -814,8 +814,12 @@ function MarketplaceAdContent() {
   };
 
   const isSold = ad?.status === 'sold' || ad?.status === 'Vendido';
-  const isTrade = Boolean(ad?.accepts_trade || ad?.type === 'Troca');
-  const isFree = Number(ad?.price) === 0 || ad?.type === 'Gratis';
+  const isPureTrade = ad?.type === 'Troca';
+  const isPureGratis = ad?.type === 'Gratis' || ad?.type === 'Doacao' || ad?.type === 'Doação';
+  const rawPrice = Number(ad?.price);
+  const isPriceDefined = !isNaN(rawPrice) && rawPrice > 0;
+  const isTrade = isPureTrade || Boolean(ad?.accepts_trade);
+  const isFree = isPureGratis || (!isPureTrade && !isTrade && !isPriceDefined && ad?.type !== 'Venda');
   const currentImage = galleryImages[selectedImageIndex] || ad?.image_url || ad?.image || '';
 
   return (
@@ -1062,10 +1066,10 @@ function MarketplaceAdContent() {
 
               {/* Preço em Destaque */}
               <div className="py-2.5 mb-4 border-y border-slate-100">
-                {isTrade && isFree ? (
-                  <div className="inline-flex items-center gap-2 text-purple-700 bg-purple-50 border border-purple-200/80 px-3.5 py-1.5 rounded-xl font-black text-lg">
+                {isPureTrade ? (
+                  <div className="inline-flex items-center gap-2 text-purple-700 bg-purple-50 border border-purple-200/80 px-3.5 py-1.5 rounded-xl font-black text-lg sm:text-xl">
                     <Repeat className="w-5 h-5 text-purple-600" />
-                    <span>Disponível para Troca</span>
+                    <span>{isPriceDefined ? `Troca (Avaliado em R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})` : 'Disponível para Troca / Permuta'}</span>
                   </div>
                 ) : isFree ? (
                   <div className="inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3.5 py-1.5 rounded-xl font-black text-2xl">
@@ -1074,7 +1078,9 @@ function MarketplaceAdContent() {
                 ) : (
                   <div className="flex flex-wrap items-baseline gap-2">
                     <span className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">
-                      R$ {Number(ad.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {isPriceDefined 
+                        ? `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
+                        : 'R$ A Combinar'}
                     </span>
                     {isTrade && (
                       <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-200 flex items-center gap-1">
@@ -1128,7 +1134,7 @@ function MarketplaceAdContent() {
 
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                     <span className="text-[10px] text-slate-400 block font-bold uppercase">Modalidade</span>
-                    <strong className="text-slate-800 font-extrabold">{isTrade ? 'Troca / Venda' : (isFree ? 'Doação' : 'Venda')}</strong>
+                    <strong className="text-slate-800 font-extrabold">{isPureTrade ? 'Troca / Permuta' : (isFree ? 'Doação Grátis' : (isTrade ? 'Venda (Aceita Troca)' : 'Venda'))}</strong>
                   </div>
                 </div>
               </div>

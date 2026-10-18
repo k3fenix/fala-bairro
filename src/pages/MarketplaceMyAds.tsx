@@ -34,12 +34,37 @@ export default function MarketplaceMyAds() {
   const fetchAds = async (user: UserSession) => {
     setLoading(true);
 
-    // 1. Buscar na tabela oficial
-    const { data: listings } = await supabase
+    // 1. Buscar na tabela oficial por user_id
+    let { data: listings } = await supabase
       .from('marketplace_listings')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+
+    listings = listings || [];
+
+    // 1.1 Auto-recuperação de anúncios anteriores que foram salvos sem user_id
+    try {
+      const userCleanPhone = (user.whatsapp || '').replace(/\D/g, '');
+      const { data: unassigned } = await supabase
+        .from('marketplace_listings')
+        .select('*')
+        .is('user_id', null);
+
+      if (unassigned && unassigned.length > 0) {
+        for (const un of unassigned) {
+          const itemPhone = (un.whatsapp || '').replace(/\D/g, '');
+          const matchName = Boolean(user.name && un.seller_name && user.name.trim().toLowerCase() === un.seller_name.trim().toLowerCase());
+          const matchPhone = Boolean(userCleanPhone && itemPhone && (itemPhone === userCleanPhone || itemPhone.endsWith(userCleanPhone) || userCleanPhone.endsWith(itemPhone)));
+          if (matchName || matchPhone) {
+            await supabase.from('marketplace_listings').update({ user_id: user.id }).eq('id', un.id);
+            if (!listings.some(l => l.id === un.id)) {
+              listings.push({ ...un, user_id: user.id });
+            }
+          }
+        }
+      }
+    } catch (_) {}
 
     // 2. Buscar imagens primárias dos listings
     const imagesMap: Record<string, string> = {};
@@ -261,8 +286,11 @@ export default function MarketplaceMyAds() {
           <div className="space-y-3">
             {filteredAds.map(ad => {
               const rawPrice = Number(ad.price);
-              const isFree = rawPrice === 0 || ad.type === 'Gratis';
-              const isTrade = ad.accepts_trade || ad.type === 'Troca';
+              const isPriceDefined = !isNaN(rawPrice) && rawPrice > 0;
+              const isPureTrade = ad.type === 'Troca';
+              const isPureGratis = ad.type === 'Gratis' || ad.type === 'Doacao' || ad.type === 'Doação';
+              const isTrade = isPureTrade || Boolean(ad.accepts_trade);
+              const isFree = isPureGratis || (!isPureTrade && !isTrade && !isPriceDefined && ad.type !== 'Venda');
               const isCurrentSold = ad.status === 'sold' || ad.status === 'Vendido';
               const isPaused = ad.status === 'paused' || ad.status === 'Pausado';
 
@@ -291,19 +319,34 @@ export default function MarketplaceMyAds() {
                           {isCurrentSold ? 'Vendido' : isPaused ? 'Pausado' : 'Ativo'}
                         </span>
 
-                        {isTrade && (
+                        {isPureTrade ? (
                           <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 flex items-center gap-1">
                             <Repeat className="w-2.5 h-2.5" /> Troca
                           </span>
-                        )}
+                        ) : isTrade ? (
+                          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 flex items-center gap-1">
+                            <Repeat className="w-2.5 h-2.5" /> Aceita Troca
+                          </span>
+                        ) : null}
                       </div>
 
                       <h4 className="font-bold text-slate-900 text-sm sm:text-base truncate max-w-xs sm:max-w-md">
                         {ad.title}
                       </h4>
 
-                      <div className="text-base font-black text-emerald-700 mt-0.5">
-                        {isFree ? '🎁 Doação Grátis' : `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                      <div className="text-base font-black mt-0.5">
+                        {isPureTrade ? (
+                          <span className="text-purple-700 flex items-center gap-1">
+                            <Repeat className="w-4 h-4 text-purple-600 inline" />
+                            {isPriceDefined ? `Troca (R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})` : 'Troca / Permuta'}
+                          </span>
+                        ) : isFree ? (
+                          <span className="text-emerald-700">🎁 Doação Grátis</span>
+                        ) : (
+                          <span className="text-emerald-700">
+                            {isPriceDefined ? `R$ ${rawPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ A Combinar'}
+                          </span>
+                        )}
                       </div>
 
                       <p className="text-[11px] text-slate-400 mt-0.5">
