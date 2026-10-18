@@ -6,6 +6,7 @@ import {
   AlertTriangle, ExternalLink, ChevronRight
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { supabaseMarketplace } from '../lib/supabaseMarketplace';
 import { getAuthUser, setAuthUser, clearAuthSession, type UserSession } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../lib/imageUtils';
@@ -82,6 +83,16 @@ export default function MarketplaceProfile() {
           avatar: updatedUser.avatar,
           avatar_url: updatedUser.avatar,
         }).eq('id', currentUser.id);
+      } catch (_) {}
+
+      // 3. Atualizar também nos anúncios do usuário para garantir que o avatar apareça imediatamente em todos
+      try {
+        await supabaseMarketplace.from('marketplace_listings').update({
+          seller_name: updatedUser.name,
+          seller_avatar: updatedUser.avatar,
+          whatsapp: updatedUser.whatsapp,
+          neighborhood: updatedUser.neighborhood
+        }).eq('user_id', currentUser.id);
       } catch (_) {}
 
       setSavedSuccess(true);

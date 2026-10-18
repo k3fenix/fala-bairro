@@ -240,6 +240,7 @@ export default function MarketplaceNew() {
         city: formData.city || 'Campinas',
         neighborhood: formData.neighborhood.trim() || 'Mário Covas',
         seller_name: user?.name || 'Vendedor do Bairro',
+        seller_avatar: user?.avatar || null,
         whatsapp: formData.whatsapp.trim(),
         status: 'approved'
       };

@@ -450,7 +450,7 @@ function MarketplaceAdContent() {
           const { data: pData } = await supabaseMain
             .from('profiles')
             .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
-            .ilike('name', cleanName)
+            .or(`name.ilike.%${cleanName}%,full_name.ilike.%${cleanName}%`)
             .maybeSingle();
           if (pData && (pData.avatar || pData.avatar_url)) {
             resolvedSeller = { ...resolvedSeller, ...pData };
@@ -462,7 +462,7 @@ function MarketplaceAdContent() {
             const { data: pDataMkt } = await supabase
               .from('profiles')
               .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
-              .ilike('name', cleanName)
+              .or(`name.ilike.%${cleanName}%,full_name.ilike.%${cleanName}%`)
               .maybeSingle();
             if (pDataMkt && (pDataMkt.avatar || pDataMkt.avatar_url)) {
               resolvedSeller = { ...resolvedSeller, ...pDataMkt };
@@ -471,13 +471,31 @@ function MarketplaceAdContent() {
         }
       }
 
-      // 3. Resolver avatar final:
-      // Se tiver avatar no perfil encontrado, usa. Se não, tenta o avatar salvo no próprio anúncio, e se não tiver, gera avatar fotográfico personalizado pelo nome do autor (como no Feed e Register)
+      // 3. Resolver avatar final: busca foto real colocada no perfil do usuário
       const sellerDisplayName = resolvedSeller?.name || resolvedSeller?.full_name || data.seller_name || 'Morador do Bairro';
-      const cleanAvatarFromProfile = resolvedSeller?.avatar_url || resolvedSeller?.avatar;
-      const cleanAvatarFromAd = data.seller_avatar || data.avatar;
+      let realProfilePhoto = resolvedSeller?.avatar_url || resolvedSeller?.avatar || data.seller_avatar || data.avatar;
+
+      // Se for o próprio anunciante navegando ou foto no cache do navegador
+      if (!realProfilePhoto) {
+        const localUser = localStorage.getItem('user');
+        if (localUser) {
+          try {
+            const parsed = JSON.parse(localUser);
+            if (parsed && parsed.avatar && (parsed.id === data.user_id || (parsed.name && parsed.name.toLowerCase() === sellerDisplayName.toLowerCase()))) {
+              realProfilePhoto = parsed.avatar;
+            }
+          } catch (_) {}
+        }
+        if (!realProfilePhoto) {
+          const savedAvatar = localStorage.getItem('user_avatar');
+          const savedName = localStorage.getItem('user_name');
+          if (savedAvatar && savedName && savedName.toLowerCase() === sellerDisplayName.toLowerCase()) {
+            realProfilePhoto = savedAvatar;
+          }
+        }
+      }
       
-      const finalAvatar = cleanAvatarFromProfile || cleanAvatarFromAd || `https://i.pravatar.cc/150?u=${encodeURIComponent(sellerDisplayName)}`;
+      const finalAvatar = realProfilePhoto || `https://i.pravatar.cc/150?u=${encodeURIComponent(sellerDisplayName)}`;
 
       setSeller({
         name: sellerDisplayName,
