@@ -36,7 +36,7 @@ export default function MarketplaceProfile() {
       setName(u.name || '');
       setNeighborhood(u.neighborhood || 'Mário Covas');
       setWhatsapp(u.whatsapp || '');
-      setAvatar(u.avatar || `https://i.pravatar.cc/150?u=${u.id}`);
+      setAvatar(u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Morador')}&background=ff6500&color=fff&bold=true`);
     };
     initUser();
   }, [contextUser, navigate]);

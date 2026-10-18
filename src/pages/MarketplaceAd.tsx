@@ -493,9 +493,8 @@ function MarketplaceAdContent() {
             realProfilePhoto = savedAvatar;
           }
         }
-      }
-      
-      const finalAvatar = realProfilePhoto || `https://i.pravatar.cc/150?u=${encodeURIComponent(sellerDisplayName)}`;
+      // Se não houver foto real cadastrada ainda, gera ícone oficial com as iniciais do morador (nunca foto de terceiros/pravatar)
+      const finalAvatar = realProfilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(sellerDisplayName)}&background=ff6500&color=fff&bold=true`;
 
       setSeller({
         name: sellerDisplayName,
@@ -550,7 +549,7 @@ function MarketplaceAdContent() {
             } catch (_) {}
           }
         }
-        const finalLegAvatar = sellerObj.avatar_url || sellerObj.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(sellerObj.name || 'vendedor')}`;
+        const finalLegAvatar = sellerObj.avatar_url || sellerObj.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(sellerObj.name || 'vendedor')}&background=ff6500&color=fff&bold=true`;
         sellerObj.avatar = finalLegAvatar;
         sellerObj.avatar_url = finalLegAvatar;
         setSeller(sellerObj);
