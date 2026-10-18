@@ -450,7 +450,8 @@ function MarketplaceAdContent() {
           const { data: pData } = await supabaseMain
             .from('profiles')
             .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
-            .or(`name.ilike.%${cleanName}%,full_name.ilike.%${cleanName}%`)
+            .ilike('name', `%${cleanName}%`)
+            .limit(1)
             .maybeSingle();
           if (pData && (pData.avatar || pData.avatar_url)) {
             resolvedSeller = { ...resolvedSeller, ...pData };
@@ -462,7 +463,8 @@ function MarketplaceAdContent() {
             const { data: pDataMkt } = await supabase
               .from('profiles')
               .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
-              .or(`name.ilike.%${cleanName}%,full_name.ilike.%${cleanName}%`)
+              .ilike('name', `%${cleanName}%`)
+              .limit(1)
               .maybeSingle();
             if (pDataMkt && (pDataMkt.avatar || pDataMkt.avatar_url)) {
               resolvedSeller = { ...resolvedSeller, ...pDataMkt };
@@ -499,6 +501,16 @@ function MarketplaceAdContent() {
           if (savedAvatar && !savedAvatar.includes('pravatar.cc') && savedName && savedName.toLowerCase() === sellerDisplayName.toLowerCase()) {
             realProfilePhoto = savedAvatar;
           }
+        }
+        if (!realProfilePhoto) {
+          try {
+            const publicAvatarCache = JSON.parse(localStorage.getItem('public_authors_avatars') || '{}');
+            if (data.user_id && publicAvatarCache[data.user_id]) {
+              realProfilePhoto = publicAvatarCache[data.user_id];
+            } else if (sellerDisplayName && publicAvatarCache[sellerDisplayName.toLowerCase().trim()]) {
+              realProfilePhoto = publicAvatarCache[sellerDisplayName.toLowerCase().trim()];
+            }
+          } catch (_) {}
         }
       }
 

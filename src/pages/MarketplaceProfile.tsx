@@ -35,11 +35,12 @@ export default function MarketplaceProfile() {
       setCurrentUser(u);
       setName(u.name || '');
       setNeighborhood(u.neighborhood || 'Mário Covas');
+      setWhatsapp(u.whatsapp || '');
       let userPhoto = u.avatar || '';
-      if (userPhoto.includes('pravatar.cc') || userPhoto.includes('i.pravatar')) {
+      if (userPhoto.includes('pravatar.cc') || userPhoto.includes('i.pravatar') || userPhoto.includes('ui-avatars.com')) {
         userPhoto = '';
       }
-      setAvatar(userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Morador')}&background=ff6500&color=fff&bold=true`);
+      setAvatar(userPhoto);
     };
     initUser();
   }, [contextUser, navigate]);
@@ -64,31 +65,45 @@ export default function MarketplaceProfile() {
     setLoading(true);
 
     try {
+      const cleanAvatar = avatar && !avatar.includes('ui-avatars.com') && !avatar.includes('pravatar.cc') 
+        ? avatar 
+        : (currentUser.avatar && !currentUser.avatar.includes('ui-avatars.com') && !currentUser.avatar.includes('pravatar.cc') ? currentUser.avatar : '');
+
       const updatedUser: UserSession = {
         ...currentUser,
         name: name.trim() || currentUser.name,
         neighborhood: neighborhood.trim() || 'Mário Covas',
         whatsapp: whatsapp.trim(),
-        avatar: avatar || currentUser.avatar
+        avatar: cleanAvatar
       };
 
       // 1. Atualizar sessão local imediata
       setAuthUser(updatedUser);
       setCurrentUser(updatedUser);
 
-      // 2. Atualizar na tabela profiles do Supabase principal
-      try {
-        await supabase.from('profiles').update({
-          name: updatedUser.name,
-          full_name: updatedUser.name,
-          neighborhood: updatedUser.neighborhood,
-          whatsapp: updatedUser.whatsapp,
-          avatar: updatedUser.avatar,
-          avatar_url: updatedUser.avatar,
-        }).eq('id', currentUser.id);
-      } catch (_) {}
+      // 2. Atualizar na tabela profiles em ambos os bancos (principal e marketplace)
+      const profileData = {
+        name: updatedUser.name,
+        full_name: updatedUser.name,
+        neighborhood: updatedUser.neighborhood,
+        whatsapp: updatedUser.whatsapp,
+        avatar: updatedUser.avatar,
+        avatar_url: updatedUser.avatar,
+      };
 
-      // 3. Atualizar também nos anúncios do usuário para garantir que o avatar apareça imediatamente em todos
+      try {
+        await supabase.from('profiles').upsert({ id: currentUser.id, ...profileData });
+      } catch (_) {
+        try { await supabase.from('profiles').update(profileData).eq('id', currentUser.id); } catch (_) {}
+      }
+
+      try {
+        await supabaseMarketplace.from('profiles').upsert({ id: currentUser.id, ...profileData });
+      } catch (_) {
+        try { await supabaseMarketplace.from('profiles').update(profileData).eq('id', currentUser.id); } catch (_) {}
+      }
+
+      // 3. Atualizar também nos anúncios do usuário para garantir que o avatar apareça imediatamente para todos (mesmo deslogados)
       try {
         if (currentUser.id) {
           await supabaseMarketplace.from('marketplace_listings').update({
@@ -104,7 +119,32 @@ export default function MarketplaceProfile() {
             whatsapp: updatedUser.whatsapp,
             neighborhood: updatedUser.neighborhood
           }).ilike('seller_name', updatedUser.name);
+
+          // Atualizar também na tabela legada se houver
+          try {
+            await supabase.from('marketplace_items').update({
+              seller_avatar: updatedUser.avatar,
+              seller_name: updatedUser.name,
+              seller_whatsapp: updatedUser.whatsapp,
+              neighborhood: updatedUser.neighborhood
+            }).ilike('seller_name', updatedUser.name);
+          } catch (_) {}
         }
+      } catch (_) {}
+
+      // Salvar de forma permanente no cache público de avatares (não é apagado pelo logout)
+      try {
+        if (updatedUser.avatar && !updatedUser.avatar.includes('ui-avatars.com')) {
+          const publicAvatarCache = JSON.parse(localStorage.getItem('public_authors_avatars') || '{}');
+          if (currentUser.id) publicAvatarCache[currentUser.id] = updatedUser.avatar;
+          if (updatedUser.name) publicAvatarCache[updatedUser.name.toLowerCase().trim()] = updatedUser.avatar;
+          localStorage.setItem('public_authors_avatars', JSON.stringify(publicAvatarCache));
+        }
+      } catch (_) {}
+
+      // Limpar cache de listagens para refletir de imediato no marketplace
+      try {
+        localStorage.removeItem('cache_marketplace_listings');
       } catch (_) {}
 
       setSavedSuccess(true);
@@ -168,7 +208,11 @@ export default function MarketplaceProfile() {
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center gap-5">
           <div className="relative group cursor-pointer">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-orange-400 shadow-md">
-              <img src={avatar} alt={name} className="w-full h-full object-cover" />
+              <img 
+                src={avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Morador')}&background=ff6500&color=fff&bold=true`} 
+                alt={name} 
+                className="w-full h-full object-cover" 
+              />
             </div>
             <label className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-bold">
               <Camera className="w-5 h-5 mb-0.5" />
@@ -202,17 +246,30 @@ export default function MarketplaceProfile() {
         </div>
 
         {/* ATALHOS RÁPIDOS */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link
+            to="/feed"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3 cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform shrink-0">
+              📰
+            </div>
+            <div className="overflow-hidden">
+              <strong className="block text-white text-xs sm:text-sm font-bold truncate">Feed Social</strong>
+              <span className="text-[11px] text-blue-100 truncate block">Ver notícias e mural</span>
+            </div>
+          </Link>
+
           <Link
             to="/marketplace/meus-anuncios"
             className="bg-white p-4 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-xs transition-all flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#ff6500] flex items-center justify-center font-bold text-lg group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#ff6500] flex items-center justify-center font-bold text-lg group-hover:scale-105 transition-transform shrink-0">
               📦
             </div>
-            <div>
-              <strong className="block text-slate-800 text-xs sm:text-sm font-bold">Meus Anúncios</strong>
-              <span className="text-[11px] text-slate-400">Gerenciar produtos</span>
+            <div className="overflow-hidden">
+              <strong className="block text-slate-800 text-xs sm:text-sm font-bold truncate">Meus Anúncios</strong>
+              <span className="text-[11px] text-slate-400 truncate block">Gerenciar produtos</span>
             </div>
           </Link>
 
@@ -220,12 +277,12 @@ export default function MarketplaceProfile() {
             to="/marketplace/favoritos"
             className="bg-white p-4 rounded-2xl border border-slate-200/80 hover:border-red-300 hover:shadow-xs transition-all flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center font-bold text-lg group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center font-bold text-lg group-hover:scale-105 transition-transform shrink-0">
               ❤️
             </div>
-            <div>
-              <strong className="block text-slate-800 text-xs sm:text-sm font-bold">Favoritos</strong>
-              <span className="text-[11px] text-slate-400">Anúncios salvos</span>
+            <div className="overflow-hidden">
+              <strong className="block text-slate-800 text-xs sm:text-sm font-bold truncate">Favoritos</strong>
+              <span className="text-[11px] text-slate-400 truncate block">Anúncios salvos</span>
             </div>
           </Link>
         </div>
