@@ -435,19 +435,36 @@ export default function MarketplaceAd() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#1e293b] pb-24">
       
-      {/* HEADER NAVEGAÇÃO */}
+      {/* HEADER NAVEGAÇÃO COM IDENTIDADE OFICIAL FEIRA DO ROLO */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-        <div className="max-w-[1050px] mx-auto h-[60px] flex items-center justify-between px-4">
-          <button 
-            onClick={() => navigate('/marketplace')} 
-            className="flex items-center gap-2 text-slate-600 font-bold hover:text-[#ff6500] transition-colors cursor-pointer text-sm"
-          >
-            <ArrowLeft className="w-5 h-5" /> Voltar
-          </button>
-          <div className="font-bold text-slate-800 hidden sm:block truncate max-w-sm text-sm">
+        <div className="max-w-[1280px] mx-auto h-[64px] flex items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => navigate('/marketplace')} 
+              className="flex items-center gap-2 text-slate-700 font-extrabold hover:text-[#ff6500] transition-colors cursor-pointer text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl"
+            >
+              <ArrowLeft className="w-4 h-4" /> Voltar
+            </button>
+            <Link to="/marketplace" className="hidden sm:flex items-center gap-2 group">
+              <img src="/logo-fala-bairro.svg" alt="Fala do Bairro" className="h-7 w-auto" />
+              <span className="text-xs font-black text-slate-900 group-hover:text-[#ff6500] transition-colors">
+                FEIRA DO <span className="text-[#ff6500]">ROLO</span>
+              </span>
+            </Link>
+          </div>
+
+          <div className="font-bold text-slate-800 hidden md:block truncate max-w-md text-sm">
             {ad.title}
           </div>
+
           <div className="flex items-center gap-2">
+            <Link
+              to="/marketplace/anunciar"
+              className="bg-[#ff6500] hover:bg-[#e95600] text-white text-xs font-extrabold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Anunciar</span>
+            </Link>
             <button 
               onClick={handleShare} 
               className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
@@ -466,7 +483,7 @@ export default function MarketplaceAd() {
         </div>
       </header>
 
-      <main className="max-w-[1050px] mx-auto p-4 sm:p-6 mt-2">
+      <main className="max-w-[1280px] mx-auto p-4 sm:p-6 mt-2">
         
         {/* BANNER DE VENDIDO */}
         {isSold && (
@@ -564,14 +581,15 @@ export default function MarketplaceAd() {
           </div>
         )}
 
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden flex flex-col lg:flex-row">
+        {/* MODELO 2: ESTRUTURA DE 3 COLUNAS VISUALMENTE EQUILIBRADAS NO DESKTOP */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           
-          {/* ÁREA DAS FOTOS (FUNDO CLARO, MODERNO E HARMONIOSO) */}
-          <div className="w-full lg:w-[56%] p-4 sm:p-7 bg-gradient-to-b from-slate-50 via-slate-100/60 to-slate-50 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200/80">
-            {/* Foto Principal com Fundo Claro, Moldura Sofisticada e Clique para Ampliar */}
+          {/* COLUNA ESQUERDA (5 COLUNAS) — GALERIA DO PRODUTO */}
+          <div className="lg:col-span-5 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-sm flex flex-col gap-3">
+            {/* Foto Principal com Proporção Ampla, Moldura e Zoom */}
             <div 
               onClick={() => currentImage && setShowImageZoom(true)}
-              className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-white border border-slate-200/90 shadow-sm flex items-center justify-center group cursor-zoom-in"
+              className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-200/90 shadow-2xs flex items-center justify-center group cursor-zoom-in"
               title="Clique para ver a foto ampliada em tela cheia"
             >
               {currentImage ? (
@@ -581,7 +599,7 @@ export default function MarketplaceAd() {
                   className="w-full h-full object-contain select-none transition-transform duration-300 group-hover:scale-[1.02]" 
                 />
               ) : (
-                <div className="text-[80px] opacity-20">📦</div>
+                <div className="text-[70px] opacity-20">📦</div>
               )}
 
               {/* Dica visual de zoom ao passar o mouse */}
@@ -591,16 +609,16 @@ export default function MarketplaceAd() {
 
               {/* Badges Flutuantes com Visual Glassmorphism Claro */}
               <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-                <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-lg font-black text-[11px] uppercase tracking-wider text-slate-800 shadow-xs border border-slate-200">
+                <span className="px-2.5 py-1 bg-white/95 backdrop-blur-md rounded-lg font-black text-[10px] uppercase tracking-wider text-slate-800 shadow-xs border border-slate-200/80">
                   {ad.condition || 'Usado'}
                 </span>
                 {isTrade && (
-                  <span className="px-3 py-1 bg-purple-600 text-white rounded-lg font-black text-[11px] uppercase tracking-wider shadow-xs flex items-center gap-1">
+                  <span className="px-2.5 py-1 bg-purple-600 text-white rounded-lg font-black text-[10px] uppercase tracking-wider shadow-xs flex items-center gap-1">
                     <Repeat className="w-3 h-3" /> Aceita Troca
                   </span>
                 )}
                 {isSold && (
-                  <span className="px-3 py-1 bg-red-600 text-white rounded-lg font-black text-[11px] uppercase tracking-wider shadow-xs">
+                  <span className="px-2.5 py-1 bg-red-600 text-white rounded-lg font-black text-[10px] uppercase tracking-wider shadow-xs">
                     Vendido
                   </span>
                 )}
@@ -616,13 +634,13 @@ export default function MarketplaceAd() {
 
             {/* Miniaturas de foto alinhadas em carrossel elegante */}
             {galleryImages.length > 1 && (
-              <div className="flex items-center gap-2.5 overflow-x-auto pt-4 pb-1 no-scrollbar">
+              <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-1 no-scrollbar">
                 {galleryImages.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-white ${
+                    className={`relative w-16 h-16 shrink-0 rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-white ${
                       selectedImageIndex === idx 
                         ? 'border-[#ff6500] ring-2 ring-orange-500/30 scale-102 shadow-sm' 
                         : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-400'
@@ -635,157 +653,175 @@ export default function MarketplaceAd() {
             )}
           </div>
 
-          {/* ÁREA DE INFORMAÇÕES (ORGANIZADA, LIMPA E MODERNA) */}
-          <div className="w-full lg:w-[44%] p-6 sm:p-8 flex flex-col justify-between bg-white">
-            <div className="space-y-6">
+          {/* COLUNA CENTRAL (4 COLUNAS) — INFORMAÇÕES DETALHADAS DO PRODUTO */}
+          <div className="lg:col-span-4 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-5">
+            <div>
+              {/* Categoria */}
+              <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-[#ff6500] bg-orange-50 px-2.5 py-1 rounded-md mb-2">
+                {ad.category || 'Classificados do Bairro'}
+              </span>
               
-              {/* 1. CATEGORIA OU IDENTIFICAÇÃO DO ANÚNCIO */}
-              <div>
-                <span className="inline-block text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-[#ff6500] bg-orange-50 px-2.5 py-1 rounded-md mb-2">
-                  {ad.category || 'Classificados do Bairro'}
-                </span>
-                
-                {/* 2. TÍTULO DO PRODUTO (28px a 34px desktop, hierarquia limpa) */}
-                <h1 className="text-2xl sm:text-[28px] lg:text-[32px] font-black text-slate-900 leading-tight tracking-tight">
-                  {ad.title}
-                </h1>
-              </div>
+              {/* Título do Produto */}
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-snug tracking-tight mb-3">
+                {ad.title}
+              </h1>
 
-              {/* 3. PREÇO EM DESTAQUE (30px a 36px, semibold/bold) */}
-              {/* 4. INFORMAÇÃO DE VENDA OU TROCA */}
-              <div className="py-3 border-y border-slate-100">
+              {/* Preço em Destaque */}
+              <div className="py-2.5 mb-4 border-y border-slate-100">
                 {isTrade && isFree ? (
-                  <div className="inline-flex items-center gap-2 text-purple-700 bg-purple-50 border border-purple-200/80 px-4 py-2 rounded-2xl font-black text-xl sm:text-2xl">
-                    <Repeat className="w-6 h-6 text-purple-600" />
+                  <div className="inline-flex items-center gap-2 text-purple-700 bg-purple-50 border border-purple-200/80 px-3.5 py-1.5 rounded-xl font-black text-lg">
+                    <Repeat className="w-5 h-5 text-purple-600" />
                     <span>Disponível para Troca</span>
                   </div>
                 ) : isFree ? (
-                  <div className="inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-4 py-2 rounded-2xl font-black text-2xl sm:text-3xl">
+                  <div className="inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3.5 py-1.5 rounded-xl font-black text-2xl">
                     🎁 Doação Grátis
                   </div>
                 ) : (
-                  <div className="flex flex-wrap items-baseline gap-3">
-                    <span className="text-3xl sm:text-[34px] lg:text-[36px] font-black text-emerald-600 tracking-tight">
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">
                       R$ {Number(ad.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                     {isTrade && (
-                      <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 flex items-center gap-1">
-                        <Repeat className="w-3.5 h-3.5" /> Aceita Troca
+                      <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-200 flex items-center gap-1">
+                        <Repeat className="w-3 h-3" /> Aceita Troca
                       </span>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* 5. LOCALIZAÇÃO DO PRODUTO */}
-              <div className="flex items-center gap-2 text-slate-600 font-semibold text-sm sm:text-[15px]">
+              {/* Localização do Anúncio */}
+              <div className="flex items-center gap-1.5 text-slate-500 font-semibold text-xs sm:text-sm mb-4">
                 <MapPin className="w-4 h-4 text-[#ff6500] shrink-0" />
-                <span>Publicado em {ad.neighborhood || 'Mário Covas'}, {ad.city || 'Campinas'}</span>
+                <span>{ad.neighborhood || 'Mário Covas'}, {ad.city || 'Campinas'}</span>
               </div>
 
-              {/* 6. DESCRIÇÃO DO ANÚNCIO (15px a 17px, leitura confortável) */}
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">
+              {/* Descrição do Anúncio */}
+              <div className="mb-4">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-1.5">
                   Descrição
                 </h3>
-                <div className="bg-slate-50/80 p-4 sm:p-5 rounded-2xl border border-slate-100 text-slate-700 text-[15px] sm:text-[16px] leading-relaxed whitespace-pre-wrap">
+                <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-100 text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">
                   {ad.description || 'O anunciante não incluiu uma descrição detalhada para este item.'}
                 </div>
               </div>
 
-              {/* 7. CARACTERÍSTICAS E ESPECIFICAÇÕES (14px a 16px) */}
+              {/* Características e Detalhes do Produto */}
               <div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2.5">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">
                   Detalhes do Produto
                 </h3>
-                <div className="grid grid-cols-2 gap-2.5 text-xs sm:text-[14px]">
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <span className="text-[11px] text-slate-400 block font-bold uppercase">Condição</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase">Condição</span>
                     <strong className="text-slate-800 font-extrabold">{ad.condition || 'Usado'}</strong>
                   </div>
 
                   {ad.brand && (
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[11px] text-slate-400 block font-bold uppercase">Marca</span>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block font-bold uppercase">Marca</span>
                       <strong className="text-slate-800 font-extrabold truncate block">{ad.brand}</strong>
                     </div>
                   )}
 
                   {ad.model && (
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[11px] text-slate-400 block font-bold uppercase">Modelo</span>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block font-bold uppercase">Modelo</span>
                       <strong className="text-slate-800 font-extrabold truncate block">{ad.model}</strong>
                     </div>
                   )}
 
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <span className="text-[11px] text-slate-400 block font-bold uppercase">Modalidade</span>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase">Modalidade</span>
                     <strong className="text-slate-800 font-extrabold">{isTrade ? 'Troca / Venda' : (isFree ? 'Doação' : 'Venda')}</strong>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* 8. INFORMAÇÕES DO ANUNCIANTE (legíveis e discretas) */}
-              <div className="pt-4 border-t border-slate-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {seller?.avatar_url || seller?.avatar ? (
-                      <img 
-                        src={seller.avatar_url || seller.avatar} 
-                        alt="Anunciante" 
-                        className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 shadow-xs" 
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-orange-100 text-[#ff6500] font-black flex items-center justify-center text-lg">
-                        👤
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-extrabold text-slate-900 text-[15px] sm:text-base leading-snug">
-                        {seller?.name || seller?.full_name || ad.seller_name || 'Morador do Bairro'}
-                      </p>
-                      <p className="text-xs text-slate-400 font-medium">
-                        Morador verificado • {ad.neighborhood || 'Bairro Local'}
-                      </p>
-                    </div>
+          {/* COLUNA DIREITA (3 COLUNAS) — CONTATO, ANUNCIANTE E DICAS DE SEGURANÇA */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            
+            {/* Card de Contato Direto e Vendedor */}
+            <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                {seller?.avatar_url || seller?.avatar ? (
+                  <img 
+                    src={seller.avatar_url || seller.avatar} 
+                    alt="Anunciante" 
+                    className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 shadow-xs" 
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-orange-100 text-[#ff6500] font-black flex items-center justify-center text-lg shrink-0">
+                    👤
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowReportModal(true)}
-                    className="text-slate-400 hover:text-red-500 transition-colors p-2 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                    title="Denunciar este anúncio"
-                  >
-                    <ShieldAlert className="w-4 h-4" />
-                    <span className="hidden sm:inline">Denunciar</span>
-                  </button>
+                )}
+                <div className="overflow-hidden">
+                  <p className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug truncate">
+                    {seller?.name || seller?.full_name || ad.seller_name || 'Morador do Bairro'}
+                  </p>
+                  <p className="text-[11px] text-slate-400 font-medium truncate">
+                    Morador do Bairro • {ad.neighborhood || 'Local'}
+                  </p>
                 </div>
               </div>
 
-            </div>
-
-            {/* 9. BOTÃO PRINCIPAL DE CONTATO */}
-            <div className="pt-6 mt-6 border-t border-slate-100">
+              {/* Botão Principal WhatsApp */}
               {isSold ? (
-                <div className="w-full bg-slate-100 border border-slate-200 text-slate-500 font-extrabold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm sm:text-base shadow-inner">
-                  🔒 Este anúncio foi finalizado (Produto Vendido)
+                <div className="w-full bg-slate-100 border border-slate-200 text-slate-500 font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm shadow-inner text-center">
+                  🔒 Este produto foi vendido
                 </div>
               ) : ad.whatsapp ? (
                 <button 
                   type="button"
                   onClick={openWhatsApp} 
-                  className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-green-500/20 text-base sm:text-lg cursor-pointer hover:scale-[1.01]"
+                  className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md shadow-green-500/20 text-sm sm:text-base cursor-pointer hover:scale-[1.02]"
                 >
-                  <MessageCircle className="w-6 h-6" /> Conversar no WhatsApp
+                  <MessageCircle className="w-5 h-5" /> Conversar no WhatsApp
                 </button>
               ) : (
                 <div className="text-center text-xs text-slate-400 py-3 bg-slate-50 rounded-xl">
-                  Nenhum telefone de contato informado pelo anunciante.
+                  Telefone não divulgado
                 </div>
               )}
+
+              <button
+                type="button"
+                onClick={() => setShowReportModal(true)}
+                className="mt-3 text-slate-400 hover:text-red-500 transition-colors text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer py-1"
+                title="Denunciar este anúncio"
+              >
+                <ShieldAlert className="w-3.5 h-3.5" />
+                <span>Denunciar Anúncio</span>
+              </button>
+            </div>
+
+            {/* Card de Dicas de Segurança e Negociação Local */}
+            <div className="bg-sky-50/70 border border-sky-100 rounded-3xl p-4 sm:p-5 text-slate-700 shadow-2xs">
+              <div className="flex items-center gap-2 text-sky-900 font-black text-xs uppercase tracking-wider mb-2.5">
+                <ShieldCheck className="w-4 h-4 text-sky-600" />
+                <span>Dicas de Segurança</span>
+              </div>
+              <ul className="text-[11px] sm:text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                <li className="flex items-start gap-1.5">
+                  <span className="text-sky-600 font-bold">•</span>
+                  <span>Prefira negociar em locais públicos e movimentados do bairro.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-sky-600 font-bold">•</span>
+                  <span>Confira o estado do produto antes de efetuar o pagamento.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-sky-600 font-bold">•</span>
+                  <span>Negócio direto entre vizinhos fortalece a comunidade!</span>
+                </li>
+              </ul>
             </div>
 
           </div>
+
         </div>
 
         {/* 10. BARRA DE INTERAÇÕES SOCIAIS: CURTIR, FAVORITAR, COMENTAR, COMPARTILHAR */}

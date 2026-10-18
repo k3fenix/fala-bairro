@@ -147,16 +147,16 @@ export default function MarketplaceFavorites() {
               return (
                 <div 
                   key={fav.id} 
-                  className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all group flex flex-col relative cursor-pointer" 
+                  className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden hover:border-orange-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col relative cursor-pointer shadow-xs" 
                   onClick={() => navigate(`/marketplace/anuncio/${ad.id}`)}
                 >
-                  {/* Foto de Capa */}
-                  <div className="aspect-square bg-slate-100 relative overflow-hidden flex items-center justify-center">
+                  {/* Foto de Capa em 4:3 */}
+                  <div className="aspect-4/3 w-full bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
                     {ad.image_url ? (
                       <img 
                         src={ad.image_url} 
                         alt={ad.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       />
                     ) : (
                       <div className="text-4xl opacity-20">📦</div>
