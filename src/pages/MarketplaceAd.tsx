@@ -102,50 +102,27 @@ function MarketplaceAdContent() {
 
   const checkAdminRole = async () => {
     try {
-      // 1. Verificar se há sessão autenticada ativa no Supabase Auth
+      // 1. O usuário precisa estar autenticado no Supabase
       const { data: authData } = await supabase.auth.getUser();
       const authUser = authData?.user;
 
-      if (authUser) {
-        // Consultar tabela profiles diretamente no banco
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, role, is_admin, email')
-          .eq('id', authUser.id)
-          .maybeSingle();
-
-        const email = (authUser.email || profile?.email || '').toLowerCase();
-        const role = (profile?.role || '').toLowerCase();
-        const isDbAdmin = profile?.is_admin === true || role === 'admin';
-        const isSuperAdminEmail = email === 'lucianoalkine@gmail.com' || email === 'admin@faladobairro.com';
-
-        if (isDbAdmin || isSuperAdminEmail) {
-          setIsVerifiedAdmin(true);
-          return;
-        }
+      if (!authUser) {
+        setIsVerifiedAdmin(false);
+        return;
       }
 
-      // 2. Se logado pelo painel administrativo com credenciais salvas no backend
-      const adminToken = localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('marketplace_admin_auth') === 'true';
-      if (adminToken) {
-        const storedAdminEmail = (localStorage.getItem('admin_user') || localStorage.getItem('admin_custom_email') || '').toLowerCase();
-        
-        // Validar contra marketplace_settings no banco para garantir que a permissão é real no backend
-        const { data: dbAdminSetting } = await supabase
-          .from('marketplace_settings')
-          .select('value')
-          .eq('key', 'admin_email')
-          .maybeSingle();
+      // 2. Consultar se a conta no banco de dados possui perfil de admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, role, is_admin')
+        .eq('id', authUser.id)
+        .maybeSingle();
 
-        const officialAdminEmail = (dbAdminSetting?.value || 'lucianoalkine@gmail.com').toLowerCase();
+      const role = (profile?.role || '').toLowerCase();
+      const isDbAdmin = profile?.is_admin === true || role === 'admin';
 
-        if (storedAdminEmail === officialAdminEmail || storedAdminEmail === 'lucianoalkine@gmail.com' || storedAdminEmail === 'admin@faladobairro.com') {
-          setIsVerifiedAdmin(true);
-          return;
-        }
-      }
-
-      setIsVerifiedAdmin(false);
+      // Somente é admin se a tabela profiles confirmar que este usuário tem role/is_admin
+      setIsVerifiedAdmin(Boolean(isDbAdmin));
     } catch (e) {
       setIsVerifiedAdmin(false);
     }
@@ -612,29 +589,12 @@ function MarketplaceAdContent() {
       if (authUser) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id, role, is_admin, email')
+          .select('id, role, is_admin')
           .eq('id', authUser.id)
           .maybeSingle();
 
-        const email = (authUser.email || profile?.email || '').toLowerCase();
         const role = (profile?.role || '').toLowerCase();
-        if (profile?.is_admin === true || role === 'admin' || email === 'lucianoalkine@gmail.com' || email === 'admin@faladobairro.com') {
-          isAuthorized = true;
-        }
-      }
-
-      if (!isAuthorized) {
-        // Checar chave mestre de admin registrada no banco
-        const { data: dbAdminSetting } = await supabase
-          .from('marketplace_settings')
-          .select('value')
-          .eq('key', 'admin_email')
-          .maybeSingle();
-
-        const storedAdminEmail = (localStorage.getItem('admin_user') || localStorage.getItem('admin_custom_email') || '').toLowerCase();
-        const officialEmail = (dbAdminSetting?.value || 'lucianoalkine@gmail.com').toLowerCase();
-
-        if (storedAdminEmail && (storedAdminEmail === officialEmail || storedAdminEmail === 'lucianoalkine@gmail.com' || storedAdminEmail === 'admin@faladobairro.com')) {
+        if (profile?.is_admin === true || role === 'admin') {
           isAuthorized = true;
         }
       }
