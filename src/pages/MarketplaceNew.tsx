@@ -291,12 +291,19 @@ export default function MarketplaceNew() {
           }
         }
 
+        // Se der erro de restrição de chave estrangeira foreign key constraint no user_id, remove user_id e tenta novamente
+        if (updateError && (updateError.message?.includes('foreign key') || updateError.message?.includes('violates foreign key constraint') || updateError.message?.includes('marketplace_listings_user_id_fkey'))) {
+          delete listingPayload.user_id;
+          const retry = await attemptUpdate(listingPayload);
+          updateError = retry.error;
+        }
+
         if (updateError) throw updateError;
 
-        // Atualizar imagens
+        // Atualizar imagens (até 5 fotos)
         await supabase.from('marketplace_listing_images').delete().eq('listing_id', editId);
         if (imagePreviews.length > 0) {
-          const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
+          const imagesPayload = imagePreviews.slice(0, 5).map((imgUrl, idx) => ({
             listing_id: editId,
             image_url: imgUrl,
             is_primary: idx === primaryIndex,
@@ -329,25 +336,23 @@ export default function MarketplaceNew() {
           }
         }
 
-        if (listingError) {
-          // Fallback seguro caso user_id tenha restrição de chave estrangeira
-          if (listingPayload.user_id) {
-            delete listingPayload.user_id;
-            delete listingPayload.accepts_trade;
-            delete listingPayload.seller_avatar;
-            const { data: retryListing, error: retryErr } = await attemptInsert(listingPayload);
+        // Fallback seguro caso user_id tenha restrição de chave estrangeira (foreign key)
+        if (listingError && (listingPayload.user_id || listingError.message?.includes('foreign key') || listingError.message?.includes('violates foreign key constraint') || listingError.message?.includes('marketplace_listings_user_id_fkey'))) {
+          delete listingPayload.user_id;
+          delete listingPayload.accepts_trade;
+          delete listingPayload.seller_avatar;
+          const { data: retryListing, error: retryErr } = await attemptInsert(listingPayload);
 
-            if (retryErr) throw retryErr;
-            targetId = retryListing.id;
-          } else {
-            throw listingError;
-          }
+          if (retryErr) throw retryErr;
+          targetId = retryListing.id;
+        } else if (listingError) {
+          throw listingError;
         } else {
           targetId = newListing.id;
         }
 
         if (targetId && imagePreviews.length > 0) {
-          const imagesPayload = imagePreviews.map((imgUrl, idx) => ({
+          const imagesPayload = imagePreviews.slice(0, 5).map((imgUrl, idx) => ({
             listing_id: targetId,
             image_url: imgUrl,
             is_primary: idx === primaryIndex,
