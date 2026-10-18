@@ -17,22 +17,42 @@ export type { UserSession as UserSessionType };
  * Retorna o usuário logado atualmente de forma SÍNCRONA (0ms) a partir do cache local.
  * Essencial para evitar qualquer "flicker" ou atraso ao navegar entre o portal e o marketplace.
  */
+function sanitizeSessionUser(raw: any): UserSession | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const rawName = raw.name ?? raw.full_name ?? raw.user_metadata?.name ?? raw.user_metadata?.full_name ?? '';
+  const safeName = typeof rawName === 'string' && rawName.trim() ? rawName.trim() : (raw.email ? String(raw.email).split('@')[0] : 'Morador do Bairro');
+  const safeId = typeof raw.id === 'string' && raw.id ? raw.id : (raw.user_id ? String(raw.user_id) : 'user_auth');
+  const safeAvatar = typeof raw.avatar === 'string' ? raw.avatar : (typeof raw.avatar_url === 'string' ? raw.avatar_url : '');
+  const safeNeighborhood = typeof raw.neighborhood === 'string' ? raw.neighborhood : 'Mário Covas';
+  const safeWhatsapp = typeof raw.whatsapp === 'string' ? raw.whatsapp : '';
+  const safeEmail = typeof raw.email === 'string' ? raw.email : undefined;
+
+  return {
+    id: safeId,
+    name: safeName,
+    email: safeEmail,
+    avatar: safeAvatar,
+    neighborhood: safeNeighborhood,
+    whatsapp: safeWhatsapp
+  };
+}
+
 export function getAuthUserSync(): UserSession | null {
   try {
     // 1. Impersonação de administrador
     const impersonatedStr = localStorage.getItem('impersonatedUser');
     if (impersonatedStr) {
       const u = JSON.parse(impersonatedStr);
-      if (u && (u.id || u.name)) return u;
+      const sanitized = sanitizeSessionUser(u);
+      if (sanitized) return sanitized;
     }
 
     // 2. Objeto 'user' serializado
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
-      if (parsed && (parsed.id || parsed.name)) {
-        return parsed;
-      }
+      const sanitized = sanitizeSessionUser(parsed);
+      if (sanitized) return sanitized;
     }
 
     // 3. Chaves legacy do localStorage

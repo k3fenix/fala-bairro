@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { 
   Menu, X, ChevronRight, User, ShoppingBag, Bell, Newspaper, 
   Store, LogIn, LogOut, MapPin, Heart, Shield, MessageSquare
@@ -326,9 +325,9 @@ export default function Landing() {
             <Link 
               to="/login" 
               className="btn-header-auth" 
-              title={currentUser ? `Conectado como ${currentUser.name}` : "Entrar"}
+              title={currentUser ? `Conectado como ${typeof currentUser?.name === 'string' ? currentUser.name : 'Morador'}` : "Entrar"}
             >
-              👤 <span>{currentUser ? currentUser.name : 'Entrar / Cadastrar'}</span>
+              👤 <span>{currentUser ? (typeof currentUser?.name === 'string' ? currentUser.name : 'Morador') : 'Entrar / Cadastrar'}</span>
             </Link>
             <button
               type="button"
@@ -1146,7 +1145,7 @@ export default function Landing() {
       {/* =========================================================================
           MENU LATERAL GAVETA NO LADO DIREITO (DRAWER DIREITO ELEGANTE)
           ========================================================================= */}
-      {drawerOpen && typeof document !== 'undefined' && createPortal(
+      {drawerOpen && (
         <div className="landing-drawer-overlay">
           {/* Backdrop escurecido */}
           <div 
@@ -1162,8 +1161,12 @@ export default function Landing() {
                 {currentUser ? (
                   <div className="landing-drawer-avatar-wrap">
                     <img 
-                      src={currentUser?.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(currentUser?.name || 'Morador')}`} 
-                      alt={currentUser?.name || 'Morador'}
+                      src={
+                        (typeof currentUser.avatar === 'string' && currentUser.avatar)
+                          ? currentUser.avatar
+                          : `https://i.pravatar.cc/150?u=${encodeURIComponent(typeof currentUser.name === 'string' ? currentUser.name : 'Morador')}`
+                      } 
+                      alt={typeof currentUser.name === 'string' ? currentUser.name : 'Morador'}
                       className="landing-drawer-avatar"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src = '/logo-fala-bairro.svg';
@@ -1182,7 +1185,7 @@ export default function Landing() {
                 )}
                 <div>
                   <h3 className="landing-drawer-user-name">
-                    {currentUser?.name || 'Fala do Bairro'}
+                    {typeof currentUser?.name === 'string' && currentUser.name ? currentUser.name : 'Fala do Bairro'}
                   </h3>
                   <p className="landing-drawer-user-sub">
                     {currentUser ? 'Vizinho ativo' : 'Portal Comunitário'}
@@ -1406,8 +1409,7 @@ export default function Landing() {
               )}
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
     </div>
