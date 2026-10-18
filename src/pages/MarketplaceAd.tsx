@@ -2,6 +2,7 @@
 import React, { useEffect, useState, Component, type ReactNode } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
+import { supabase as supabaseMain } from '../lib/supabase';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, AlertTriangle, 
   MapPin, Repeat, CheckCircle, PlayCircle, Edit3, ShieldAlert,
@@ -412,55 +413,78 @@ function MarketplaceAdContent() {
         setGalleryImages([data.image_url || data.image]);
       }
 
-      // Buscar informações públicas e avatar do vendedor proprietário
+      // Buscar informações públicas e avatar do autor da postagem (funciona para visitantes deslogados)
       let resolvedSeller: any = null;
 
+      // 1. Tentar buscar pelo user_id em ambos os bancos (principal e marketplace)
       if (data.user_id) {
         try {
-          const { data: sellerData } = await supabase
+          const { data: sData } = await supabaseMain
             .from('profiles')
             .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
             .eq('id', data.user_id)
             .maybeSingle();
-          if (sellerData) {
-            resolvedSeller = sellerData;
+          if (sData && (sData.avatar || sData.avatar_url || sData.name)) {
+            resolvedSeller = sData;
           }
         } catch (_) {}
+
+        if (!resolvedSeller) {
+          try {
+            const { data: sDataMkt } = await supabase
+              .from('profiles')
+              .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
+              .eq('id', data.user_id)
+              .maybeSingle();
+            if (sDataMkt && (sDataMkt.avatar || sDataMkt.avatar_url || sDataMkt.name)) {
+              resolvedSeller = sDataMkt;
+            }
+          } catch (_) {}
+        }
       }
 
-      // Se não encontrou por ID (ex: anúncio antigo ou chave legada), tenta encontrar pelo nome do vendedor
-      if (!resolvedSeller && data.seller_name) {
+      // 2. Se não encontrou por ID (ex: anúncio com ID antigo ou nome gravado), buscar pelo nome do autor na tabela profiles
+      if ((!resolvedSeller || (!resolvedSeller.avatar && !resolvedSeller.avatar_url)) && data.seller_name) {
+        const cleanName = data.seller_name.trim();
         try {
-          const { data: profileByName } = await supabase
+          const { data: pData } = await supabaseMain
             .from('profiles')
             .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
-            .ilike('name', data.seller_name.trim())
+            .ilike('name', cleanName)
             .maybeSingle();
-          if (profileByName) {
-            resolvedSeller = profileByName;
+          if (pData && (pData.avatar || pData.avatar_url)) {
+            resolvedSeller = { ...resolvedSeller, ...pData };
           }
         } catch (_) {}
+
+        if (!resolvedSeller || (!resolvedSeller.avatar && !resolvedSeller.avatar_url)) {
+          try {
+            const { data: pDataMkt } = await supabase
+              .from('profiles')
+              .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
+              .ilike('name', cleanName)
+              .maybeSingle();
+            if (pDataMkt && (pDataMkt.avatar || pDataMkt.avatar_url)) {
+              resolvedSeller = { ...resolvedSeller, ...pDataMkt };
+            }
+          } catch (_) {}
+        }
       }
 
-      // Se o usuário logado atualmente for o dono do anúncio, sincroniza imediatamente com seu avatar atualizado
-      if (currentUser && ((data.user_id && currentUser.id === data.user_id) || (currentUser.name && data.seller_name && currentUser.name.trim().toLowerCase() === data.seller_name.trim().toLowerCase()))) {
-        resolvedSeller = {
-          ...resolvedSeller,
-          name: currentUser.name || resolvedSeller?.name || data.seller_name,
-          avatar: currentUser.avatar || resolvedSeller?.avatar || resolvedSeller?.avatar_url,
-          avatar_url: currentUser.avatar || resolvedSeller?.avatar_url || resolvedSeller?.avatar,
-          neighborhood: currentUser.neighborhood || resolvedSeller?.neighborhood || data.neighborhood
-        };
-      }
+      // 3. Resolver avatar final:
+      // Se tiver avatar no perfil encontrado, usa. Se não, tenta o avatar salvo no próprio anúncio, e se não tiver, gera avatar fotográfico personalizado pelo nome do autor (como no Feed e Register)
+      const sellerDisplayName = resolvedSeller?.name || resolvedSeller?.full_name || data.seller_name || 'Morador do Bairro';
+      const cleanAvatarFromProfile = resolvedSeller?.avatar_url || resolvedSeller?.avatar;
+      const cleanAvatarFromAd = data.seller_avatar || data.avatar;
+      
+      const finalAvatar = cleanAvatarFromProfile || cleanAvatarFromAd || `https://i.pravatar.cc/150?u=${encodeURIComponent(sellerDisplayName)}`;
 
-      if (resolvedSeller) {
-        setSeller(resolvedSeller);
-      } else {
-        setSeller({
-          name: data.seller_name || 'Morador do Bairro',
-          neighborhood: data.neighborhood || 'Mário Covas'
-        });
-      }
+      setSeller({
+        name: sellerDisplayName,
+        avatar: finalAvatar,
+        avatar_url: finalAvatar,
+        neighborhood: resolvedSeller?.neighborhood || data.neighborhood || 'Mário Covas'
+      });
     } else {
       // 2. Fallback para marketplace_items (legado)
       const { data: itemData } = await supabase.from('marketplace_items').select('*').eq('id', id).single();
@@ -489,14 +513,28 @@ function MarketplaceAdContent() {
         let sellerObj: any = { name: itemData.seller_name || 'Vendedor do Bairro' };
         if (itemData.seller_name) {
           try {
-            const { data: p } = await supabase
+            const { data: p } = await supabaseMain
               .from('profiles')
               .select('name, full_name, avatar_url, avatar')
               .ilike('name', itemData.seller_name.trim())
               .maybeSingle();
-            if (p) sellerObj = { ...sellerObj, ...p };
+            if (p && (p.avatar || p.avatar_url)) sellerObj = { ...sellerObj, ...p };
           } catch (_) {}
+
+          if (!sellerObj.avatar && !sellerObj.avatar_url) {
+            try {
+              const { data: pMkt } = await supabase
+                .from('profiles')
+                .select('name, full_name, avatar_url, avatar')
+                .ilike('name', itemData.seller_name.trim())
+                .maybeSingle();
+              if (pMkt && (pMkt.avatar || pMkt.avatar_url)) sellerObj = { ...sellerObj, ...pMkt };
+            } catch (_) {}
+          }
         }
+        const finalLegAvatar = sellerObj.avatar_url || sellerObj.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(sellerObj.name || 'vendedor')}`;
+        sellerObj.avatar = finalLegAvatar;
+        sellerObj.avatar_url = finalLegAvatar;
         setSeller(sellerObj);
       }
     }
@@ -1029,6 +1067,11 @@ function MarketplaceAdContent() {
                   <img 
                     src={seller.avatar_url || seller.avatar} 
                     alt="Anunciante" 
+                    onError={(e: any) => {
+                      const name = seller?.name || ad.seller_name || 'Morador';
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ff6500&color=fff&bold=true`;
+                    }}
                     className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 shadow-xs" 
                   />
                 ) : (
