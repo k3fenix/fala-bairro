@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Menu, X, ChevronRight, User, ShoppingBag, Bell, Newspaper, 
-  Store, LogIn, LogOut, MapPin, Heart, Shield
+  Store, LogIn, LogOut, MapPin, Heart, Shield, MessageSquare
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -1161,9 +1161,12 @@ export default function Landing() {
                 {currentUser ? (
                   <div className="landing-drawer-avatar-wrap">
                     <img 
-                      src={currentUser.avatar || `https://i.pravatar.cc/150?u=${currentUser.name}`} 
-                      alt={currentUser.name}
+                      src={currentUser?.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(currentUser?.name || 'Morador')}`} 
+                      alt={currentUser?.name || 'Morador'}
                       className="landing-drawer-avatar"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = '/logo-fala-bairro.svg';
+                      }}
                     />
                     <span className="landing-drawer-online-dot"></span>
                   </div>
@@ -1178,7 +1181,7 @@ export default function Landing() {
                 )}
                 <div>
                   <h3 className="landing-drawer-user-name">
-                    {currentUser ? currentUser.name : 'Fala do Bairro'}
+                    {currentUser?.name || 'Fala do Bairro'}
                   </h3>
                   <p className="landing-drawer-user-sub">
                     {currentUser ? 'Vizinho ativo' : 'Portal Comunitário'}

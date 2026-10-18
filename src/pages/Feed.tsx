@@ -462,11 +462,27 @@ export default function Feed() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
         currentUserId = user.id;
+        try {
+          if (currentUserId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(currentUserId)) {
+            const { data: pCheck } = await supabase.from('profiles').select('id').eq('id', currentUserId).maybeSingle();
+            if (!pCheck) {
+              await supabase.from('profiles').insert([{
+                id: currentUserId,
+                name: userName || 'Morador',
+                full_name: userName || 'Morador',
+                avatar: userAvatar || '',
+                avatar_url: userAvatar || '',
+                handle: `@${(userName || 'morador').toLowerCase().replace(/\s+/g, '')}`,
+                neighborhood: postNeighborhood || 'Mário Covas'
+              }]);
+            }
+          }
+        } catch (_) {}
       }
       
       const { error } = await supabase.from('posts').insert([
         {
-          author_id: currentUserId,
+          author_id: (currentUserId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(currentUserId)) ? currentUserId : null,
           author_name: userName,
           author_avatar: userAvatar,
           handle: `@${userName.toLowerCase().replace(/\s+/g, '')}`,
