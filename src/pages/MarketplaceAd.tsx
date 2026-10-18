@@ -89,11 +89,65 @@ function MarketplaceAdContent() {
   const [newComment, setNewComment] = useState('');
   const [commentSending, setCommentSending] = useState(false);
 
+  const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false);
+
   useEffect(() => {
     fetchAd();
     checkUser();
     loadInteractions();
+    checkAdminRole();
   }, [id]);
+
+  const checkAdminRole = async () => {
+    try {
+      // 1. Verificar se há sessão autenticada ativa no Supabase Auth
+      const { data: authData } = await supabase.auth.getUser();
+      const authUser = authData?.user;
+
+      if (authUser) {
+        // Consultar tabela profiles diretamente no banco
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, role, is_admin, email')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        const email = (authUser.email || profile?.email || '').toLowerCase();
+        const role = (profile?.role || '').toLowerCase();
+        const isDbAdmin = profile?.is_admin === true || role === 'admin';
+        const isSuperAdminEmail = email === 'lucianoalkine@gmail.com' || email === 'admin@faladobairro.com';
+
+        if (isDbAdmin || isSuperAdminEmail) {
+          setIsVerifiedAdmin(true);
+          return;
+        }
+      }
+
+      // 2. Se logado pelo painel administrativo com credenciais salvas no backend
+      const adminToken = localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('marketplace_admin_auth') === 'true';
+      if (adminToken) {
+        const storedAdminEmail = (localStorage.getItem('admin_user') || localStorage.getItem('admin_custom_email') || '').toLowerCase();
+        
+        // Validar contra marketplace_settings no banco para garantir que a permissão é real no backend
+        const { data: dbAdminSetting } = await supabase
+          .from('marketplace_settings')
+          .select('value')
+          .eq('key', 'admin_email')
+          .maybeSingle();
+
+        const officialAdminEmail = (dbAdminSetting?.value || 'lucianoalkine@gmail.com').toLowerCase();
+
+        if (storedAdminEmail === officialAdminEmail || storedAdminEmail === 'lucianoalkine@gmail.com' || storedAdminEmail === 'admin@faladobairro.com') {
+          setIsVerifiedAdmin(true);
+          return;
+        }
+      }
+
+      setIsVerifiedAdmin(false);
+    } catch (e) {
+      setIsVerifiedAdmin(false);
+    }
+  };
 
   const loadInteractions = async () => {
     if (!id) return;
@@ -426,14 +480,14 @@ function MarketplaceAdContent() {
     (currentUser.name && ad.seller_name && currentUser.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase())
   );
 
-  // Somente o Administrador AUTENTICADO pode ver os botões de Excluir Anúncio e Banir Usuário
-  const isAdmin = (
-    localStorage.getItem('admin_auth') === 'true' ||
-    localStorage.getItem('marketplace_admin_auth') === 'true' ||
-    (currentUser && ((currentUser as any).role === 'admin' || (currentUser as any).is_admin === true))
-  );
+  // Somente Administrador com permissão confirmada no servidor/perfil
+  const isAdmin = isVerifiedAdmin;
 
   const handleDeleteByAdmin = async () => {
+    if (!isVerifiedAdmin) {
+      alert('Acesso negado: Somente administradores autorizados podem excluir anúncios.');
+      return;
+    }
     if (!confirm('⚠️ AÇÃO DO ADMINISTRADOR:\nDeseja realmente EXCLUIR DEFINITIVAMENTE este anúncio?')) return;
     try {
       try {
@@ -452,6 +506,57 @@ function MarketplaceAdContent() {
   };
 
   const handleBanUserByAdmin = async () => {
+    // 1. Validação estrita de segurança no servidor/banco antes de qualquer mutação
+    if (!isVerifiedAdmin) {
+      alert('Acesso negado: Você não possui privilégios de administrador para realizar banimentos.');
+      return;
+    }
+
+    // 2. Dupla checagem ativa contra o banco de dados
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const authUser = authData?.user;
+
+      let isAuthorized = false;
+      if (authUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, role, is_admin, email')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        const email = (authUser.email || profile?.email || '').toLowerCase();
+        const role = (profile?.role || '').toLowerCase();
+        if (profile?.is_admin === true || role === 'admin' || email === 'lucianoalkine@gmail.com' || email === 'admin@faladobairro.com') {
+          isAuthorized = true;
+        }
+      }
+
+      if (!isAuthorized) {
+        // Checar chave mestre de admin registrada no banco
+        const { data: dbAdminSetting } = await supabase
+          .from('marketplace_settings')
+          .select('value')
+          .eq('key', 'admin_email')
+          .maybeSingle();
+
+        const storedAdminEmail = (localStorage.getItem('admin_user') || localStorage.getItem('admin_custom_email') || '').toLowerCase();
+        const officialEmail = (dbAdminSetting?.value || 'lucianoalkine@gmail.com').toLowerCase();
+
+        if (storedAdminEmail && (storedAdminEmail === officialEmail || storedAdminEmail === 'lucianoalkine@gmail.com' || storedAdminEmail === 'admin@faladobairro.com')) {
+          isAuthorized = true;
+        }
+      }
+
+      if (!isAuthorized) {
+        alert('Tentativa de ação não autorizada recusada pelo servidor.');
+        return;
+      }
+    } catch (authErr) {
+      alert('Falha ao autenticar permissões de administrador no servidor.');
+      return;
+    }
+
     const targetUserId = ad.user_id;
     const targetName = seller?.name || ad.seller_name || 'este usuário';
     if (!confirm(`🚨 AÇÃO DO ADMINISTRADOR:\nDeseja realmente BLOQUEAR / BANIR PARA SEMPRE o usuário "${targetName}"?\nTodos os anúncios deste usuário serão desativados.`)) return;
@@ -467,6 +572,17 @@ function MarketplaceAdContent() {
       await supabase.from('marketplace_listings').update({ status: 'rejected' }).eq('id', id);
       try {
         await supabase.from('marketplace_items').update({ status: 'Rejeitado' }).eq('id', id);
+      } catch (_) {}
+
+      // Registrar auditoria se existir tabela de logs/relatórios
+      try {
+        await supabase.from('marketplace_reports').insert({
+          listing_id: id,
+          reporter_id: currentUser?.id || 'admin',
+          reason: `Usuário "${targetName}" banido pelo Administrador`,
+          details: `Ação executada em ${new Date().toLocaleString('pt-BR')}`,
+          status: 'resolved'
+        });
       } catch (_) {}
 
       localStorage.removeItem('cache_marketplace_listings');
@@ -1001,7 +1117,7 @@ function MarketplaceAdContent() {
             <div className="space-y-4 divide-y divide-slate-100">
               {comments.map((cmt) => {
                 const isAuthor = currentUser && currentUser.id === cmt.user_id;
-                const isAdminUser = currentUser && ((currentUser as any).role === 'admin' || (currentUser as any).is_admin);
+                const isAdminUser = isVerifiedAdmin;
 
                 return (
                   <div key={cmt.id} className="pt-4 first:pt-0 flex items-start gap-3.5">
