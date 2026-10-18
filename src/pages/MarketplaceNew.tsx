@@ -75,8 +75,13 @@ export default function MarketplaceNew() {
             return;
           }
 
-          // Verificação de segurança: autorizar apenas o dono do anúncio
-          if (ad.user_id && user.id && ad.user_id !== user.id && ad.seller_name !== user.name) {
+          // Verificação de segurança: autorizar apenas o dono do anúncio ou administrador
+          const isOwnerUser = (ad.user_id && user.id && String(ad.user_id) === String(user.id)) ||
+            (!ad.user_id && user.name && ad.seller_name && user.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase());
+          
+          const isAdminUser = localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('marketplace_admin_auth') === 'true';
+
+          if (!isOwnerUser && !isAdminUser) {
             alert('Acesso negado: Você só pode editar os seus próprios anúncios.');
             navigate('/marketplace/meus-anuncios');
             return;
@@ -245,6 +250,23 @@ export default function MarketplaceNew() {
       let targetId = editId;
 
       if (isEditing && editId) {
+        // Validação de segurança: garantir que o usuário é o dono ou admin antes de salvar no banco
+        const { data: existingAd } = await supabase
+          .from('marketplace_listings')
+          .select('user_id, seller_name')
+          .eq('id', editId)
+          .single();
+
+        const isOwnerUser = existingAd && (
+          (existingAd.user_id && userId && String(existingAd.user_id) === String(userId)) ||
+          (!existingAd.user_id && user?.name && existingAd.seller_name && user.name.trim().toLowerCase() === existingAd.seller_name.trim().toLowerCase())
+        );
+        const isAdminUser = localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('marketplace_admin_auth') === 'true';
+
+        if (!isOwnerUser && !isAdminUser) {
+          throw new Error('Acesso negado: Você não possui permissão para modificar este anúncio.');
+        }
+
         // Atualizar anúncio existente
         const { error: updateError } = await supabase
           .from('marketplace_listings')

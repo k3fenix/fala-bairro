@@ -4,7 +4,8 @@ import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
 import { 
   ArrowLeft, Heart, Share2, MessageCircle, AlertTriangle, 
   MapPin, Repeat, CheckCircle, PlayCircle, Edit3, ShieldAlert,
-  Clock, Sparkles, X, ChevronRight, Eye, PlusCircle, ShieldCheck
+  Clock, Sparkles, X, ChevronRight, Eye, PlusCircle, ShieldCheck,
+  Trash2
 } from 'lucide-react';
 import { getAuthUser, type UserSession } from '../lib/authHelper';
 import { useAuth } from '../context/AuthContext';
@@ -304,17 +305,103 @@ function MarketplaceAdContent() {
   };
 
   const handleMarkAsSold = async () => {
+    // 1. Validar autenticação e propriedade
+    const user = currentUser || (await getAuthUser());
+    if (!user) {
+      alert('Você precisa estar conectado à sua conta para gerenciar anúncios.');
+      navigate(`/login?redirect=/marketplace/anuncio/${id}`);
+      return;
+    }
+
+    const hasOwnerPermission = (ad?.user_id && user.id === ad.user_id) || 
+      (user.name && ad?.seller_name && user.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase()) ||
+      isVerifiedAdmin;
+
+    if (!hasOwnerPermission) {
+      alert('Acesso negado: Somente o proprietário deste anúncio pode alterar seu status.');
+      return;
+    }
+
     if (!confirm('Deseja marcar este anúncio como VENDIDO? Ele ficará visível com o selo de produto finalizado.')) return;
-    await supabase.from('marketplace_listings').update({ status: 'sold' }).eq('id', id);
-    await supabase.from('marketplace_items').update({ status: 'Vendido' }).eq('id', id);
-    fetchAd();
+    
+    try {
+      await supabase.from('marketplace_listings').update({ status: 'sold' }).eq('id', id);
+      try {
+        await supabase.from('marketplace_items').update({ status: 'Vendido' }).eq('id', id);
+      } catch (_) {}
+      localStorage.removeItem('cache_marketplace_listings');
+      fetchAd();
+    } catch (err: any) {
+      alert('Erro ao atualizar status: ' + err.message);
+    }
   };
 
   const handleReactivate = async () => {
+    // 1. Validar autenticação e propriedade
+    const user = currentUser || (await getAuthUser());
+    if (!user) {
+      alert('Você precisa estar conectado à sua conta para gerenciar anúncios.');
+      navigate(`/login?redirect=/marketplace/anuncio/${id}`);
+      return;
+    }
+
+    const hasOwnerPermission = (ad?.user_id && user.id === ad.user_id) || 
+      (user.name && ad?.seller_name && user.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase()) ||
+      isVerifiedAdmin;
+
+    if (!hasOwnerPermission) {
+      alert('Acesso negado: Somente o proprietário deste anúncio pode reativá-lo.');
+      return;
+    }
+
     if (!confirm('Deseja reativar este anúncio no Marketplace?')) return;
-    await supabase.from('marketplace_listings').update({ status: 'approved' }).eq('id', id);
-    await supabase.from('marketplace_items').update({ status: 'Ativo' }).eq('id', id);
-    fetchAd();
+
+    try {
+      await supabase.from('marketplace_listings').update({ status: 'approved' }).eq('id', id);
+      try {
+        await supabase.from('marketplace_items').update({ status: 'Ativo' }).eq('id', id);
+      } catch (_) {}
+      localStorage.removeItem('cache_marketplace_listings');
+      fetchAd();
+    } catch (err: any) {
+      alert('Erro ao reativar anúncio: ' + err.message);
+    }
+  };
+
+  const handleOwnerDelete = async () => {
+    // 1. Validar autenticação e propriedade
+    const user = currentUser || (await getAuthUser());
+    if (!user) {
+      alert('Você precisa estar conectado à sua conta para excluir anúncios.');
+      navigate(`/login?redirect=/marketplace/anuncio/${id}`);
+      return;
+    }
+
+    const hasOwnerPermission = (ad?.user_id && user.id === ad.user_id) || 
+      (user.name && ad?.seller_name && user.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase()) ||
+      isVerifiedAdmin;
+
+    if (!hasOwnerPermission) {
+      alert('Acesso negado: Você só pode excluir os seus próprios anúncios.');
+      return;
+    }
+
+    if (!confirm('⚠️ Tem certeza que deseja EXCLUIR DEFINITIVAMENTE o seu anúncio? Esta ação não pode ser desfeita.')) return;
+
+    try {
+      try {
+        await supabase.from('marketplace_listing_images').delete().eq('listing_id', id);
+      } catch (_) {}
+      await supabase.from('marketplace_listings').delete().eq('id', id);
+      try {
+        await supabase.from('marketplace_items').delete().eq('id', id);
+      } catch (_) {}
+      localStorage.removeItem('cache_marketplace_listings');
+      alert('Seu anúncio foi excluído com sucesso!');
+      navigate('/marketplace');
+    } catch (err: any) {
+      alert('Erro ao excluir anúncio: ' + err.message);
+    }
   };
 
   const fetchAd = async () => {
@@ -475,9 +562,12 @@ function MarketplaceAdContent() {
     );
   }
 
-  const isOwner = currentUser && (
-    (ad.user_id && currentUser.id === ad.user_id) || 
-    (currentUser.name && ad.seller_name && currentUser.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase())
+  // Validação estrita de propriedade do anúncio pelo ID do usuário autenticado
+  const isOwner = Boolean(
+    currentUser?.id && (
+      (ad.user_id && String(currentUser.id) === String(ad.user_id)) ||
+      (!ad.user_id && currentUser.name && ad.seller_name && currentUser.name.trim().toLowerCase() === ad.seller_name.trim().toLowerCase())
+    )
   );
 
   // Somente Administrador com permissão confirmada no servidor/perfil
@@ -715,7 +805,7 @@ function MarketplaceAdContent() {
 
         {/* BARRA DO ANUNCIANTE COMUM (NÃO-ADMIN): Apenas editar seu próprio produto */}
         {!isAdmin && isOwner && (
-          <div className="mb-4 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs border bg-orange-50 border-orange-200">
+          <div className="mb-4 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs border bg-orange-50/90 border-orange-200">
             <span className="text-xs sm:text-sm font-black flex items-center gap-2 text-orange-950">
               ⚙️ Você é o anunciante deste produto:
             </span>
@@ -725,7 +815,7 @@ function MarketplaceAdContent() {
                 to={`/marketplace/editar/${ad.id}`}
                 className="bg-white border border-slate-300 hover:border-orange-500 text-slate-800 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
               >
-                <Edit3 className="w-3.5 h-3.5 text-[#ff6500]" /> Editar Meu Anúncio
+                <Edit3 className="w-3.5 h-3.5 text-[#ff6500]" /> Editar Anúncio
               </Link>
 
               {!isSold ? (
@@ -733,16 +823,24 @@ function MarketplaceAdContent() {
                   onClick={handleMarkAsSold} 
                   className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 >
-                  <CheckCircle className="w-3.5 h-3.5" /> Marcar como Vendido
+                  <CheckCircle className="w-3.5 h-3.5" /> Marcar Vendido
                 </button>
               ) : (
                 <button 
                   onClick={handleReactivate} 
                   className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 >
-                  <PlayCircle className="w-3.5 h-3.5" /> Reativar Meu Anúncio
+                  <PlayCircle className="w-3.5 h-3.5" /> Reativar
                 </button>
               )}
+
+              <button 
+                onClick={handleOwnerDelete}
+                className="bg-white hover:bg-red-50 text-red-600 border border-red-200 hover:border-red-400 text-xs font-black px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                title="Excluir o meu anúncio permanentemente"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Excluir Anúncio
+              </button>
             </div>
           </div>
         )}
