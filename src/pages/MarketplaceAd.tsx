@@ -1,3 +1,4 @@
+// Force deployment v2.1.0 - Feira do Rolo
 import React, { useEffect, useState, Component, type ReactNode } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabaseMarketplace as supabase } from '../lib/supabaseMarketplace';
