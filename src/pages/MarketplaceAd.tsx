@@ -412,14 +412,54 @@ function MarketplaceAdContent() {
         setGalleryImages([data.image_url || data.image]);
       }
 
-      // Buscar informações públicas do vendedor
+      // Buscar informações públicas e avatar do vendedor proprietário
+      let resolvedSeller: any = null;
+
       if (data.user_id) {
-        const { data: sellerData } = await supabase
-          .from('profiles')
-          .select('name, full_name, avatar_url, avatar, created_at, neighborhood')
-          .eq('id', data.user_id)
-          .maybeSingle();
-        if (sellerData) setSeller(sellerData);
+        try {
+          const { data: sellerData } = await supabase
+            .from('profiles')
+            .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
+            .eq('id', data.user_id)
+            .maybeSingle();
+          if (sellerData) {
+            resolvedSeller = sellerData;
+          }
+        } catch (_) {}
+      }
+
+      // Se não encontrou por ID (ex: anúncio antigo ou chave legada), tenta encontrar pelo nome do vendedor
+      if (!resolvedSeller && data.seller_name) {
+        try {
+          const { data: profileByName } = await supabase
+            .from('profiles')
+            .select('id, name, full_name, avatar_url, avatar, created_at, neighborhood')
+            .ilike('name', data.seller_name.trim())
+            .maybeSingle();
+          if (profileByName) {
+            resolvedSeller = profileByName;
+          }
+        } catch (_) {}
+      }
+
+      // Se o usuário logado atualmente for o dono do anúncio, sincroniza imediatamente com seu avatar atualizado
+      if (currentUser && ((data.user_id && currentUser.id === data.user_id) || (currentUser.name && data.seller_name && currentUser.name.trim().toLowerCase() === data.seller_name.trim().toLowerCase()))) {
+        resolvedSeller = {
+          ...resolvedSeller,
+          name: currentUser.name || resolvedSeller?.name || data.seller_name,
+          avatar: currentUser.avatar || resolvedSeller?.avatar || resolvedSeller?.avatar_url,
+          avatar_url: currentUser.avatar || resolvedSeller?.avatar_url || resolvedSeller?.avatar,
+          neighborhood: currentUser.neighborhood || resolvedSeller?.neighborhood || data.neighborhood
+        };
+      }
+
+      if (resolvedSeller) {
+        setSeller(resolvedSeller);
+      } else {
+        setSeller({
+          name: data.seller_name || 'Morador do Bairro',
+          neighborhood: data.neighborhood || 'Mário Covas'
+        });
       }
     } else {
       // 2. Fallback para marketplace_items (legado)
@@ -444,7 +484,20 @@ function MarketplaceAdContent() {
         };
         setAd(converted);
         if (itemData.image) setGalleryImages([itemData.image]);
-        setSeller({ name: itemData.seller_name || 'Vendedor do Bairro' });
+
+        // Tentar obter avatar pelo seller_name
+        let sellerObj: any = { name: itemData.seller_name || 'Vendedor do Bairro' };
+        if (itemData.seller_name) {
+          try {
+            const { data: p } = await supabase
+              .from('profiles')
+              .select('name, full_name, avatar_url, avatar')
+              .ilike('name', itemData.seller_name.trim())
+              .maybeSingle();
+            if (p) sellerObj = { ...sellerObj, ...p };
+          } catch (_) {}
+        }
+        setSeller(sellerObj);
       }
     }
     setLoading(false);
